@@ -1,0 +1,199 @@
+/* vvp/config.h.  Generated from config.h.in by configure.  */
+#ifndef IVL_config_H
+#define IVL_config_H
+/*
+ * Copyright (c) 2001-2014 Stephen Williams (steve@icarus.com)
+ *
+ *    This source code is free software; you can redistribute it
+ *    and/or modify it in source code form under the terms of the GNU
+ *    General Public License as published by the Free Software
+ *    Foundation; either version 2 of the License, or (at your option)
+ *    any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program; if not, write to the Free Software
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+#if defined(__cplusplus)
+#  if !defined(__GNUC__)
+     using namespace std;
+#  elif (__GNUC__ == 3)
+     using namespace std;
+#  endif
+#endif
+
+# define SIZEOF_UNSIGNED_LONG_LONG 8
+#ifndef SIZEOF_UNSIGNED_LONG
+# define SIZEOF_UNSIGNED_LONG 8
+#endif
+# define SIZEOF_UNSIGNED 4
+
+/* # undef NEED_LU */
+/* # undef NEED_TU */
+/* # undef WLU */
+/* # undef WTU */
+# define HAVE_IOSFWD 1
+# define HAVE_DLFCN_H 1
+/* # undef HAVE_DL_H */
+# define HAVE_GETOPT_H 1
+/* # undef HAVE_LIBREADLINE */
+/* # undef HAVE_READLINE_READLINE_H */
+/* # undef HAVE_LIBHISTORY */
+/* # undef HAVE_READLINE_HISTORY_H */
+# define HAVE_INTTYPES_H 1
+# define HAVE_LROUND 1
+# define HAVE_LLROUND 1
+# define HAVE_NAN 1
+# define UINT64_T_AND_ULONG_SAME 1
+
+/*
+ * Define this if you want to compile vvp with memory freeing and
+ * special valgrind hooks for the memory pools.
+ */
+/* # undef CHECK_WITH_VALGRIND */
+
+/* Figure if I can use readline. */
+/* #undef USE_READLINE */
+#ifdef HAVE_LIBREADLINE
+#ifdef HAVE_READLINE_READLINE_H
+# define USE_READLINE
+#endif
+#endif
+
+/* Figure if I can use history. */
+/* #undef USE_HISTORY */
+#ifdef HAVE_LIBHISTORY
+#ifdef HAVE_READLINE_HISTORY_H
+# define USE_HISTORY
+#endif
+#endif
+
+#ifndef MODULE_DIR
+# define MODULE_DIR "."
+#endif
+
+#ifdef HAVE_INTTYPES_H
+/* This is needed in C++ to get the PRI?64 formats. */
+# ifndef __STDC_FORMAT_MACROS
+#  define __STDC_FORMAT_MACROS
+# endif
+# include  <inttypes.h>
+
+typedef uint64_t vvp_time64_t;
+
+# define TIME_FMT_O PRIo64
+# define TIME_FMT_U PRIu64
+# define TIME_FMT_X PRIx64
+
+# ifdef UINT64_T_AND_ULONG_SAME
+#  define UL_AND_TIME64_SAME
+# endif
+
+#else /* HAVE_INTTYPES_H */
+
+
+#if SIZEOF_UNSIGNED >= 8
+typedef unsigned vvp_time64_t;
+# define TIME_FMT_O "o"
+# define TIME_FMT_U "u"
+# define TIME_FMT_X "x"
+#else
+# if SIZEOF_UNSIGNED_LONG >= 8
+typedef unsigned long vvp_time64_t;
+#  define UL_AND_TIME64_SAME
+#  define TIME_FMT_O "lo"
+#  define TIME_FMT_U "lu"
+#  define TIME_FMT_X "lx"
+# else
+#  if SIZEOF_UNSIGNED_LONG_LONG > SIZEOF_UNSIGNED_LONG
+typedef unsigned long long vvp_time64_t;
+#   define TIME_FMT_O "llo"
+#   define TIME_FMT_U "llu"
+#   define TIME_FMT_X "llx"
+#  else
+typedef unsigned long vvp_time64_t;
+#   define UL_AND_TIME64_SAME
+#   define TIME_FMT_O "lo"
+#   define TIME_FMT_U "lu"
+#   define TIME_FMT_X "lx"
+#  endif
+# endif
+#endif
+
+#endif /* HAVE_INTTYPES_H */
+
+# include  <cmath>
+
+/* getrusage, /proc/self/statm */
+
+# define HAVE_SYS_RESOURCE_H 1
+# define LINUX 1
+
+#if !defined(HAVE_LROUND)
+/*
+ * If the system doesn't provide the lround function, then we provide
+ * it ourselves here. It is simply the nearest integer, rounded away
+ * from zero.
+ */
+inline long int lround(double x)
+{
+      if (x >= 0.0)
+	    return (long)floor(x+0.5);
+      else
+	    return (long)ceil(x-0.5);
+}
+#endif /* HAVE_LROUND */
+
+#if ((SIZEOF_UNSIGNED_LONG < 8) && (SIZEOF_UNSIGNED_LONG_LONG >= 8))
+#if !defined(HAVE_LLROUND)
+/*
+ * We also need an equivalent function with a 64-bit return value if
+ * it is not available.
+ */
+inline int64_t i64round(double x)
+{
+      if (x >= 0.0)
+	    return (int64_t)floor(x+0.5);
+      else
+	    return (int64_t)ceil(x-0.5);
+}
+#else /* HAVE_LLROUND */
+# define i64round llround
+#endif /* HAVE_LLROUND */
+#else
+# define i64round lround
+#endif
+
+#if !defined(HAVE_NAN)
+# define nan(x) (NAN)
+#endif
+
+#if !defined(INFINITY)
+# define INFINITY HUGE_VAL
+#endif
+
+/*
+ * When doing dynamic linking, we need a uniform way to identify the
+ * symbol. Some compilers put leading _, some trailing _. The
+ * configure script figures out which is the local convention and
+ * defines NEED_LU and NEED_TU as required.
+ */
+#ifdef NEED_LU
+#define LU "_"
+#else
+#define LU ""
+#endif
+
+#ifdef NEED_TU
+#define TU "_"
+#else
+#define TU ""
+#endif
+
+#endif /* IVL_config_H */

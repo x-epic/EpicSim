@@ -1,0 +1,35 @@
+1.0 Building/Installing EpicSim From Source
+
+If you are starting from the source, the build process is designed to be
+as simple as practical. Someone basically familiar with the target
+system and C/C++ compilation should be able to build the source
+distribution with little effort. Some actual programming skills are
+not required, but helpful in case of problems.
+
+2.1 Compile Time Prerequisites
+
+You need the following software to compile EpicSim from source
+on a UNIX-like system:
+
+        - CMake
+	- GNU Make
+	- ISO C++ Compiler
+	- bison and flex
+	- gperf 3.0 or later
+	- readline 4.2 or later
+	- termcap
+	- bash
+
+2.2 Compilation
+
+Unpack the tar-ball and cd the directory and compile the source
+with the commands:
+
+  mkdir build
+  cd build
+  cmake ..
+  make install
+  cd ..
+  export PATH="`pwd`/install/bin:$PATH"
+  epicsim -v
+  

@@ -1,0 +1,74 @@
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
+
+Provides: 
+
+%description
+
+%files
+%attr(-,root,root) /usr/bin/epicsim
+%attr(-,root,root) /usr/bin/epicsim-vvp
+%attr(-,root,root) /usr/bin/epicsim-driver
+%attr(-,root,root) /usr/lib/epicsim/v2005_math.vpi
+%attr(-,root,root) /usr/lib/epicsim/v2009.vpi
+%attr(-,root,root) /usr/lib/epicsim/va_math.vpi
+%attr(-,root,root) /usr/lib/epicsim/vhdl_sys.vpi
+%attr(-,root,root) /usr/lib/epicsim/vhdl_textio.vpi
+%attr(-,root,root) /usr/lib/epicsim/vhdlpp
+%attr(-,root,root) /usr/lib/epicsim/vpi_debug.vpi
+%attr(-,root,root) /usr/lib/epicsim/epicsim-compiler
+%attr(-,root,root) /usr/lib/epicsim/epicsim-precompiler
+%attr(-,root,root) /usr/lib/epicsim/libepicsim_generator.so
+%attr(-,root,root) /usr/lib/epicsim/libepicsim_simu_core.a
+%attr(-,root,root) /usr/lib/epicsim/vvp.conf
+%attr(-,root,root) /usr/lib/epicsim/vvp-s.conf
+%attr(-,root,root) /usr/lib/epicsim/system.vpi
+%attr(-,root,root) /usr/lib/epicsim/include/constants.vams
+%attr(-,root,root) /usr/lib/epicsim/include/disciplines.vams
+%attr(-,root,root) /usr/include/epicsim/ivl_target.h
+%attr(-,root,root) /usr/include/epicsim/vpi_user.h
+%attr(-,root,root) /usr/include/epicsim/sv_vpi_user.h
+%attr(-,root,root) /usr/include/epicsim/acc_user.h
+%attr(-,root,root) /usr/include/epicsim/veriuser.h
+%attr(-,root,root) /usr/include/epicsim/_pli_types.h
+%attr(-,root,root) /usr/include/epicsim/arith.h
+%attr(-,root,root) /usr/include/epicsim/array.h
+%attr(-,root,root) /usr/include/epicsim/array_common.h
+%attr(-,root,root) /usr/include/epicsim/bufif.h
+%attr(-,root,root) /usr/include/epicsim/class_type.h
+%attr(-,root,root) /usr/include/epicsim/codes.h
+%attr(-,root,root) /usr/include/epicsim/compile.h
+%attr(-,root,root) /usr/include/epicsim/config.h
+%attr(-,root,root) /usr/include/epicsim/delay.h
+%attr(-,root,root) /usr/include/epicsim/design.h
+%attr(-,root,root) /usr/include/epicsim/dff.h
+%attr(-,root,root) /usr/include/epicsim/enum_type.h
+%attr(-,root,root) /usr/include/epicsim/event.h
+%attr(-,root,root) /usr/include/epicsim/ivl_alloc.h
+%attr(-,root,root) /usr/include/epicsim/ivl_dlfcn.h
+%attr(-,root,root) /usr/include/epicsim/latch.h
+%attr(-,root,root) /usr/include/epicsim/logic.h
+%attr(-,root,root) /usr/include/epicsim/npmos.h
+%attr(-,root,root) /usr/include/epicsim/op_lib.h
+%attr(-,root,root) /usr/include/epicsim/parse_misc.h
+%attr(-,root,root) /usr/include/epicsim/part.h
+%attr(-,root,root) /usr/include/epicsim/permaheap.h
+%attr(-,root,root) /usr/include/epicsim/resolv.h
+%attr(-,root,root) /usr/include/epicsim/schedule.h
+%attr(-,root,root) /usr/include/epicsim/sfunc.h
+%attr(-,root,root) /usr/include/epicsim/slab.h
+%attr(-,root,root) /usr/include/epicsim/statistics.h
+%attr(-,root,root) /usr/include/epicsim/symbols.h
+%attr(-,root,root) /usr/include/epicsim/udp.h
+%attr(-,root,root) /usr/include/epicsim/ufunc.h
+%attr(-,root,root) /usr/include/epicsim/vpi_priv.h
+%attr(-,root,root) /usr/include/epicsim/vthread.h
+%attr(-,root,root) /usr/include/epicsim/vvp_cleanup.h
+%attr(-,root,root) /usr/include/epicsim/vvp_cobject.h
+%attr(-,root,root) /usr/include/epicsim/vvp_darray.h
+%attr(-,root,root) /usr/include/epicsim/vvp_island.h
+%attr(-,root,root) /usr/include/epicsim/vvp_net.h
+%attr(-,root,root) /usr/include/epicsim/vvp_net_sig.h
+%attr(-,root,root) /usr/include/epicsim/vvp_object.h
+%attr(-,root,root) /usr/include/epicsim/vvp_vpi_callback.h
+%attr(-,root,root) /usr/include/epicsim/xspats.h
+%attr(-,root,root) /usr/include/epicsim/xspats_1.h

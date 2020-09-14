@@ -1,0 +1,8 @@
+// These are the global access functions called from the compiler so they
+// are not used here.
+
+// target_design()
+unusedFunction:vvp.c:148
+
+// target_query()
+unusedFunction:vvp.c:246

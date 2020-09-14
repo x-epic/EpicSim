@@ -1,0 +1,10 @@
+/* For now do not put the EpicSim include or library paths here.
+ * They are generated from a registry entry the user must set (-ivl=).
+ * This may change in the future once I have thought about it more. */
+#define EPICSIM_VPI_CC        "@IVLCC@"
+#define EPICSIM_VPI_CXX       "@IVLCXX@"
+#define EPICSIM_VPI_CFLAGS    " @IVLCFLAGS@"
+#define EPICSIM_VPI_CXXFLAGS  " @IVLCXXFLAGS@"
+#define EPICSIM_VPI_LDFLAGS   "@SHARED@"
+#define EPICSIM_VPI_LDLIBS    "-lveriuser@SUFFIX@ -lvpi@SUFFIX@"
+#define EPICSIM_SUFFIX        "@SUFFIX@"
