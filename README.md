@@ -43,7 +43,8 @@ and it is excuted.
 
 The compiled program can also be excuted like so:
 
-	% epicsim-run
+        % epicsim-driver hello.vl -o epicsim-run 
+	% epicsim-vvp ./epicsim-run
 	Hello, World
 
 And there it is, the program has been executed. So what happened? The

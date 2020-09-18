@@ -92,6 +92,11 @@ void vvp_fun_and::run_run()
 
       vvp_vector4_t result (input_[0]);
 
+      if (result.size() == input_[1].size()) {
+        result &= input_[1];
+        if (invert_)
+            result = ~result;
+      } else 
       for (unsigned idx = 0 ;  idx < result.size() ;  idx += 1) {
 	    vvp_bit4_t bitbit = result.value(idx);
 	    for (unsigned pdx = 1 ;  pdx < 4 ;  pdx += 1) {
@@ -516,6 +521,11 @@ void vvp_fun_or::run_run()
 
       vvp_vector4_t result (input_[0]);
 
+      if (result.size() == input_[1].size()) {
+        result |= input_[1];
+        if (invert_)
+            result = ~result;
+      } else
       for (unsigned idx = 0 ;  idx < result.size() ;  idx += 1) {
 	    vvp_bit4_t bitbit = result.value(idx);
 	    for (unsigned pdx = 1 ;  pdx < 4 ;  pdx += 1) {

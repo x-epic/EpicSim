@@ -28,6 +28,7 @@
  * processors.
  */
 # include  <string>
+# include  <cstring>
 # include  <map>
 # include  <list>
 # include  <memory>
@@ -224,6 +225,7 @@ class NetPins : public LineInfo {
 	// This is for showing a brief description of the object to
 	// the stream. It is used for debug and diagnostics.
       virtual void show_type(std::ostream&fd) const;
+      virtual bool is_clock_obj() const { return false; }
 
     private:
       Link*pins_;
@@ -801,7 +803,9 @@ class NetNet  : public NetObj, public PortType {
       virtual void dump_net(ostream&, unsigned) const;
 
       void set_clock(bool is_clock) { is_clock_ = is_clock; }
-      bool is_clock() const { return is_clock_; }
+      bool is_clock() const {
+          return is_clock_;
+      }
 
     private:
       void initialize_dir_();
@@ -1837,6 +1841,7 @@ class NetMux  : public NetNode {
       virtual void dump_node(ostream&, unsigned ind) const;
       virtual bool emit_node(struct target_t*) const;
       virtual void functor_node(Design*des, functor_t*fun);
+      bool is_clock_obj() const override { return true; }
 
     private:
       unsigned width_;
@@ -2095,6 +2100,9 @@ class NetExpr  : public LineInfo {
     protected:
       void expr_width(unsigned wid) { width_ = wid; }
       void cast_signed_base_(bool flag) { signed_flag_ = flag; }
+
+    public:
+      static unsigned nex_input_limit;
 
     private:
       ivl_type_t net_type_;
@@ -2372,6 +2380,7 @@ class NetBUFZ  : public NetNode {
 
       virtual void dump_node(ostream&, unsigned ind) const;
       virtual bool emit_node(struct target_t*) const;
+      bool is_clock_obj() const override { return true; }
 
     private:
       unsigned width_;
@@ -2761,6 +2770,7 @@ class NetProc : public virtual LineInfo {
       virtual bool is_system_task() const { return false; }
       virtual bool is_condit() const { return false; }
       virtual bool is_block() const { return false; }
+      virtual bool is_forever() const { return false; }
       virtual bool is_event_wait() const { return false; }
 
     protected:
@@ -3607,6 +3617,8 @@ class NetForever : public NetProc {
       virtual bool check_synth(ivl_process_type_t pr_type, const NetScope*scope) const;
       virtual bool evaluate_function(const LineInfo&loc,
 				     map<perm_string,LocalVar>&ctx) const;
+      bool is_forever() const override { return true; }
+      NetProc* statement() const { return statement_; }
 
     private:
       NetProc*statement_;
@@ -3747,7 +3759,7 @@ class NetPDelay  : public NetProc {
       bool emit_proc_recurse(struct target_t*) const;
 
       bool is_net_delay() const override { return true; }
-      NetProc* get_statement() const { return statement_; }
+      NetProc* statement() const { return statement_; }
 
     private:
       uint64_t delay_;

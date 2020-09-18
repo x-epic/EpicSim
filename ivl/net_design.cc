@@ -1023,18 +1023,51 @@ void Design::join_islands(void)
 void Design::identify_clock(void)
 {
     std::list<NetNet*> list;
-    std::map<NetNet*, int> map_sig;
-    for (NetProcTop* idx = procs_; idx; idx = idx->next_) {
-        if (idx->type() != IVL_PR_ALWAYS)
+    for (const NetProcTop* pr = procs_; pr; pr = pr->next_) {
+        const NetProc* np = NULL;
+        if (pr->type() == IVL_PR_INITIAL) {
+            const NetBlock* blk = dynamic_cast<const NetBlock*>(pr->statement());
+            if (!blk || blk->type() != NetBlock::SEQU) {
+                continue;
+            }
+            for (const NetProc* cur = blk->proc_first();
+                 cur; cur = blk->proc_next(cur)) {
+                const NetForever* forever = dynamic_cast<const NetForever*>(cur);
+                if (forever) {
+                    np = forever->statement();
+                    break;
+                }
+            }
+        }
+        else if (pr->type() == IVL_PR_ALWAYS) {
+            np = pr->statement();
+        }
+        if (!np) {
             continue;
-        NetProc* np = (NetProc*)(idx->statement());
-        if (!(np->is_net_delay()))
-            continue;
-        NetPDelay* npd = (NetPDelay*)np;
-        if (npd->delay() <= 0)
-            continue;
-        NetProc* stmt = npd->get_statement();
-        if (stmt && !stmt->is_assignment())
+        }
+
+        const NetProc* stmt = NULL;
+        const NetPDelay* npd = dynamic_cast<const NetPDelay*>(np);
+        if (npd) {
+            if (npd->delay() > 0) {
+                stmt = npd->statement();
+            }
+        } else {
+            const NetBlock* blk = dynamic_cast<const NetBlock*>(np);
+            if (!blk || blk->type() != NetBlock::SEQU) {
+                continue;
+            }
+            const NetProc* cur = blk->proc_first();
+            npd = dynamic_cast<const NetPDelay*>(cur);
+            if (npd && npd->delay() > 0) {
+                stmt = npd->statement();
+                if (!stmt) {
+                    stmt = blk->proc_next(cur);
+                }
+            }
+        }
+
+        if (!stmt || !stmt->is_assignment())
             continue;
         NetAssign* nab = (NetAssign*)stmt;
         char op1 = nab->assign_operator();
@@ -1051,32 +1084,32 @@ void Design::identify_clock(void)
         if (((NetESignal*)esig)->sig() != sig) continue;
         if ((op1 == 0 && (op2 == '~' || op2 == '!')) ||
             (op2 == 0 && (op2 == '~' || op2 == '!'))) {
-            sig->set_clock(true);
-            if (map_sig.find(sig) == map_sig.end()) {
-                map_sig[sig] = 1;
-                list.push_back(sig);
+            if (!sig->pin(0).has_nexus()) {
+                continue;
             }
+            NetNet* net = sig->pin(0).nexus()->pick_any_net();
+            if (net && !net->is_clock())
+                list.push_back(net);
         }
     }
     while (!list.empty()) {
         NetNet* sig = list.front();
         list.pop_front();
-        for (unsigned i = 0; i < sig->pin_count(); ++i) {
-            Link* l = &(sig->pin(i));
-            Link* t = NULL;
-            while (l && l != t) {
-                Nexus* ne = l->nexus();
-                if (l->get_dir() == Link::OUTPUT) {
-                    if (!ne) break;
-                    NetNet* net = ne->pick_any_net();
-                    if (map_sig.find(net) == map_sig.end()) {
-                        net->set_clock(true);
-                        map_sig[net] = 1;
-                        list.push_back(net);
-                    }
+
+        if (sig->is_clock())
+            continue;
+        sig->set_clock(true);
+
+        Nexus* nex = sig->pin(0).nexus();
+        for (Link* cur = nex->first_nlink(); cur; cur = cur->next_nlink()) {
+            NetPins* obj = cur->get_obj();
+            if (obj->is_clock_obj()) {
+                if (!obj->pin(0).has_nexus()) {
+                    continue;
                 }
-                t = l;
-                l = l->next_nlink();
+                NetNet* net = obj->pin(0).nexus()->pick_any_net();
+                if (net && !net->is_clock())
+                    list.push_back(net);
             }
         }
     }
@@ -1086,6 +1119,9 @@ static bool isClockInNexusSet(NexusSet* nset)
 {
     bool is_clock = false;
     for (unsigned i = 0; i < nset->size(); ++i) {
+        if (!nset->at(i).lnk.has_nexus()) {
+            continue;
+        }
         NetNet* pin = nset->at(i).lnk.nexus()->pick_any_net();
         if (pin->is_clock()) {
             is_clock = true;
@@ -1179,9 +1215,9 @@ static void rewriteAlways(NetEvWait* wa, NetNet* reg)
 void Design::do_always_clock_opt(void)
 {
     identify_clock();
-    
     std::map<NetScope*, NetBlock*> map_scope_init;
     std::map<NetScope*, NetBlock*>::iterator it;
+    NetExpr::nex_input_limit = 32;
     for (const NetProcTop* idx = procs_; idx; idx = idx->next_) {
         if (idx->type() != IVL_PR_ALWAYS)
             continue;
@@ -1193,7 +1229,9 @@ void Design::do_always_clock_opt(void)
         if (!isClockInEventList(ev_wait))
             continue;
         NexusSet* nset = np->nex_input(false, false, false);
-        if (!nset->size() || isClockInNexusSet(nset)) {
+        int size = nset->size();
+        if ((NetExpr::nex_input_limit && size > NetExpr::nex_input_limit)
+            || !size || isClockInNexusSet(nset)) {
             delete nset;
             continue;
         }
@@ -1219,6 +1257,8 @@ void Design::do_always_clock_opt(void)
         NetProc* ini_ass = createAssignment(reg, verinum::V1);
         iniblk->append(ini_ass);
     }
+    NetExpr::nex_input_limit = 0;
+
     for (it = map_scope_init.begin(); it != map_scope_init.end(); ++it) {
         NetProcTop* initop = new NetProcTop(it->first, IVL_PR_INITIAL, it->second);
         add_process(initop);

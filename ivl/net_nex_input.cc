@@ -36,6 +36,8 @@ NexusSet* NetExpr::nex_input(bool, bool, bool) const
       return new NexusSet;
 }
 
+unsigned NetExpr::nex_input_limit = 0;
+
 NexusSet* NetProc::nex_input(bool, bool, bool) const
 {
       cerr << get_fileline()
@@ -231,8 +233,10 @@ NexusSet* NetESignal::nex_input_base(bool rem_out, bool always_sens, bool nested
       if (const_select) {
 	    result->add(net_->pin(const_word).nexus(), base, width);
       } else {
-	    for (unsigned idx = 0 ;  idx < net_->pin_count() ;  idx += 1)
-		  result->add(net_->pin(idx).nexus(), base, width);
+          unsigned num = net_->pin_count();
+          if (nex_input_limit && num > nex_input_limit) num = nex_input_limit;
+          for (unsigned idx = 0 ;  idx < num ;  idx += 1)
+              result->add(net_->pin(idx).nexus(), base, width);
       }
 
       return result;
