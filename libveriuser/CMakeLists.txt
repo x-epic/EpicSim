@@ -9,4 +9,4 @@ file(GLOB veriuser_src
 
 add_library(veriuser STATIC ${veriuser_src})
 
-install(TARGETS veriuser DESTINATION lib)
+install(TARGETS veriuser DESTINATION lib/epicsim)

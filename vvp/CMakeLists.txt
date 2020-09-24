@@ -55,4 +55,3 @@ add_library(epicsim_simu_core STATIC main.cc parse.cc parse_misc.cc lexor.cc ari
 
 install(TARGETS epicsim-vvp DESTINATION bin)
 install(TARGETS epicsim_simu_core DESTINATION lib/epicsim)
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/vvp/ DESTINATION include/epicsim FILES_MATCHING PATTERN "*.h")

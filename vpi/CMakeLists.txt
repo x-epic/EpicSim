@@ -42,12 +42,66 @@ add_definitions(-D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64 -DHAVE_CONFIG_H -DI
 
 add_library(vpi STATIC libvpi.c ${PROJECT_SOURCE_DIR}/ivl/veriuser.h)
 
-add_library(system.vpi SHARED sys_table.c sys_convert.c sys_countdrivers.c sys_darray.c sys_deposit.c
-    sys_display.c sys_fileio.c sys_finish.c sys_icarus.c sys_plusargs.c sys_queue.c
-    sys_random.c sys_random_mti.c sys_readmem.c sys_readmem_lex.c sys_scanf.c
-    sys_sdf.c sys_time.c sys_vcd.c sys_vcdoff.c vcd_priv.c mt19937int.c
-    sys_priv.c sdf_parse.c sdf_lexor.c stringheap.c vams_simparam.c
-    table_mod.c table_mod_parse.c table_mod_lexor.c vcd_priv2.cc)
+
+if(DEFINED ENV{VERDI_HOME})
+
+	find_library( FSDBWriter
+		NAMES nffw
+		HINTS "$ENV{VERDI_HOME}/share/FsdbWriter/linux64"
+	)
+
+	find_path( FSDBheaderPath 
+	    ffwAPI.h 
+	    PATHS "$ENV{VERDI_HOME}/share/FsdbWriter"
+	)
+
+else()
+
+	find_library( FSDBWriter
+		NAMES nffw
+	)
+
+	find_path( FSDBheaderPath 
+	    ffwAPI.h 
+	)
+	
+endif()
+
+MESSAGE( STATUS "FSDBWriter path: ${FSDBWriter}")
+MESSAGE( STATUS "FSDBheaderPath: ${FSDBheaderPath}")
+
+if( FSDBWriter AND FSDBheaderPath )
+
+	MESSAGE( STATUS "complie with FSDB")
+	add_definitions("-DUSE_FSDB")
+
+	add_library(system.vpi SHARED sys_table.c sys_convert.c sys_countdrivers.c sys_darray.c sys_deposit.c
+	    sys_display.c sys_fileio.c sys_finish.c sys_icarus.c sys_plusargs.c sys_queue.c
+	    sys_random.c sys_random_mti.c sys_readmem.c sys_readmem_lex.c sys_scanf.c
+	    sys_sdf.c sys_time.c sys_vcd.c sys_fsdb.c sys_vcdoff.c vcd_priv.c mt19937int.c
+	    sys_priv.c sdf_parse.c sdf_lexor.c stringheap.c vams_simparam.c
+	    table_mod.c table_mod_parse.c table_mod_lexor.c vcd_priv2.cc)
+
+	target_include_directories(system.vpi PUBLIC ${FSDBheaderPath} )
+
+	target_link_libraries(system.vpi z  X11 Xext fontconfig m nsl  #Xss Xt Xmu iberty
+		 pthread rt dl png ${FSDBWriter})
+
+else()
+
+	MESSAGE( STATUS "compile without FSDB")
+	
+	add_library(system.vpi SHARED sys_table.c sys_convert.c sys_countdrivers.c sys_darray.c sys_deposit.c
+	    sys_display.c sys_fileio.c sys_finish.c sys_icarus.c sys_plusargs.c sys_queue.c
+	    sys_random.c sys_random_mti.c sys_readmem.c sys_readmem_lex.c sys_scanf.c
+	    sys_sdf.c sys_time.c sys_vcd.c sys_vcdoff.c vcd_priv.c mt19937int.c
+	    sys_priv.c sdf_parse.c sdf_lexor.c stringheap.c vams_simparam.c
+	    table_mod.c table_mod_parse.c table_mod_lexor.c vcd_priv2.cc)
+
+endif()
+
+#set_target_properties(system.vpi PROPERTIES LINK_FLAGS -pg)
+
 set_target_properties(system.vpi PROPERTIES PREFIX "")
 set_target_properties(system.vpi PROPERTIES SUFFIX "")
 

@@ -63,6 +63,28 @@ extern "C" void nexus_ident_delete()
       nexus_ident_map.clear();
 }
 
+static std::map<int,const char*> fsdbnexus_ident_map;
+
+extern "C" const char* fsdbfind_nexus_ident(int nex)
+{
+	std::map<int,const char*>::const_iterator cur = fsdbnexus_ident_map.find(nex);
+	if( cur == fsdbnexus_ident_map.end() )
+		return 0;
+	else
+		return cur->second;
+}
+
+extern "C" void fsdbset_nexus_ident(int nex, const char*id)
+{
+	fsdbnexus_ident_map[nex] = id;	
+}
+
+extern "C" void fsdbnexus_ident_delete()
+{
+	fsdbnexus_ident_map.clear();
+}
+
+
 
 static std::set<std::string> vcd_scope_names_set;
 

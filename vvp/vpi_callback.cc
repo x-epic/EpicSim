@@ -872,7 +872,7 @@ static void real_signal_value(struct t_vpi_value*vp, double rval)
 	    break;
 
 	  case vpiDecStrVal:
-	    if (isnan(rval))
+	    if (::isnan(rval))
 		  sprintf(rbuf, "%s", "nan");
 	    else
 		  sprintf(rbuf, "%0.0f", vlg_round(rval));

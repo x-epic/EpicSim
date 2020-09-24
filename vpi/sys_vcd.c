@@ -68,7 +68,7 @@ static const char*units_names[] = {
 
 static char vcdid[8] = "!";
 
-static void gen_new_vcd_id(void)
+void gen_new_vcd_id(void)
 {
       static unsigned value = 0;
       unsigned v = ++value;
@@ -86,7 +86,7 @@ static void gen_new_vcd_id(void)
       assert(0);
 }
 
-static char *truncate_bitvec(char *s)
+char *truncate_bitvec(char *s)
 {
       char r;
 
