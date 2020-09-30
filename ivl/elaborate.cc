@@ -1478,7 +1478,8 @@ void PGModule::elaborate_mod_(Design*des, Module*rmod, NetScope*scope) const
 		  delete tmp_expr;
 		  if (!sig->get_lineno()) sig->set_line(*this);
 
-		  if (need_bufz_for_input_port(prts)) {
+                  bool has_delay = prts[0]->has_delay();
+		  if (need_bufz_for_input_port(prts) || has_delay) {
 			NetBUFZ*tmp = new NetBUFZ(scope, scope->local_symbol(),
 						  sig->vector_width(), true);
 			tmp->set_line(*this);
@@ -1493,7 +1494,14 @@ void PGModule::elaborate_mod_(Design*des, Module*rmod, NetScope*scope) const
 			tmp2->set_line(*this);
 			connect(tmp->pin(0), tmp2->pin(0));
 			sig = tmp2;
-		  }
+
+                        if (has_delay) {
+                              NetExpr* rise_time = const_cast<NetExpr*>(prts[0]->rise_time());
+                              NetExpr* fall_time = const_cast<NetExpr*>(prts[0]->fall_time());
+                              NetExpr* decay_time = const_cast<NetExpr*>(prts[0]->decay_time());
+                              sig->pin(0).drivers_delays(rise_time, fall_time, decay_time);
+                        }
+                  }
 
 		    // If we have a real signal driving a bit/vector port
 		    // then we convert the real value using the appropriate
@@ -1575,7 +1583,50 @@ void PGModule::elaborate_mod_(Design*des, Module*rmod, NetScope*scope) const
 			continue;
 		  }
 
+                  if (prts[0]->has_delay() && !prts[0]->pin(0).has_driver()) {
+                        NetBUFZ*tmp = new NetBUFZ(scope, scope->local_symbol(),
+                                                  sig->vector_width(), true);
+                        tmp->set_line(*this);
+                        des->add_node(tmp);
+                        connect(tmp->pin(1), sig->pin(0));
 
+                        netvector_t*tmp2_vec = new netvector_t(sig->data_type(),
+                                                               sig->vector_width()-1,0);
+                        NetNet*tmp2 = new NetNet(scope, scope->local_symbol(),
+                                                 NetNet::WIRE, tmp2_vec);
+                        tmp2->local_flag(true);
+                        tmp2->set_line(*this);
+                        connect(tmp->pin(0), tmp2->pin(0));
+                        sig = tmp2;
+
+                        NetExpr* rise_time = const_cast<NetExpr*>(prts[0]->rise_time());
+                        NetExpr* fall_time = const_cast<NetExpr*>(prts[0]->fall_time());
+                        NetExpr* decay_time = const_cast<NetExpr*>(prts[0]->decay_time());
+                        sig->pin(0).drivers_delays(rise_time, fall_time, decay_time);
+                  } else if (sig->has_delay() && prts[0]->pin(0).has_driver()) {
+                        NetBUFZ*tmp = new NetBUFZ(scope, scope->local_symbol(),
+                                                  sig->vector_width(), true);
+                        tmp->set_line(*this);
+                        des->add_node(tmp);
+                        connect(tmp->pin(0), sig->pin(0));
+
+                        netvector_t*tmp2_vec = new netvector_t(sig->data_type(),
+                                                               sig->vector_width()-1,0);
+                        NetNet*tmp2 = new NetNet(scope, scope->local_symbol(),
+                                                 NetNet::WIRE, tmp2_vec);
+                        tmp2->local_flag(true);
+                        tmp2->set_line(*this);
+                        connect(tmp->pin(1), tmp2->pin(0));
+
+                        NetExpr* rise_time = const_cast<NetExpr*>(sig->rise_time());
+                        NetExpr* fall_time = const_cast<NetExpr*>(sig->fall_time());
+                        NetExpr* decay_time = const_cast<NetExpr*>(sig->decay_time());
+                        sig->rise_time(NULL);
+                        sig->fall_time(NULL);
+                        sig->decay_time(NULL);
+                        sig->pin(0).drivers_delays(rise_time, fall_time, decay_time);
+                        sig = tmp2;
+                  }
 	    } else {
 
 		    /* Port type must be OUTPUT here. */
@@ -1690,6 +1741,30 @@ void PGModule::elaborate_mod_(Design*des, Module*rmod, NetScope*scope) const
 			continue;
 		  }
 
+                  if (sig->has_delay()) {
+                        NetBUFZ*tmp = new NetBUFZ(scope, scope->local_symbol(),
+                                                  sig->vector_width(), true);
+                        tmp->set_line(*this);
+                        des->add_node(tmp);
+                        connect(tmp->pin(0), sig->pin(0));
+
+                        netvector_t*tmp2_vec = new netvector_t(sig->data_type(),
+                                                               sig->vector_width()-1,0);
+                        NetNet*tmp2 = new NetNet(scope, scope->local_symbol(),
+                                                 NetNet::WIRE, tmp2_vec);
+                        tmp2->local_flag(true);
+                        tmp2->set_line(*this);
+                        connect(tmp->pin(1), tmp2->pin(0));
+
+                        NetExpr* rise_time = const_cast<NetExpr*>(sig->rise_time());
+                        NetExpr* fall_time = const_cast<NetExpr*>(sig->fall_time());
+                        NetExpr* decay_time = const_cast<NetExpr*>(sig->decay_time());
+                        sig->rise_time(NULL);
+                        sig->fall_time(NULL);
+                        sig->decay_time(NULL);
+                        sig->pin(0).drivers_delays(rise_time, fall_time, decay_time);
+                        sig = tmp2;
+                  }
 	    }
 
 	    assert(sig);
@@ -5784,19 +5859,36 @@ bool PPackage::elaborate(Design*des, NetScope*scope) const
       return result_flag;
 }
 
-void NetScope::elaborate_delays()
+void NetScope::elaborate_delays(Design* des)
 {
+      std::list<NetNet*> sigs;
       for (signals_map_iter_t cur = signals_map_.begin();
            cur != signals_map_.end() ; ++cur) {
             NetNet* sig = cur->second;
+            if (sig->has_delay() && sig->pin(0).has_driver()) {
+                  sigs.push_back(sig);
+            }
+      }
+      for (std::list<NetNet*>::iterator cur = sigs.begin();
+           cur != sigs.end(); ++cur) {
+            NetNet* sig = *cur;
+            NetBUFZ*tmp = new NetBUFZ(this, local_symbol(),
+                                      sig->vector_width(), true);
+            tmp->set_line(*sig);
+            des->add_node(tmp);
+            netvector_t*tmp2_vec = new netvector_t(sig->data_type(),
+                                                   sig->vector_width()-1,0);
+            NetNet*tmp2 = new NetNet(this, local_symbol(),
+                                     NetNet::WIRE, tmp2_vec);
+            tmp2->local_flag(true);
+            tmp2->set_line(*sig);
+            sig->pin(0).replace_driver(tmp2->pin(0));
+            connect(tmp->pin(1), tmp2->pin(0));
+            connect(tmp->pin(0), sig->pin(0));
             NetExpr* rise_time = const_cast<NetExpr*>(sig->rise_time());
             NetExpr* fall_time = const_cast<NetExpr*>(sig->fall_time());
             NetExpr* decay_time = const_cast<NetExpr*>(sig->decay_time());
-
-            if ((rise_time || fall_time || decay_time) &&
-                sig->pin(0).has_nexus()) {
-                  sig->pin(0).drivers_delays(rise_time, fall_time, decay_time);
-            }
+            sig->pin(0).drivers_delays(rise_time, fall_time, decay_time);
       }
 }
 
@@ -5837,7 +5929,7 @@ bool Module::elaborate(Design*des, NetScope*scope) const
 	    (*gt)->elaborate(des, scope);
       }
 
-      scope->elaborate_delays();
+      scope->elaborate_delays(des);
 
 	// Elaborate the variable initialization statements, making a
 	// single initial process out of them.

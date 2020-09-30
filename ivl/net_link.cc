@@ -163,6 +163,20 @@ bool Link::has_nexus() const
       return false;
 }
 
+bool Link::has_driver() const
+{
+      if (next_ == 0) return false;
+      Nexus* nex = find_nexus_();
+      return nex ? nex->drivers_present() : false;
+}
+
+void Link::replace_driver(Link& l)
+{
+      if (next_ == 0) return;
+      Nexus* nex = find_nexus_();
+      if (nex) nex->replace_driver(l);
+}
+
 void Link::set_dir(DIR d)
 {
       dir_ = d;
@@ -334,6 +348,36 @@ bool Nexus::has_floating_input() const
       }
 
       return found_input;
+}
+
+void Nexus::replace_driver(Link& l)
+{
+      for (Link*cur = first_nlink() ;  cur ; cur = cur->next_nlink()) {
+            if (cur->get_dir() == Link::OUTPUT) {
+                  unlink(cur);
+                  ::connect(*cur, l);
+            }
+
+            if (cur->get_dir() == Link::INPUT)
+                  continue;
+
+            const NetPins*obj;
+            unsigned pin;
+            cur->cur_link(obj, pin);
+            if (const NetNet*net = dynamic_cast<const NetNet*>(obj))
+                  switch (net->type()) {
+                      case NetNet::WAND:
+                      case NetNet::WOR:
+                      case NetNet::TRIAND:
+                      case NetNet::TRIOR:
+                      case NetNet::REG:
+                        unlink(cur);
+                        ::connect(*cur, l);
+                        break;
+                      default:
+                        break;
+                  }
+      }
 }
 
 bool Nexus::drivers_present() const

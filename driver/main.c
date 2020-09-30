@@ -112,6 +112,7 @@ int separate_compilation_flag = 0;
 
 /* use compile path support*/
 int use_compath = 1;
+int gdb_frontend = 0;
 static char compile_base[MAXSIZE];
 static void find_compath_base(void);
 
@@ -379,9 +380,13 @@ static int t_compile(void)
 
 	/* Build the ivl command. */
       if(use_compath)
-          snprintf(tmp, sizeof tmp, "%s%clib/epicsim/epicsim-compiler", compile_base, sep);
+          snprintf(tmp, sizeof tmp, "%s%s%clib/epicsim/epicsim-compiler",
+                   gdb_frontend&&separate_compilation_flag ? "gdb --args " : "",
+                   compile_base, sep);
       else
-          snprintf(tmp, sizeof tmp, "%s%cepicsim-compiler", base, sep);
+          snprintf(tmp, sizeof tmp, "%s%s%cepicsim-compiler",
+                   gdb_frontend&&separate_compilation_flag ? "gdb --args " : "",
+                   base, sep);
 
       rc = strlen(tmp);
       cmd = realloc(cmd, ncmd+rc+1);
@@ -1115,7 +1120,9 @@ int main(int argc, char **argv)
 		  break;
 
 		case 'g':
-		  if (process_generation(optarg) != 0)
+                  if (strcmp(optarg,"db") == 0)
+                        gdb_frontend = 1;
+		  else if (process_generation(optarg) != 0)
 			return -1;
 		  break;
 		case 'h':

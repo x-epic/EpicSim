@@ -145,6 +145,8 @@ class Link {
       Nexus* nexus();
       const Nexus* nexus()const;
       bool has_nexus() const;
+      bool has_driver() const;
+      void replace_driver(Link&);
 
 	// Return a pointer to the next link in the nexus.
       Link* next_nlink();
@@ -275,6 +277,8 @@ class NetObj  : public NetPins, public Attrib {
       void fall_time(const NetExpr* d) { delay2_ = d; }
       void decay_time(const NetExpr* d) { delay3_ = d; }
 
+      bool has_delay() { return delay1_ || delay2_ || delay3_; }
+
       void dump_obj_attr(ostream&, unsigned) const;
 
       virtual void show_type(std::ostream&fd) const;
@@ -402,6 +406,7 @@ class Nexus {
 	/* This method returns true if there are any drivers
 	   (including variables) attached to this nexus. */
       bool drivers_present() const;
+      void replace_driver(Link& l);
 
 	/* This method returns true if all the possible drivers of
 	   this nexus are constant. It will also return true if there
@@ -1183,7 +1188,7 @@ class NetScope : public Definitions, public Attrib {
       void emit_scope(struct target_t*tgt) const;
       bool emit_defs(struct target_t*tgt) const;
 
-      void elaborate_delays();
+      void elaborate_delays(Design*);
 
 	/* This method runs the functor on me. Recurse through the
 	   children of this node as well. */
