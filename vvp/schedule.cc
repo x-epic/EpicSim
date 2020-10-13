@@ -56,6 +56,13 @@ unsigned long count_time_events = 0;
  */
 struct event_s {
       struct event_s*next;
+#ifdef HAVE_READABLE_INFO
+#define DEBUG_EVENT_LEN 32
+      char dbg_eventType[DEBUG_EVENT_LEN + 1];
+      void set_event_type(char* pType);
+      void set_cur_event();
+      struct event_s* dbg_cur;
+#endif
       virtual ~event_s() { }
       virtual void run_run(void) =0;
 
@@ -72,6 +79,21 @@ void event_s::single_step_display(void)
       std::cerr << "event_s: Step into event " << typeid(*this).name() << std::endl;
 }
 
+#ifdef HAVE_READABLE_INFO
+void event_s::set_event_type(char* pType)
+{
+    if (pType)
+        memset(dbg_eventType, 0, sizeof(dbg_eventType));
+        strncpy(dbg_eventType, pType, DEBUG_EVENT_LEN);
+}
+
+void event_s::set_cur_event()
+{
+    dbg_cur = this;
+}
+
+#endif
+
 struct event_time_s {
       event_time_s() {
 	    count_time_events += 1;
@@ -83,6 +105,15 @@ struct event_time_s {
 	    rosync = 0;
 	    del_thr = 0;
 	    next = NULL;
+#ifdef HAVE_READABLE_INFO
+        dbg_start_num = 0;
+        dbg_active_num = 0;
+        dbg_inactive_num = 0;
+        dbg_nbassign_num = 0;
+        dbg_rwsync_num = 0;
+        dbg_rosync_num = 0;
+        dbg_del_thr_num = 0;
+#endif
       }
       vvp_time64_t delay;
 
@@ -93,9 +124,16 @@ struct event_time_s {
       struct event_s*rwsync;
       struct event_s*rosync;
       struct event_s*del_thr;
-
       struct event_time_s*next;
-
+#ifdef HAVE_READABLE_INFO
+    unsigned dbg_start_num;
+    unsigned dbg_active_num;
+    unsigned dbg_inactive_num;
+    unsigned dbg_nbassign_num;
+    unsigned dbg_rwsync_num;
+    unsigned dbg_rosync_num;
+    unsigned dbg_del_thr_num;
+#endif
       static void* operator new (size_t);
       static void operator delete(void*obj, size_t s);
 };
@@ -176,6 +214,11 @@ struct assign_vector4_event_s  : public event_s {
 
 	/* Where to do the assign. */
       vvp_net_ptr_t ptr;
+#ifdef HAVE_READABLE_INFO
+    unsigned dbg_AssignPort;
+    vvp_net_t* dbg_AssignNet;
+    void set_assign_info(vvp_net_ptr_t nptr);
+#endif
 	/* Value to assign. */
       vvp_vector4_t val;
 	/* Offset of the part into the destination. */
@@ -188,6 +231,17 @@ struct assign_vector4_event_s  : public event_s {
       static void* operator new(size_t);
       static void operator delete(void*);
 };
+
+#ifdef HAVE_READABLE_INFO
+void assign_vector4_event_s::set_assign_info(vvp_net_ptr_t nptr)
+{
+    if (!nptr.nil())
+    {
+        dbg_AssignNet = nptr.ptr();
+        dbg_AssignPort = nptr.port();
+    }
+}
+#endif
 
 void assign_vector4_event_s::run_run(void)
 {
@@ -739,31 +793,52 @@ static void schedule_event_(struct event_s*cur, vvp_time64_t delay,
       switch (select_queue) {
 	  case SEQ_START:
 	    q = &ctim->start;
+#ifdef HAVE_READABLE_INFO
+        ctim->dbg_start_num++;
+#endif
 	    break;
 
 	  case SEQ_ACTIVE:
 	    q = &ctim->active;
+#ifdef HAVE_READABLE_INFO
+        ctim->dbg_active_num++;
+#endif
 	    break;
 
 	  case SEQ_INACTIVE:
 	    assert(delay == 0);
 	    q = &ctim->inactive;
+#ifdef HAVE_READABLE_INFO
+        ctim->dbg_inactive_num++;
+#endif
 	    break;
 
 	  case SEQ_NBASSIGN:
 	    q = &ctim->nbassign;
+#ifdef HAVE_READABLE_INFO
+        ctim->dbg_nbassign_num++;
+#endif
 	    break;
 
 	  case SEQ_RWSYNC:
 	    q = &ctim->rwsync;
+#ifdef HAVE_READABLE_INFO
+        ctim->dbg_rwsync_num++;
+#endif
 	    break;
 
 	  case SEQ_ROSYNC:
 	    q = &ctim->rosync;
+#ifdef HAVE_READABLE_INFO
+        ctim->dbg_rosync_num++;
+#endif
 	    break;
 
 	  case DEL_THREAD:
 	    q = &ctim->del_thr;
+#ifdef HAVE_READABLE_INFO
+        ctim->dbg_del_thr_num++;
+#endif
 	    break;
       }
 
@@ -799,7 +874,12 @@ static void schedule_event_push_(struct event_s*cur)
 void schedule_vthread(vthread_t thr, vvp_time64_t delay, bool push_flag)
 {
       struct vthread_event_s*cur = new vthread_event_s;
-
+#ifdef HAVE_READABLE_INFO
+    char szEventType[DEBUG_EVENT_LEN + 1]= {0};
+    strncpy(szEventType, "vthread_event_s", DEBUG_EVENT_LEN);
+    cur->set_event_type(szEventType);
+    cur->set_cur_event();
+#endif
       cur->thr = thr;
       vthread_mark_scheduled(thr);
 
@@ -820,6 +900,13 @@ void schedule_t0_trigger(vvp_net_ptr_t ptr)
       vvp_vector4_t bit (1, BIT4_X);
       struct assign_vector4_event_s*cur = new struct assign_vector4_event_s(bit);
       cur->ptr = ptr;
+#ifdef HAVE_READABLE_INFO
+    char szEventType[DEBUG_EVENT_LEN + 1]= {0};
+    strncpy(szEventType, "assign_vector4_event_s", DEBUG_EVENT_LEN);
+    cur->set_event_type(szEventType);
+    cur->set_assign_info(ptr);
+    cur->set_cur_event();
+#endif
       schedule_event_(cur, 0, SEQ_INACTIVE);
 }
 
@@ -861,6 +948,13 @@ void schedule_assign_vector(vvp_net_ptr_t ptr,
       cur->ptr = ptr;
       cur->base = base;
       cur->vwid = vwid;
+#ifdef HAVE_READABLE_INFO
+    char szEventType[DEBUG_EVENT_LEN + 1]= {0};
+    strncpy(szEventType, "assign_vector4_event_s", DEBUG_EVENT_LEN);
+    cur->set_event_type(szEventType);
+    cur->set_cur_event();
+    cur->set_assign_info(ptr);
+#endif
       schedule_event_(cur, delay, SEQ_NBASSIGN);
 }
 
@@ -918,6 +1012,13 @@ void schedule_set_vector(vvp_net_ptr_t ptr, const vvp_vector4_t&bit)
       cur->ptr = ptr;
       cur->base = 0;
       cur->vwid = 0;
+#ifdef HAVE_READABLE_INFO
+      char szEventType[DEBUG_EVENT_LEN + 1]= {0};
+      strncpy(szEventType, "assign_vector4_event_s", DEBUG_EVENT_LEN);
+      cur->set_event_type(szEventType);
+      cur->set_cur_event();
+      cur->set_assign_info(ptr);
+#endif
       schedule_event_(cur, 0, SEQ_ACTIVE);
 }
 
@@ -926,6 +1027,12 @@ void schedule_set_vector(vvp_net_ptr_t ptr, vvp_vector8_t bit)
       struct assign_vector8_event_s*cur = new struct assign_vector8_event_s;
       cur->ptr = ptr;
       cur->val = bit;
+#ifdef HAVE_READABLE_INFO
+    char szEventType[DEBUG_EVENT_LEN + 1]= {0};
+    strncpy(szEventType, "assign_vector4_event_s", DEBUG_EVENT_LEN);
+    cur->set_event_type(szEventType);
+    cur->set_cur_event();
+#endif
       schedule_event_(cur, 0, SEQ_ACTIVE);
 }
 
@@ -943,6 +1050,13 @@ void schedule_init_vector(vvp_net_ptr_t ptr, vvp_vector4_t bit)
       cur->ptr = ptr;
       cur->base = 0;
       cur->vwid = 0;
+#ifdef HAVE_READABLE_INFO
+    char szEventType[DEBUG_EVENT_LEN + 1]= {0};
+    strncpy(szEventType, "assign_vector4_event_s", DEBUG_EVENT_LEN);
+    cur->set_event_type(szEventType);
+    cur->set_cur_event();
+    cur->set_assign_info(ptr);
+#endif
       schedule_init_event(cur);
 }
 
@@ -980,7 +1094,12 @@ void schedule_init_propagate(vvp_net_t*net, double bit)
 void schedule_del_thr(vthread_t thr)
 {
       struct del_thr_event_s*cur = new del_thr_event_s;
-
+#ifdef HAVE_READABLE_INFO
+    char szEventType[DEBUG_EVENT_LEN + 1]= {0};
+    strncpy(szEventType, "del_thr_event_s", DEBUG_EVENT_LEN);
+    cur->set_event_type(szEventType);
+    cur->set_cur_event();
+#endif
       cur->thr = thr;
 
       schedule_event_(cur, 0, DEL_THREAD);
@@ -1231,7 +1350,9 @@ void schedule_simulate(void)
 	    }
 
 	    cur->run_run();
-
+#ifdef HAVE_READABLE_INFO
+        ctim->dbg_active_num--;
+#endif
 	    delete (cur);
       }
 

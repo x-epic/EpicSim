@@ -671,11 +671,27 @@ void compile_functor(char*label, char*type, unsigned width,
 	    free(label);
 	    return;
       }
-
+#ifdef HAVE_READABLE_INFO
+      char szType[32 + 1] = {0};
+      strncpy(szType, type, sizeof(szType));
+      char szInfo[DEBUG_INFO_LEN + 1] = {0};
+      if (1 == argc)
+        snprintf(szInfo, DEBUG_INFO_LEN, "%s .functor %s %d, %s;", label, type, width, argv[0]);
+      if (2 == argc)
+        snprintf(szInfo, DEBUG_INFO_LEN, "%s .functor %s %d, %s, %s;", label, type, width, argv[0], argv[1]);
+      if (3 == argc)
+        snprintf(szInfo, DEBUG_INFO_LEN, "%s .functor %s %d, %s, %s, %s;", label, type, width, argv[0], argv[1], argv[2]);
+      if (4 == argc)
+        snprintf(szInfo, DEBUG_INFO_LEN, "%s .functor %s %d, %s, %s, %s, %s;", label, type, width, argv[0], argv[1], argv[2], argv[3]);
+#endif
       free(type);
 
       assert(argc <= 4);
       vvp_net_t*net = new vvp_net_t;
+#ifdef HAVE_READABLE_INFO
+      net->add_readable_info(label, szType);
+      net->add_readable_info(szInfo);
+#endif
       net->fun = obj;
 
       inputs_connect(net, argc, argv);
@@ -691,6 +707,10 @@ void compile_functor(char*label, char*type, unsigned width,
       }
 
       vvp_net_t*net_drv = new vvp_net_t;
+#ifdef HAVE_READABLE_INFO
+    net->add_readable_info(label, szType);
+    net->add_readable_info(szInfo);
+#endif
       vvp_net_fun_t*obj_drv = new vvp_fun_drive(ostr0, ostr1);
       net_drv->fun = obj_drv;
 

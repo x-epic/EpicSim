@@ -1460,6 +1460,18 @@ void compile_delay(char*label, unsigned width,
                    vvp_delay_t*delay, struct symb_s arg)
 {
       vvp_net_t*net = new vvp_net_t;
+#ifdef HAVE_READABLE_INFO
+      //ISO C++ forbids converting a string constant to ‘char*’
+    char szDelay[32] = {0};
+    strncpy(szDelay, "delay", sizeof(szDelay)-1);
+    char szInfo[DEBUG_INFO_LEN + 1] = {0};
+    vvp_time64_t nRise_time = delay->get_delay(BIT4_0, BIT4_1);
+    vvp_time64_t nFall_time = delay->get_delay(BIT4_1, BIT4_0);
+    vvp_time64_t nDecay_time = delay->get_delay(BIT4_0, BIT4_Z);
+    snprintf(szInfo, DEBUG_INFO_LEN, "%s .delay %d (%d %d %d) %s", label, width, nRise_time, nFall_time, nDecay_time, arg.text);
+    net->add_readable_info(label, szDelay);
+    net->add_readable_info(szInfo);
+#endif
       vvp_fun_delay*obj = new vvp_fun_delay(net, width, *delay);
       net->fun = obj;
 
@@ -1477,6 +1489,15 @@ void compile_delay(char*label, unsigned width,
       vvp_delay_t stub (0, 0, 0);
       if (ignore_decay) stub.set_ignore_decay();
       vvp_net_t*net = new vvp_net_t;
+#ifdef HAVE_READABLE_INFO
+      //ISO C++ forbids converting a string constant to ‘char*’
+    char szDelay[32] = {0};
+    strncpy(szDelay, "delay", sizeof(szDelay)-1);
+    char szInfo[DEBUG_INFO_LEN + 1] = {0};
+    snprintf(szInfo, DEBUG_INFO_LEN, "%s .delay %d (%d %d %d) %s", label, width, 0, 0, 0, argv->text);
+    net->add_readable_info(label, szDelay);
+    net->add_readable_info(szInfo);
+#endif
       vvp_fun_delay*obj = new vvp_fun_delay(net, width, stub);
       net->fun = obj;
 

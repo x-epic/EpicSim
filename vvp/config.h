@@ -57,6 +57,7 @@
  * special valgrind hooks for the memory pools.
  */
 /* # undef CHECK_WITH_VALGRIND */
+/* #define HAVE_READABLE_INFO 0 */
 
 /* Figure if I can use readline. */
 /* #undef USE_READLINE */

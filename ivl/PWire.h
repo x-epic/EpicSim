@@ -66,6 +66,8 @@ class PWire : public PNamedItem {
 
       NetNet::Type get_wire_type() const;
       bool set_wire_type(NetNet::Type);
+      void set_wire_charge_strength(int charge_strength);
+      unsigned get_wire_charge_strength();
 
       NetNet::PortType get_port_type() const;
       bool set_port_type(NetNet::PortType);
@@ -121,6 +123,7 @@ class PWire : public PNamedItem {
       bool net_set_;
       bool is_scalar_;
       unsigned error_cnt_;
+      unsigned charge_strength_;
 
 	// If this wire is actually a memory, these indices will give
 	// me the size and address ranges of the memory.

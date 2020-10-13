@@ -349,6 +349,15 @@ extern void pform_makewire(const struct vlltype&li, perm_string name,
 			   ivl_variable_type_t,
 			   list<named_pexpr_t>*attr);
 
+extern void pform_maketrireg(const struct vlltype&li, list<perm_string>* names,
+                                  NetNet::Type type,
+                                  list<PExpr*>*delay,
+                                  int charge_strength,
+                                  NetNet::PortType pt,
+                                  ivl_variable_type_t dt,
+                                  list<pform_range_t>*range,
+                                  list<named_pexpr_t>*attr);
+
 /* This form handles simple declarations */
 extern void pform_makewire(const struct vlltype&li,
 			   list<pform_range_t>*range,

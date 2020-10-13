@@ -82,7 +82,9 @@ void compile_varw_real(char*label, vvp_array_t array,
 void compile_var_string(char*label, char*name)
 {
       vvp_net_t*net = new vvp_net_t;
-
+#ifdef HAVE_READABLE_INFO
+    net->add_readable_info(label, name);
+#endif
       if (vpip_peek_current_scope()->is_automatic()) {
 	    vvp_fun_signal_string_aa*tmp = new vvp_fun_signal_string_aa;
 	    net->fil = tmp;
@@ -182,7 +184,12 @@ void compile_variable(char*label, char*name,
       unsigned wid = ((msb > lsb)? msb-lsb : lsb-msb) + 1;
 
       vvp_net_t*net = new vvp_net_t;
-
+#ifdef HAVE_READABLE_INFO
+      char szInfo[DEBUG_INFO_LEN + 1] = {0};
+      snprintf(szInfo, DEBUG_INFO_LEN, "%s .var %s, %d %d;", label, name, msb, lsb);
+    net->add_readable_info(label, name);
+    net->add_readable_info(szInfo);
+#endif
       if (vpip_peek_current_scope()->is_automatic()) {
 	    vvp_fun_signal4_aa*tmp = new vvp_fun_signal4_aa(wid);
 	    net->fil = tmp;
@@ -225,7 +232,7 @@ void compile_variable(char*label, char*name,
             if (!vpip_peek_current_scope()->is_automatic()) {
 		  vvp_vector4_t tmp;
 		  vfil->vec4_value(tmp);
-	          schedule_init_vector(vvp_net_ptr_t(net,0), tmp);
+		  schedule_init_vector(vvp_net_ptr_t(net,0), tmp);
 	    }
       }
 
@@ -410,7 +417,11 @@ static void __compile_net(char*label,
 	    return;
       }
       assert(node);
-
+#ifdef HAVE_READABLE_INFO
+    char szInfo[DEBUG_INFO_LEN + 1] = {0};
+    snprintf(szInfo, DEBUG_INFO_LEN, "%s .net %s %d %d %s; 1 drivers", label, name, msb, lsb, argv[0].text);
+    node->add_readable_info(szInfo);
+#endif
       __vpiScope*scope = vpip_peek_current_scope();
       do_compile_net(node, array, scope, label, name, msb, lsb, array_addr,
 		     vpi_type_code, signed_flag, local_flag);

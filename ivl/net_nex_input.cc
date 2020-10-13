@@ -640,3 +640,19 @@ NexusSet* NetEvent::nex_input(bool, bool, bool) const
     }
     return result;
 }
+
+bool NetEvent::has_clock_input() const
+{
+    for (NetEvProbe* cur = probes_; cur != 0; cur = cur->enext_) {
+        for (unsigned idx = 0; idx < cur->pin_count(); idx++) {
+            Nexus* nex = cur->pin(idx).nexus();
+            if (nex) {
+                NetNet* pin = nex->pick_any_net();
+                if (pin && pin->is_clock()) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}

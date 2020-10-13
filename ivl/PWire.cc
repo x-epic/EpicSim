@@ -31,7 +31,7 @@ PWire::PWire(perm_string n,
   signed_(false), isint_(false),
   port_set_(false), net_set_(false), is_scalar_(false),
   error_cnt_(0), uarray_type_(0), set_data_type_(0),
-  discipline_(0)
+  discipline_(0),charge_strength_(0)
 {
       if (t == NetNet::INTEGER) {
 	    type_ = NetNet::REG;
@@ -52,6 +52,15 @@ NetNet::Type PWire::get_wire_type() const
 perm_string PWire::basename() const
 {
       return name_;
+}
+void PWire::set_wire_charge_strength(int nChargeStrength)
+{
+    charge_strength_ = nChargeStrength;
+}
+
+unsigned PWire::get_wire_charge_strength()
+{
+    return charge_strength_;
 }
 
 bool PWire::set_wire_type(NetNet::Type t)

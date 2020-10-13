@@ -1136,13 +1136,11 @@ static bool isClockInEventList(NetEvWait* ev_wait)
     NexusSet* nset = new NexusSet;
     for (unsigned i = 0; i < ev_wait->nevents(); ++i) {
         NetEvent* ev = ev_wait->event(i);
-        NexusSet* tmp = ev->nex_input(false, false, false);
-        nset->add(*tmp);
-        delete tmp;
+        if (ev->has_clock_input()) {
+            return true;
+        }
     }
-    bool is_clock = isClockInNexusSet(nset);
-    delete nset;
-    return is_clock;
+    return false;
 }
 
 static NetNet* createRegNode(NetScope* scope)

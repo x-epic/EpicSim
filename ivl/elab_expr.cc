@@ -3545,7 +3545,7 @@ unsigned PEIdent::test_width(Design*des, NetScope*scope, width_mode_t&mode)
 		       << ", unpacked_dimensions=" << net->unpacked_dimensions()
 		       << endl;
 	    }
-	    return expr_width_;
+            return expr_width_;
       }
 
 	// The width of an enumeration literal is the width of the
@@ -3940,7 +3940,7 @@ NetExpr* PEIdent::elaborate_expr(Design*des, NetScope*scope,
       NetNet*       net = 0;
       const NetExpr*par = 0;
       NetEvent*     eve = 0;
-
+      bool needRescan = false;
       const NetExpr*ex1, *ex2;
 
       if (debug_elaborate) {
@@ -4009,6 +4009,31 @@ NetExpr* PEIdent::elaborate_expr(Design*des, NetScope*scope,
 	    member_path.push_front( base_path.back() );
 	    base_path.pop_back();
       }
+
+    // Fix name duplicate issue
+    // Add parellel entry for fewer performance impact
+research_symbol:
+    if (needRescan) {
+		cerr << get_fileline() << ": PEIdent::elaborate_expr: Try rescan symbol with scope first now." << endl;
+        net = 0;
+        par = 0;
+        eve = 0;
+        while (member_path.size() > 0) {
+            base_path.push_back(member_path.front());
+            member_path.pop_front();
+        }
+        while (net == 0 && par == 0 && eve == 0 && base_path.size() > 0) {
+	        found_in = symbol_search_scopefirst(this, des, use_scope, base_path,
+                net, par, eve, ex1, ex2);
+	    if (net) break;
+	    if (par) break;
+	    if (eve) break;
+	    // Not found. Try to pop another name off the base_path
+	    // and push it to the front of the member path.
+	    member_path.push_front( base_path.back() );
+	    base_path.pop_back();
+      }
+    }
 
       if (debug_elaborate) {
 	    cerr << get_fileline() << ": PEIdent::elaborate_expr: "
@@ -4135,7 +4160,18 @@ NetExpr* PEIdent::elaborate_expr(Design*des, NetScope*scope,
 						expr, expr_wid, NULL, 0);
 	    }
 
-	    ivl_assert(*this, member_path.size() == 0);
+        if (member_path.size() > 0) {
+            if (needRescan) {
+                // failed after retry... abort
+                ivl_assert(*this, member_path.size() == 0);
+            }
+            cerr << get_fileline() << ": PEIdent::elaborate_expr: "
+			     << "Ident " << base_path
+			     << " look for member " << member_path
+			     << " failed, Please check input." << endl;
+            needRescan = true;
+            goto research_symbol;
+        }
 	    NetExpr*tmp = elaborate_expr_net(des, scope, net, found_in,
                                              expr_wid, flags);
 

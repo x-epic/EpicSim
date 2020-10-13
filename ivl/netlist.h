@@ -669,7 +669,7 @@ class NetNet  : public NetObj, public PortType {
 
     public:
       enum Type ENUM_UNSIGNED_INT { NONE, IMPLICIT, IMPLICIT_REG, INTEGER, WIRE, TRI, TRI1,
-		  SUPPLY0, SUPPLY1, WAND, TRIAND, TRI0, WOR, TRIOR, REG,
+		  SUPPLY0, SUPPLY1, WAND, TRIAND, TRI0, WOR, TRIOR, REG, TRIREG,
 		  UNRESOLVED_WIRE };
 
       typedef PortType::Enum PortType;
@@ -3424,6 +3424,7 @@ class NetEvent : public LineInfo {
       const NetScope* scope() const;
 
       NexusSet* nex_input(bool, bool, bool) const;
+      bool has_clock_input() const;
       void nex_output(NexusSet&);
 
 	// Locate the first event that matches my behavior and

@@ -48,6 +48,20 @@ extern NetScope* symbol_search(const LineInfo*li,
 			       NetEvent*&eve,     /* named event */
 			       const NetExpr*&ex1, const NetExpr*&ex2);
 
+/*
+ * Add new method for rescan symbol
+ * Only used under special scenario
+ * This method maybe slower than native one
+ */
+extern NetScope* symbol_search_scopefirst(const LineInfo*li,
+                               Design*des,
+			       NetScope*start,
+                               pform_name_t path,
+			       NetNet*&net,       /* net/reg */
+			       const NetExpr*&par,/* parameter/expr */
+			       NetEvent*&eve,     /* named event */
+			       const NetExpr*&ex1, const NetExpr*&ex2);
+
 inline NetScope* symbol_search(const LineInfo*li,
                                Design*des,
 			       NetScope*start,

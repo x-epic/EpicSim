@@ -194,7 +194,23 @@ vvp_net_t::vvp_net_t()
       fun = 0;
       fil = 0;
 }
+#ifdef HAVE_READABLE_INFO
+void vvp_net_t::add_readable_info(char* label, char* name)
+{
+    if (name)
+        strncpy(szName, name, DEBUG_INFO_LEN);
 
+    if (label)
+        strncpy(szLabel, label, DEBUG_INFO_LEN);
+}
+
+void vvp_net_t::add_readable_info(char* pInfo)
+{
+    if (pInfo)
+        strncpy(szInfo, pInfo, DEBUG_INFO_LEN);
+}
+
+#endif
 void vvp_net_t::link(vvp_net_ptr_t port_to_link)
 {
       vvp_net_t*net = port_to_link.ptr();

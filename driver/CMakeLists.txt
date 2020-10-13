@@ -39,14 +39,7 @@ link_directories(
         ${CMAKE_SOURCE_DIR}/veri-parser/parser/lib
 )
 
-add_definitions(-DIVL_ROOT="/usr/local/lib/epicsim" -DIVL_SUFFIX="" -DIVL_INC="/usr/local/include" -DIVL_LIB="/usr/local/lib" 
-    -DGALAXSIM_LIB_ROOT="${CMAKE_INSTALL_PREFIX}/lib/epicsim" -DDLLIB="-ldl")
-
 add_executable(epicsim-driver main.c substit.c cflexor.c cfparse.c)
-if (USE_VERIFIC_PARSER)
-    set(LIBS veritransform)
-    target_link_libraries(epicsim-driver ${LIBS})
-endif()
 target_link_libraries(epicsim-driver pthread)
 
 install(TARGETS epicsim-driver DESTINATION bin)

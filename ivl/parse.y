@@ -563,6 +563,7 @@ static void current_function_set_statement(const YYLTYPE&loc, vector<Statement*>
 %token K_timer K_transition K_units K_white_noise K_wreal
 %token K_zi_nd K_zi_np K_zi_zd K_zi_zp
 
+%type <int_val>    charge_strength_opt charge_strength
 %type <flag>    from_exclude block_item_decls_opt
 %type <number>  number pos_neg_number
 %type <flag>    signing unsigned_signed_opt signed_unsigned_opt
@@ -3107,13 +3108,24 @@ case_items
 
 charge_strength
 	: '(' K_small ')'
+	    {
+	        $$ = 1;
+	    }
 	| '(' K_medium ')'
+	    {
+	        $$ = 2;
+	    }
 	| '(' K_large ')'
+	    {
+	        $$ = 3;
+	    }
 	;
 
 charge_strength_opt
 	: charge_strength
-	|
+	    {
+	        $$=$1;
+	    }
 	;
 
 defparam_assign
@@ -5029,9 +5041,11 @@ module_item
       }
 
 	| K_trireg charge_strength_opt dimensions_opt delay3_opt list_of_identifiers ';'
-		{ yyerror(@1, "sorry: trireg nets not supported.");
-		  delete $3;
-		  delete $4;
+		{
+		  /*yyerror(@1, "sorry: trireg nets not supported.");*/
+          pform_maketrireg(@5, $5, NetNet::TRIREG, $4, $2, NetNet::NOT_A_PORT, IVL_VT_NO_TYPE, $3, 0);
+		  /*delete $3;
+		  delete $4;*/
 		}
 
 

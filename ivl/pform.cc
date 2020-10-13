@@ -2723,6 +2723,32 @@ void pform_add_net_delay(list<perm_string>*names, list<PExpr*>*delay) {
       }
 }
 
+void pform_maketrireg(const struct vlltype&li, list<perm_string>* names,
+                      NetNet::Type type,
+                      list<PExpr*>*delay,
+                      int charge_strength,
+                      NetNet::PortType pt,
+                      ivl_variable_type_t dt,
+                      list<pform_range_t>*range,
+                      list<named_pexpr_t>*attr)
+{
+    for (list<perm_string>::iterator cur = names->begin()
+            ; cur != names->end() ; ++ cur ) {
+        perm_string trName = *cur;
+        pform_makewire(li, trName, type, pt, dt, attr);
+        PWire* pWire = pform_get_wire_in_scope(trName);
+
+        if (pWire && delay)
+            pWire->set_delays(delay);
+
+        if (pWire && charge_strength)
+            pWire->set_wire_charge_strength(charge_strength);
+    }
+
+    if (names) delete names;
+    if (range) delete range;
+    if (attr)  delete attr;
+}
 /*
  * this is the basic form of pform_makewire. This takes a single simple
  * name, port type, net type, data type, and attributes, and creates

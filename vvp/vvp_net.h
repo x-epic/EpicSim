@@ -1120,14 +1120,22 @@ template <class T> ostream& operator << (ostream&out, vvp_sub_pointer_t<T> val)
 class vvp_net_t {
     public:
       vvp_net_t();
-
+#ifdef HAVE_READABLE_INFO
+    #define DEBUG_INFO_LEN 128
+      char szLabel[DEBUG_INFO_LEN + 1];
+      char szName[DEBUG_INFO_LEN + 1];
+      char szInfo[DEBUG_INFO_LEN + 1];
+#endif
 #ifdef CHECK_WITH_VALGRIND
       vvp_net_t *pool;
 #endif
       vvp_net_ptr_t port[4];
       vvp_net_fun_t*fun;
       vvp_net_fil_t*fil;
-
+#ifdef HAVE_READABLE_INFO
+      void add_readable_info(char* label, char* name);
+      void add_readable_info(char* pInfo);
+#endif
     public:
 	// Connect the port to the output from this net.
       void link(vvp_net_ptr_t port);
