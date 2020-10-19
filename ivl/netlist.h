@@ -143,6 +143,7 @@ class Link {
 	// Get a pointer to the nexus that represents all the links
 	// connected to me.
       Nexus* nexus();
+      Nexus* find_nexus_post_elab();
       const Nexus* nexus()const;
       bool has_nexus() const;
       bool has_driver() const;
@@ -199,6 +200,7 @@ class Link {
 	// then these pointers are both nil.
       Link *next_;
       Nexus*nexus_;
+      Nexus*lnexus_;
 
     private: // not implemented
       Link(const Link&);
@@ -228,6 +230,7 @@ class NetPins : public LineInfo {
 	// the stream. It is used for debug and diagnostics.
       virtual void show_type(std::ostream&fd) const;
       virtual bool is_clock_obj() const { return false; }
+      virtual bool isNetEvProbe() const { return false; }
 
     private:
       Link*pins_;
@@ -3435,6 +3438,7 @@ class NetEvent : public LineInfo {
 	// that. It is typically used to replace similar events
 	// located by the find_similar_event method.
       void replace_event(NetEvent*that);
+      bool markfordel_;
 
     private:
 	// This returns a nexus set if it represents possibly
@@ -3451,6 +3455,7 @@ class NetEvent : public LineInfo {
 
 	// Use these methods to list the probes attached to me.
       NetEvProbe*probes_;
+      NetEvProbe*lprobe_;
 
 	// Use these methods to list the triggers attached to me.
       NetEvTrig* trig_;
@@ -3574,10 +3579,11 @@ class NetEvProbe  : public NetNode {
       NetEvent* event();
       const NetEvent* event() const;
 
-      void find_similar_probes(list<NetEvProbe*>&);
+      void find_similar_probes(list<NetEvProbe*>&, int quick);
 
       virtual bool emit_node(struct target_t*) const;
       virtual void dump_node(ostream&, unsigned ind) const;
+      virtual bool isNetEvProbe() const { return true; }
 
     private:
       NetEvent*event_;

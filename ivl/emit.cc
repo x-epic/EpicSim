@@ -427,8 +427,10 @@ void NetScope::emit_scope(struct target_t*tgt) const
 
       tgt->scope(this);
 
-      for (NetEvent*cur = events_ ;  cur ;  cur = cur->snext_)
-	    tgt->event(cur);
+      for (NetEvent*cur = events_ ;  cur ;  cur = cur->snext_) {
+          if (cur->markfordel_) continue;
+	      tgt->event(cur);
+      }
 
       for (map<perm_string,netclass_t*>::const_iterator cur = classes_.begin()
 		 ; cur != classes_.end() ; ++cur) {

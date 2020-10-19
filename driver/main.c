@@ -71,7 +71,6 @@ extern void cfreset(FILE* fd, const char* path);
 static char binBase[MAXSIZE];
 static char libBase[MAXSIZE];
 
-const char* vhdlpp_dir = 0;
 const char* vhdlpp_work = 0;
 const char* mtm = 0;
 const char* opath = "a.out";
@@ -1205,7 +1204,7 @@ int main(int argc, char** argv) {
 
     if (vhdlpp_work == 0)
         vhdlpp_work = "ivl_vhdl_work";
-    fprintf(defines_file, "vhdlpp:%s%cvhdlpp\n", vhdlpp_dir, sep);
+    fprintf(defines_file, "vhdlpp:%s%cvhdlpp\n", libBase, sep);
     fprintf(defines_file, "vhdlpp-work:%s\n", vhdlpp_work);
     for (unsigned idx = 0; idx < vhdlpp_libdir_cnt; idx += 1)
         fprintf(defines_file, "vhdlpp-libdir:%s\n", vhdlpp_libdir[idx]);

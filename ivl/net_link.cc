@@ -110,7 +110,7 @@ void connect(Link&l, Link&r)
 
 Link::Link()
 : dir_(PASSIVE), drive0_(IVL_DR_STRONG), drive1_(IVL_DR_STRONG),
-  next_(0), nexus_(0)
+  next_(0), nexus_(0), lnexus_(0)
 {
       node_ = 0;
       pin_zero_ = true;
@@ -135,6 +135,31 @@ Nexus* Link::find_nexus_() const
       }
       return 0;
 }
+
+Nexus* Link::find_nexus_post_elab()
+{
+    if (next_ == 0) {
+        Nexus*tmp = new Nexus(*this);
+        return tmp;
+    }
+
+    if (nexus_) return nexus_;
+    if (lnexus_) return lnexus_;
+    for (Link*cur = next_ ; cur != this ; cur = cur->next_) {
+        if (cur->nexus_ || cur->lnexus_) {
+            Nexus *nn = cur->nexus_ ? cur->nexus_ : cur->lnexus_;
+            if (!lnexus_) {
+                for (Link*cur1 = next_ ; cur1 != cur ; cur1 = cur1->next_) {
+                    cur1->lnexus_ = nn;
+                }
+            }
+            lnexus_ = nn;
+            return nn;
+        }
+    }
+    return 0;
+}
+
 
 Nexus* Link::nexus()
 {

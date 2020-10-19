@@ -33,10 +33,12 @@ NetEvent::NetEvent(perm_string n)
       scope_ = 0;
       snext_ = 0;
       probes_ = 0;
+      lprobe_ = 0;
       trig_ = 0;
       waitref_ = 0;
       exprref_ = 0;
       wlist_ = 0;
+      markfordel_ = false;
 }
 
 NetEvent::~NetEvent()
@@ -128,8 +130,18 @@ unsigned NetEvent::nexpr() const
  */
 void NetEvent::find_similar_event(list<NetEvent*>&event_list)
 {
-      if (probes_ == 0)
-	    return;
+      if (probes_ == 0) return;
+
+      //To fix huge CT, add quickpath for seq logic and sensitive list <= 2.
+      int pcount = 0;
+      bool quickpath = true;
+      for (NetEvProbe* tmp = probes_; tmp; tmp = tmp->enext_) {
+          pcount += 1;
+          if (tmp->edge() == NetEvProbe::ANYEDGE)
+              quickpath = false;
+      }
+      if (pcount > 2) quickpath = false;
+
 
       set<NetEvent*> candidate_events;
 
@@ -138,7 +150,20 @@ void NetEvent::find_similar_event(list<NetEvent*>&event_list)
 	   candidate events. These candidate events are a superset of
 	   the similar events, so I will be culling this list later. */
       list<NetEvProbe*>first_probes;
-      probes_->find_similar_probes(first_probes);
+      probes_->find_similar_probes(first_probes, quickpath ? pcount : 0);
+
+      if (quickpath) {
+          for (list<NetEvProbe*>::iterator idx = first_probes.begin();
+                  idx != first_probes.end() ; ++ idx ) {
+              NetEvent*tmp = (*idx)->event();
+              if (tmp == this)
+                  continue;
+              if (scope()->is_auto() && (tmp->scope() != scope()))
+                  continue;
+              event_list .push_back(tmp);
+          }
+        return;
+      }
 
       for (list<NetEvProbe*>::iterator idx = first_probes.begin()
 		 ; idx != first_probes.end() ; ++ idx ) {
@@ -157,7 +182,7 @@ void NetEvent::find_similar_event(list<NetEvent*>&event_list)
       unsigned probe_count = 1;
       for (NetEvProbe*cur = probes_->enext_ ; cur;  cur = cur->enext_) {
 	    list<NetEvProbe*>similar_probes;
-	    cur->find_similar_probes(similar_probes);
+	    cur->find_similar_probes(similar_probes, 0);
 
 	    set<NetEvent*> candidate_tmp;
 	    for (list<NetEvProbe*>::iterator idx = similar_probes.begin()
@@ -273,8 +298,14 @@ NetEvProbe::NetEvProbe(NetScope*s, perm_string n, NetEvent*tgt,
 	    pin(idx).set_dir(Link::INPUT);
       }
 
-      enext_ = event_->probes_;
-      event_->probes_ = this;
+      enext_ = NULL;
+      if (!event_->probes_) {
+          event_->probes_ = this;
+          event_->lprobe_ = this;
+      } else {
+          event_->lprobe_->enext_ = this;
+          event_->lprobe_ = this;
+      }
 }
 
 NetEvProbe::~NetEvProbe()
@@ -313,7 +344,7 @@ const NetEvent* NetEvProbe::event() const
  * that this probe is connected to, and also is the same edge
  * type. Don't count myself as a similar probe.
  */
-void NetEvProbe::find_similar_probes(list<NetEvProbe*>&plist)
+void NetEvProbe::find_similar_probes(list<NetEvProbe*>&plist, int isquick)
 {
       Nexus*nex = pin(0).nexus();
 
@@ -323,10 +354,12 @@ void NetEvProbe::find_similar_probes(list<NetEvProbe*>&plist)
 	    if (obj == 0)
 		  continue;
 
+	    if (!obj->isNetEvProbe()) continue;
+
 	    if (obj->pin_count() != pin_count())
 		  continue;
 
-	    NetEvProbe*tmp = dynamic_cast<NetEvProbe*>(obj);
+        NetEvProbe*tmp = static_cast<NetEvProbe*>(obj);
 	    if (tmp == 0)
 		  continue;
 
@@ -340,6 +373,20 @@ void NetEvProbe::find_similar_probes(list<NetEvProbe*>&plist)
 	    for (unsigned idx = 1 ;  ok_flag && idx < pin_count() ;  idx += 1)
 		  if (! pin(idx).is_linked(tmp->pin(idx)))
 			ok_flag = false;
+
+        if (isquick) {
+            NetEvent* e = tmp->event();
+            NetEvProbe *p = e->probes_;
+            if (isquick == 1 && p->enext_) {
+                continue;
+            } else if (isquick == 2) {
+                if (p != tmp) continue;
+                if (!p->enext_) continue;
+                if (p->enext_->enext_) continue;
+                if (p->edge() != edge() || p->enext_->edge() != enext_->edge()) continue;
+                if (p->enext_->pin(0).find_nexus_post_elab() != enext_->pin(0).find_nexus_post_elab()) continue;
+            }
+        }
 
 	    if (ok_flag == true)
 		  plist .push_back(tmp);
