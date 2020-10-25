@@ -8,12 +8,9 @@ Instructions are generally applicable to all environments.
 Project is developed based on icarus iverilog under LGPL. 
 Special thanks to Stephen Williams (steve@icarus.com).
 
-
-
 ## 1. Install From Source
 
 In this case, see INSTALL_INSTRUCTION.txt that comes with the source.
-
 
 ## 2. Hello, World!
 
@@ -156,16 +153,12 @@ to generate actual output.
 The user selects the target code generator with the -t flag on the
 command line.
 
-
 ## 4 Unsupported Constructs
 
-  - Specify blocks are parsed but ignored in general.
-
-  - trireg is not supported. tri0 and tri1 are supported.
-
-  - tran primitives, i.e. tran, tranif1, tranif0, rtran, rtranif1
-    and rtranif0 are not supported.
-
-  - Event controls inside non-blocking assignments are not supported.
-    i.e.: a <= @(posedge clk) b;
-
+- Specify blocks are parsed but ignored in general.
+- trireg is not supported. tri0 and tri1 are supported.
+- tran primitives, i.e. tran, tranif1, tranif0, rtran, rtranif1 and rtranif0 are not supported.
+- Event controls inside non-blocking assignments are not supported. i.e.: 
+```verilog
+a <= @(posedge clk) b;
+```
