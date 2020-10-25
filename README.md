@@ -34,18 +34,18 @@ we use as our example *the* most trivial simulation:
 By a text editor (or copy hello.vl from the EpicSim examples
 directory) arrange for this program to be in a text file, "hello.vl".
 Next, compile this program with a command like this:
-```shell
-	% epicsim hello.vl
+```bash
+% epicsim hello.vl
   Hello, World
 ```
 The results of this compile are placed into the file "epicsim-run",
 and it is excuted.
 
 The compiled program can also be excuted like so:
-```shell
-  % epicsim-driver hello.vl -o epicsim-run 
-	% epicsim-vvp ./epicsim-run
-	Hello, World
+```bash
+% epicsim-driver hello.vl -o epicsim-run 
+% epicsim-vvp ./epicsim-run
+  Hello, World
 ```
 And there it is, the program has been executed. So what happened? The
 first step, the "epicsim-driver" command, read and interpreted the source
