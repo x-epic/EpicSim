@@ -10,17 +10,17 @@ Special thanks to Stephen Williams (steve@icarus.com).
 
 
 
-1.0 Install From Source
+# 1.0 Install From Source
 
 In this case, see INSTALL_INSTRUCTION.txt that comes with the source.
 
 
-2.0 Hello, World!
+# 2.0 Hello, World!
 
 The first thing you want to do as a user is learn how to compile and
 execute even the most trivial design. For the purposes of simulation,
 we use as our example *the* most trivial simulation:
-
+```verilog
   module main;
 
   initial
@@ -30,7 +30,7 @@ we use as our example *the* most trivial simulation:
     end
 
   endmodule
-
+```
 By a text editor (or copy hello.vl from the EpicSim examples
 directory) arrange for this program to be in a text file, "hello.vl".
 Next, compile this program with a command like this:
