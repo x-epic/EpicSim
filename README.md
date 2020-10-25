@@ -34,15 +34,15 @@ we use as our example *the* most trivial simulation:
 By a text editor (or copy hello.vl from the EpicSim examples
 directory) arrange for this program to be in a text file, "hello.vl".
 Next, compile this program with a command like this:
-```bash
+```shell
 	% epicsim hello.vl
-        Hello, World
+  Hello, World
 ```
 The results of this compile are placed into the file "epicsim-run",
 and it is excuted.
 
 The compiled program can also be excuted like so:
-```bash
+```shell
   % epicsim-driver hello.vl -o epicsim-run 
 	% epicsim-vvp ./epicsim-run
 	Hello, World
