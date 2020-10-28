@@ -25,31 +25,31 @@
 /*
  * Define the allowed interpolation control values.
  */
-#define IVL_CLOSEST_POINT    0 /* D */
-#define IVL_LINEAR_INTERP    1 /* 1 - Default */
+#define IVL_CLOSEST_POINT 0    /* D */
+#define IVL_LINEAR_INTERP 1    /* 1 - Default */
 #define IVL_QUADRATIC_INTERP 2 /* 2 */
-#define IVL_CUBIC_INTERP     3 /* 3 */
-#define IVL_IGNORE_COLUMN    4 /* I */
+#define IVL_CUBIC_INTERP 3     /* 3 */
+#define IVL_IGNORE_COLUMN 4    /* I */
 
 /*
  * Define the allowed extrapolation control values.
  */
 #define IVL_CONSTANT_EXTRAP 0 /* C */
-#define IVL_LINEAR_EXTRAP   1 /* L - Default */
-#define IVL_ERROR_EXTRAP    2 /* E */
+#define IVL_LINEAR_EXTRAP 1   /* L - Default */
+#define IVL_ERROR_EXTRAP 2    /* E */
 
 /*
  * Structure that represents an individual iso line element.
  */
 typedef struct t_indep {
-      double value;
-      struct t_indep *left;  /* previous element. */
-      struct t_indep *right; /* next element. */
-      union {
-	    double data;
-	    struct t_indep *child;
-	    struct t_build *build;
-      } data;
+  double value;
+  struct t_indep *left;  /* previous element. */
+  struct t_indep *right; /* next element. */
+  union {
+    double data;
+    struct t_indep *child;
+    struct t_build *build;
+  } data;
 } s_indep, *p_indep;
 
 /*
@@ -58,35 +58,35 @@ typedef struct t_indep {
  * used to make in order insertion faster.
  */
 typedef struct t_build {
-      p_indep first;
-      p_indep last;
-      unsigned count;
+  p_indep first;
+  p_indep last;
+  unsigned count;
 } s_build, *p_build;
 
 /*
  * This structure is saved for each table model instance.
  */
 typedef struct t_table_mod {
-      vpiHandle *indep;     /* Independent variable arguments. */
-      double *indep_val;    /* Current independent variable values. */
-      union {               /* Data file or argument to get the data file. */
-	    char *name;
-	    vpiHandle arg;
-      } file;
-      union {               /* Control string argument. */
-	    struct {
-		  char *interp;
-		  char *extrap_low;
-		  char *extrap_high;
-	    } info;
-	    vpiHandle arg;
-      } control;
-// HERE need a pointer to the dependent data and the final table.
-      unsigned dims;        /* The number of independent variables. */
-      unsigned fields;      /* The number of control fields. */
-      unsigned depend;      /* Where the dependent column is located. */
-      char have_fname;      /* Has the file name been allocated? */
-      char have_ctl;        /* Has the file name been allocated? */
+  vpiHandle *indep;  /* Independent variable arguments. */
+  double *indep_val; /* Current independent variable values. */
+  union {            /* Data file or argument to get the data file. */
+    char *name;
+    vpiHandle arg;
+  } file;
+  union { /* Control string argument. */
+    struct {
+      char *interp;
+      char *extrap_low;
+      char *extrap_high;
+    } info;
+    vpiHandle arg;
+  } control;
+  // HERE need a pointer to the dependent data and the final table.
+  unsigned dims;   /* The number of independent variables. */
+  unsigned fields; /* The number of control fields. */
+  unsigned depend; /* Where the dependent column is located. */
+  char have_fname; /* Has the file name been allocated? */
+  char have_ctl;   /* Has the file name been allocated? */
 } s_table_mod, *p_table_mod;
 
 /*

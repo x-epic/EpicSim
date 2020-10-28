@@ -17,18 +17,20 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "netlist.h"
-# include  "PNamedItem.h"
-# include  "PDelays.h"
-# include  <list>
-# include  <map>
-# include  "StringHeap.h"
+#include <list>
+#include <map>
+
+#include "PDelays.h"
+#include "PNamedItem.h"
+#include "StringHeap.h"
+#include "netlist.h"
 
 #ifdef HAVE_IOSFWD
-# include  <iosfwd>
+#include <iosfwd>
 #else
 class ostream;
 #endif
@@ -40,7 +42,7 @@ class netdarray_t;
 /*
  * The different type of PWire::set_range() calls.
  */
-enum PWSRType {SR_PORT, SR_NET, SR_BOTH};
+enum PWSRType { SR_PORT, SR_NET, SR_BOTH };
 
 /*
  * Wires include nets, registers and ports. A net or register becomes
@@ -54,91 +56,88 @@ enum PWSRType {SR_PORT, SR_NET, SR_BOTH};
  * the wire name.
  */
 class PWire : public PNamedItem {
+ public:
+  PWire(perm_string name, NetNet::Type t, NetNet::PortType pt,
+        ivl_variable_type_t dt);
 
-    public:
-      PWire(perm_string name,
-	    NetNet::Type t,
-	    NetNet::PortType pt,
-	    ivl_variable_type_t dt);
+  // Return a hierarchical name.
+  perm_string basename() const;
 
-	// Return a hierarchical name.
-      perm_string basename() const;
+  NetNet::Type get_wire_type() const;
+  bool set_wire_type(NetNet::Type);
+  void set_wire_charge_strength(int charge_strength);
+  unsigned get_wire_charge_strength();
 
-      NetNet::Type get_wire_type() const;
-      bool set_wire_type(NetNet::Type);
-      void set_wire_charge_strength(int charge_strength);
-      unsigned get_wire_charge_strength();
+  NetNet::PortType get_port_type() const;
+  bool set_port_type(NetNet::PortType);
 
-      NetNet::PortType get_port_type() const;
-      bool set_port_type(NetNet::PortType);
+  void set_signed(bool flag);
+  bool get_signed() const;
+  bool get_isint() const;
+  bool get_scalar() const;
 
-      void set_signed(bool flag);
-      bool get_signed() const;
-      bool get_isint() const;
-      bool get_scalar() const;
+  bool set_data_type(ivl_variable_type_t dt);
+  ivl_variable_type_t get_data_type() const;
 
-      bool set_data_type(ivl_variable_type_t dt);
-      ivl_variable_type_t get_data_type() const;
+  void set_range_scalar(PWSRType type);
+  void set_range(const std::list<pform_range_t>& ranges, PWSRType type);
 
-      void set_range_scalar(PWSRType type);
-      void set_range(const std::list<pform_range_t>&ranges, PWSRType type);
+  void set_unpacked_idx(const std::list<pform_range_t>& ranges);
+  void set_uarray_type(uarray_type_t* type) { uarray_type_ = type; }
 
-      void set_unpacked_idx(const std::list<pform_range_t>&ranges);
-      void set_uarray_type(uarray_type_t*type) { uarray_type_ = type; }
+  void set_data_type(data_type_t* type);
 
-      void set_data_type(data_type_t*type);
+  void set_discipline(ivl_discipline_t);
+  ivl_discipline_t get_discipline(void) const;
 
-      void set_discipline(ivl_discipline_t);
-      ivl_discipline_t get_discipline(void) const;
+  map<perm_string, PExpr*> attributes;
 
-      map<perm_string,PExpr*> attributes;
+  // Write myself to the specified stream.
+  void dump(ostream& out, unsigned ind = 4) const;
 
-	// Write myself to the specified stream.
-      void dump(ostream&out, unsigned ind=4) const;
+  NetNet* elaborate_sig(Design*, NetScope* scope) const;
 
-      NetNet* elaborate_sig(Design*, NetScope*scope) const;
+  SymbolType symbol_type() const;
+  void set_delays(list<PExpr*>* del);
 
-      SymbolType symbol_type() const;
-      void set_delays(list<PExpr*>*del);
+ private:
+  perm_string name_;
+  NetNet::Type type_;
+  NetNet::PortType port_type_;
+  ivl_variable_type_t data_type_;
+  bool signed_;
+  bool isint_;  // original type of integer
 
-    private:
-      perm_string name_;
-      NetNet::Type type_;
-      NetNet::PortType port_type_;
-      ivl_variable_type_t data_type_;
-      bool signed_;
-      bool isint_;		// original type of integer
+  PDelays delay_;
 
-      PDelays delay_;
+  // These members hold expressions for the bit width of the
+  // wire. If they do not exist, the wire is 1 bit wide. If they
+  // do exist, they represent the packed dimensions of the
+  // bit. The first item in the list is the first range, and so
+  // on. For example "reg [3:0][7:0] ..." will contains the
+  // range_t object for [3:0] first and [7:0] last.
+  std::list<pform_range_t> port_;
+  bool port_set_;
+  std::list<pform_range_t> net_;
+  bool net_set_;
+  bool is_scalar_;
+  unsigned error_cnt_;
+  unsigned charge_strength_;
 
-	// These members hold expressions for the bit width of the
-	// wire. If they do not exist, the wire is 1 bit wide. If they
-	// do exist, they represent the packed dimensions of the
-	// bit. The first item in the list is the first range, and so
-	// on. For example "reg [3:0][7:0] ..." will contains the
-	// range_t object for [3:0] first and [7:0] last.
-      std::list<pform_range_t>port_;
-      bool port_set_;
-      std::list<pform_range_t>net_;
-      bool net_set_;
-      bool is_scalar_;
-      unsigned error_cnt_;
-      unsigned charge_strength_;
+  // If this wire is actually a memory, these indices will give
+  // me the size and address ranges of the memory.
+  std::list<pform_range_t> unpacked_;
+  uarray_type_t* uarray_type_;
 
-	// If this wire is actually a memory, these indices will give
-	// me the size and address ranges of the memory.
-      std::list<pform_range_t>unpacked_;
-      uarray_type_t*uarray_type_;
+  // This is the complex type of the wire. the data_type_ may
+  // modify how this is interpreted.
+  data_type_t* set_data_type_;
 
-	// This is the complex type of the wire. the data_type_ may
-	// modify how this is interpreted.
-      data_type_t*set_data_type_;
+  ivl_discipline_t discipline_;
 
-      ivl_discipline_t discipline_;
-
-    private: // not implemented
-      PWire(const PWire&);
-      PWire& operator= (const PWire&);
+ private:  // not implemented
+  PWire(const PWire&);
+  PWire& operator=(const PWire&);
 };
 
 #endif /* IVL_PWire_H */

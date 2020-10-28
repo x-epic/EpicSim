@@ -18,13 +18,15 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "PScope.h"
-# include  "LineInfo.h"
-# include  "StringHeap.h"
-# include  <iostream>
+#include <iostream>
+
+#include "LineInfo.h"
+#include "PScope.h"
+#include "StringHeap.h"
 
 /*
  * SystemVerilog supports class declarations with their own lexical
@@ -33,16 +35,15 @@
  */
 
 class PPackage : public PScopeExtra, public LineInfo {
+ public:
+  explicit PPackage(perm_string name, LexicalScope* parent);
+  ~PPackage();
 
-    public:
-      explicit PPackage (perm_string name, LexicalScope*parent);
-      ~PPackage();
+  bool elaborate_scope(Design* des, NetScope* scope);
+  bool elaborate_sig(Design* des, NetScope* scope) const;
+  bool elaborate(Design* des, NetScope* scope) const;
 
-      bool elaborate_scope(Design*des, NetScope*scope);
-      bool elaborate_sig(Design*des, NetScope*scope) const;
-      bool elaborate(Design*des, NetScope*scope) const;
-
-      void pform_dump(std::ostream&out) const;
+  void pform_dump(std::ostream& out) const;
 };
 
 #endif /* IVL_PPackage_H */

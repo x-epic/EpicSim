@@ -17,95 +17,96 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "nettypes.h"
-# include  "ivl_target.h"
-# include  <vector>
+#include <vector>
+
+#include "ivl_target.h"
+#include "nettypes.h"
 
 class netvector_t : public ivl_type_s {
+ public:
+  explicit netvector_t(const std::vector<netrange_t>& packed,
+                       ivl_variable_type_t type);
 
-    public:
-      explicit netvector_t(const std::vector<netrange_t>&packed,
-			   ivl_variable_type_t type);
+  // This is a variant of the vector form. Some code processes
+  // the list of packed ranges as a list, but we will store them
+  // as a vector in this constructor.
+  explicit netvector_t(const std::list<netrange_t>& packed,
+                       ivl_variable_type_t type);
 
-	// This is a variant of the vector form. Some code processes
-	// the list of packed ranges as a list, but we will store them
-	// as a vector in this constructor.
-      explicit netvector_t(const std::list<netrange_t>&packed,
-			   ivl_variable_type_t type);
+  // special case: there is a single packed dimension and we
+  // know it in the form [<msb>:<lsb>]. This step saves me
+  // creating a netrange_t for this single item.
+  explicit netvector_t(ivl_variable_type_t type, long msb, long lsb,
+                       bool signed_flag = false);
 
-	// special case: there is a single packed dimension and we
-	// know it in the form [<msb>:<lsb>]. This step saves me
-	// creating a netrange_t for this single item.
-      explicit netvector_t(ivl_variable_type_t type, long msb, long lsb,
-			   bool signed_flag =false);
+  // Special case: scalar object--no packed dimensions at all.
+  explicit netvector_t(ivl_variable_type_t type);
 
-	// Special case: scalar object--no packed dimensions at all.
-      explicit netvector_t(ivl_variable_type_t type);
+  ~netvector_t();
 
-      ~netvector_t();
+  // Vectors can be interpreted as signed or unsigned when
+  // handled as vectors.
+  inline void set_signed(bool flag) { signed_ = flag; }
+  inline bool get_signed(void) const { return signed_; }
 
-	// Vectors can be interpreted as signed or unsigned when
-	// handled as vectors.
-      inline void set_signed(bool flag) { signed_ = flag; }
-      inline bool get_signed(void) const { return signed_; }
+  inline void set_isint(bool flag) { isint_ = flag; }
+  inline bool get_isint(void) const { return isint_; }
 
-      inline void set_isint(bool flag) { isint_ = flag; }
-      inline bool get_isint(void) const { return isint_; }
+  inline void set_scalar(bool flag) { is_scalar_ = flag; }
+  inline bool get_scalar(void) const { return is_scalar_; }
 
-      inline void set_scalar(bool flag) { is_scalar_ = flag; }
-      inline bool get_scalar(void) const { return is_scalar_; }
+  ivl_variable_type_t base_type() const;
+  const std::vector<netrange_t>& packed_dims() const;
 
-      ivl_variable_type_t base_type() const;
-      const std::vector<netrange_t>&packed_dims() const;
+  bool packed(void) const;
+  long packed_width() const;
+  std::vector<netrange_t> slice_dimensions() const;
 
-      bool packed(void) const;
-      long packed_width() const;
-      std::vector<netrange_t> slice_dimensions() const;
+  std::ostream& debug_dump(std::ostream&) const;
 
-      std::ostream& debug_dump(std::ostream&) const;
+ public:
+  // Some commonly used predefined types
+  static netvector_t atom2s64;
+  static netvector_t atom2u64;
+  static netvector_t atom2s32;
+  static netvector_t atom2u32;
+  static netvector_t atom2s16;
+  static netvector_t atom2u16;
+  static netvector_t atom2s8;
+  static netvector_t atom2u8;
+  static netvector_t scalar_bool;
+  static netvector_t scalar_logic;
 
-    public:
-	// Some commonly used predefined types
-      static netvector_t atom2s64;
-      static netvector_t atom2u64;
-      static netvector_t atom2s32;
-      static netvector_t atom2u32;
-      static netvector_t atom2s16;
-      static netvector_t atom2u16;
-      static netvector_t atom2s8;
-      static netvector_t atom2u8;
-      static netvector_t scalar_bool;
-      static netvector_t scalar_logic;
+ private:
+  bool test_compatibility(ivl_type_t that) const;
 
-    private:
-      bool test_compatibility(ivl_type_t that) const;
-
-    private:
-      std::vector<netrange_t> packed_dims_;
-      ivl_variable_type_t type_;
-      bool signed_    : 1;
-      bool isint_     : 1;		// original type of integer
-      bool is_scalar_ : 1;
+ private:
+  std::vector<netrange_t> packed_dims_;
+  ivl_variable_type_t type_;
+  bool signed_ : 1;
+  bool isint_ : 1;  // original type of integer
+  bool is_scalar_ : 1;
 };
 
-inline netvector_t::netvector_t(const std::vector<netrange_t>&pd,
-				ivl_variable_type_t type)
-: packed_dims_(pd), type_(type), signed_(false), isint_(false),
-  is_scalar_(false)
-{
+inline netvector_t::netvector_t(const std::vector<netrange_t>& pd,
+                                ivl_variable_type_t type)
+    : packed_dims_(pd),
+      type_(type),
+      signed_(false),
+      isint_(false),
+      is_scalar_(false) {}
+
+inline const std::vector<netrange_t>& netvector_t::packed_dims() const {
+  return packed_dims_;
 }
 
-inline const std::vector<netrange_t>& netvector_t::packed_dims() const
-{
-      return packed_dims_;
-}
-
-inline static std::ostream& operator << (std::ostream&out, const netvector_t&obj)
-{
-      return obj.debug_dump(out);
+inline static std::ostream& operator<<(std::ostream& out,
+                                       const netvector_t& obj) {
+  return obj.debug_dump(out);
 }
 
 #endif /* IVL_netvector_H */

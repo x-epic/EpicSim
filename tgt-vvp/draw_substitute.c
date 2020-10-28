@@ -15,19 +15,20 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "vvp_priv.h"
-# include  <string.h>
-# include  <stdlib.h>
-# include  <assert.h>
+#include <assert.h>
+#include <stdlib.h>
+#include <string.h>
 
-void draw_lpm_substitute(ivl_lpm_t net)
-{
-      unsigned swidth = width_of_nexus(ivl_lpm_data(net,1));
-      fprintf(vvp_out, "L_%p .substitute %u, %u %u",
-	      net, ivl_lpm_width(net), ivl_lpm_base(net), swidth);
-      fprintf(vvp_out, ", %s", draw_net_input(ivl_lpm_data(net,0)));
-      fprintf(vvp_out, ", %s;\n", draw_net_input(ivl_lpm_data(net,1)));
+#include "vvp_priv.h"
+
+void draw_lpm_substitute(ivl_lpm_t net) {
+  unsigned swidth = width_of_nexus(ivl_lpm_data(net, 1));
+  fprintf(vvp_out, "L_%p .substitute %u, %u %u", net, ivl_lpm_width(net),
+          ivl_lpm_base(net), swidth);
+  fprintf(vvp_out, ", %s", draw_net_input(ivl_lpm_data(net, 0)));
+  fprintf(vvp_out, ", %s;\n", draw_net_input(ivl_lpm_data(net, 1)));
 }

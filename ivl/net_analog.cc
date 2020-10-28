@@ -15,34 +15,25 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include "config.h"
+#include <climits>
+#include <cstdlib>
+#include <typeinfo>
 
-# include  <typeinfo>
-# include  <cstdlib>
-# include  <climits>
-# include  "compiler.h"
-# include  "netlist.h"
-# include  "netmisc.h"
-# include  "ivl_assert.h"
+#include "compiler.h"
+#include "config.h"
+#include "ivl_assert.h"
+#include "netlist.h"
+#include "netmisc.h"
 
-NetContribution::NetContribution(NetEAccess*l, NetExpr*r)
-: lval_(l), rval_(r)
-{
-}
+NetContribution::NetContribution(NetEAccess* l, NetExpr* r)
+    : lval_(l), rval_(r) {}
 
-NetContribution::~NetContribution()
-{
-}
+NetContribution::~NetContribution() {}
 
-const NetEAccess* NetContribution::lval() const
-{
-      return lval_;
-}
+const NetEAccess* NetContribution::lval() const { return lval_; }
 
-const NetExpr* NetContribution::rval() const
-{
-      return rval_;
-}
+const NetExpr* NetContribution::rval() const { return rval_; }

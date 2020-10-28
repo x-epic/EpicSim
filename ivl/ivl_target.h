@@ -17,11 +17,12 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  <inttypes.h>
-# include  <stddef.h>
+#include <inttypes.h>
+#include <stddef.h>
 
 /* Re the _CLASS define: clang++ wants this to be class to match the
  * definition, but clang (the C) compiler needs it to be a struct
@@ -39,13 +40,13 @@
 #endif
 
 #ifndef __GNUC__
-# define __attribute__(x)
+#define __attribute__(x)
 #endif
 
 #if defined(__cplusplus) && defined(_MSC_VER)
-# define ENUM_UNSIGNED_INT : unsigned int
+#define ENUM_UNSIGNED_INT : unsigned int
 #else
-# define ENUM_UNSIGNED_INT
+#define ENUM_UNSIGNED_INT
 #endif
 
 _BEGIN_DECL
@@ -63,7 +64,6 @@ _BEGIN_DECL
  * interesting information about the design is accessed through the
  * various access functions that the modules calls into the core.
  */
-
 
 /*
  * In order to grab onto data in the design, the core passes cookies
@@ -168,33 +168,33 @@ _BEGIN_DECL
  * scope. These names are unique within a scope, but not necessarily
  * throughout the design.
  */
-typedef struct ivl_array_s    *ivl_array_t;
-typedef struct ivl_branch_s   *ivl_branch_t;
-typedef struct ivl_delaypath_s*ivl_delaypath_t;
-typedef struct ivl_design_s   *ivl_design_t;
-typedef _CLASS ivl_discipline_s*ivl_discipline_t;
-typedef const _CLASS netenum_t*ivl_enumtype_t;
-typedef struct ivl_event_s    *ivl_event_t;
-typedef struct ivl_expr_s     *ivl_expr_t;
-typedef struct ivl_island_s   *ivl_island_t;
-typedef struct ivl_lpm_s      *ivl_lpm_t;
-typedef struct ivl_lval_s     *ivl_lval_t;
-typedef struct ivl_net_const_s*ivl_net_const_t;
-typedef struct ivl_net_logic_s*ivl_net_logic_t;
-typedef struct ivl_udp_s      *ivl_udp_t;
-typedef _CLASS ivl_nature_s   *ivl_nature_t;
-typedef struct ivl_net_probe_s*ivl_net_probe_t;
-typedef struct ivl_nexus_s    *ivl_nexus_t;
-typedef struct ivl_nexus_ptr_s*ivl_nexus_ptr_t;
-typedef struct ivl_parameter_s*ivl_parameter_t;
-typedef struct ivl_process_s  *ivl_process_t;
-typedef struct ivl_scope_s    *ivl_scope_t;
-typedef struct ivl_signal_s   *ivl_signal_t;
-typedef struct ivl_port_info_s*ivl_port_info_t;
-typedef struct ivl_switch_s   *ivl_switch_t;
-typedef struct ivl_memory_s   *ivl_memory_t; //XXXX __attribute__((deprecated));
-typedef struct ivl_statement_s*ivl_statement_t;
-typedef const _CLASS ivl_type_s*ivl_type_t;
+typedef struct ivl_array_s* ivl_array_t;
+typedef struct ivl_branch_s* ivl_branch_t;
+typedef struct ivl_delaypath_s* ivl_delaypath_t;
+typedef struct ivl_design_s* ivl_design_t;
+typedef _CLASS ivl_discipline_s* ivl_discipline_t;
+typedef const _CLASS netenum_t* ivl_enumtype_t;
+typedef struct ivl_event_s* ivl_event_t;
+typedef struct ivl_expr_s* ivl_expr_t;
+typedef struct ivl_island_s* ivl_island_t;
+typedef struct ivl_lpm_s* ivl_lpm_t;
+typedef struct ivl_lval_s* ivl_lval_t;
+typedef struct ivl_net_const_s* ivl_net_const_t;
+typedef struct ivl_net_logic_s* ivl_net_logic_t;
+typedef struct ivl_udp_s* ivl_udp_t;
+typedef _CLASS ivl_nature_s* ivl_nature_t;
+typedef struct ivl_net_probe_s* ivl_net_probe_t;
+typedef struct ivl_nexus_s* ivl_nexus_t;
+typedef struct ivl_nexus_ptr_s* ivl_nexus_ptr_t;
+typedef struct ivl_parameter_s* ivl_parameter_t;
+typedef struct ivl_process_s* ivl_process_t;
+typedef struct ivl_scope_s* ivl_scope_t;
+typedef struct ivl_signal_s* ivl_signal_t;
+typedef struct ivl_port_info_s* ivl_port_info_t;
+typedef struct ivl_switch_s* ivl_switch_t;
+typedef struct ivl_memory_s* ivl_memory_t;  // XXXX __attribute__((deprecated));
+typedef struct ivl_statement_s* ivl_statement_t;
+typedef const _CLASS ivl_type_s* ivl_type_t;
 
 /*
  * These are types that are defined as enumerations. These have
@@ -203,293 +203,301 @@ typedef const _CLASS ivl_type_s*ivl_type_t;
  */
 
 typedef enum ivl_dis_domain_e {
-      IVL_DIS_NONE       = 0,
-      IVL_DIS_DISCRETE   = 1,
-      IVL_DIS_CONTINUOUS = 2
+  IVL_DIS_NONE = 0,
+  IVL_DIS_DISCRETE = 1,
+  IVL_DIS_CONTINUOUS = 2
 } ivl_dis_domain_t;
 
 typedef enum ivl_drive_e ENUM_UNSIGNED_INT {
-      IVL_DR_HiZ    = 0,
-      IVL_DR_SMALL  = 1,
-      IVL_DR_MEDIUM = 2,
-      IVL_DR_WEAK   = 3,
-      IVL_DR_LARGE  = 4,
-      IVL_DR_PULL   = 5,
-      IVL_DR_STRONG = 6,
-      IVL_DR_SUPPLY = 7
+  IVL_DR_HiZ = 0,
+  IVL_DR_SMALL = 1,
+  IVL_DR_MEDIUM = 2,
+  IVL_DR_WEAK = 3,
+  IVL_DR_LARGE = 4,
+  IVL_DR_PULL = 5,
+  IVL_DR_STRONG = 6,
+  IVL_DR_SUPPLY = 7
 } ivl_drive_t;
 
 /* This is the type of an ivl_expr_t object. The explicit numbers
    allow additions to the enumeration without causing values to shift
    and incompatibilities to be introduced. */
 typedef enum ivl_expr_type_e {
-      IVL_EX_NONE = 0,
-      IVL_EX_ARRAY = 18,
-      IVL_EX_BACCESS= 19,
-      IVL_EX_BINARY = 2,
-      IVL_EX_CONCAT = 3,
-      IVL_EX_DELAY = 20,
-      IVL_EX_ENUMTYPE = 21,
-      IVL_EX_EVENT  = 17,
-      IVL_EX_MEMORY = 4,
-      IVL_EX_NEW    = 23,
-      IVL_EX_NULL   = 22,
-      IVL_EX_NUMBER = 5,
-      IVL_EX_ARRAY_PATTERN  = 26,
-      IVL_EX_PROPERTY = 24,
-      IVL_EX_REALNUM  = 16,
-      IVL_EX_SCOPE  = 6,
-      IVL_EX_SELECT = 7,
-      IVL_EX_SFUNC  = 8,
-      IVL_EX_SHALLOWCOPY = 25,
-      IVL_EX_SIGNAL = 9,
-      IVL_EX_STRING = 10,
-      IVL_EX_TERNARY = 11,
-      IVL_EX_UFUNC = 12,
-      IVL_EX_ULONG = 13,
-      IVL_EX_UNARY = 14
+  IVL_EX_NONE = 0,
+  IVL_EX_ARRAY = 18,
+  IVL_EX_BACCESS = 19,
+  IVL_EX_BINARY = 2,
+  IVL_EX_CONCAT = 3,
+  IVL_EX_DELAY = 20,
+  IVL_EX_ENUMTYPE = 21,
+  IVL_EX_EVENT = 17,
+  IVL_EX_MEMORY = 4,
+  IVL_EX_NEW = 23,
+  IVL_EX_NULL = 22,
+  IVL_EX_NUMBER = 5,
+  IVL_EX_ARRAY_PATTERN = 26,
+  IVL_EX_PROPERTY = 24,
+  IVL_EX_REALNUM = 16,
+  IVL_EX_SCOPE = 6,
+  IVL_EX_SELECT = 7,
+  IVL_EX_SFUNC = 8,
+  IVL_EX_SHALLOWCOPY = 25,
+  IVL_EX_SIGNAL = 9,
+  IVL_EX_STRING = 10,
+  IVL_EX_TERNARY = 11,
+  IVL_EX_UFUNC = 12,
+  IVL_EX_ULONG = 13,
+  IVL_EX_UNARY = 14
 } ivl_expr_type_t;
 
 typedef enum ivl_select_type_e ENUM_UNSIGNED_INT {
-      IVL_SEL_OTHER = 0,
-      IVL_SEL_IDX_UP = 1,
-      IVL_SEL_IDX_DOWN = 2
+  IVL_SEL_OTHER = 0,
+  IVL_SEL_IDX_UP = 1,
+  IVL_SEL_IDX_DOWN = 2
 } ivl_select_type_t;
 
 /* This is the type code for an ivl_net_logic_t object. */
 typedef enum ivl_logic_e {
-      IVL_LO_NONE   =  0,
-      IVL_LO_AND    =  1,
-      IVL_LO_BUF    =  2,
-      IVL_LO_BUFIF0 =  3,
-      IVL_LO_BUFIF1 =  4,
-      IVL_LO_BUFT   = 24, /* transparent bufz. (NOT "tri-state") */
-      IVL_LO_BUFZ   =  5,
-      IVL_LO_CMOS   = 22,
-      IVL_LO_NAND   =  6,
-      IVL_LO_NMOS   =  7,
-      IVL_LO_NOR    =  8,
-      IVL_LO_NOT    =  9,
-      IVL_LO_NOTIF0 = 10,
-      IVL_LO_NOTIF1 = 11,
-      IVL_LO_OR     = 12,
-      IVL_LO_PMOS   = 17,
-      IVL_LO_PULLDOWN  = 13,
-      IVL_LO_PULLUP = 14,
-      IVL_LO_RCMOS  = 23,
-      IVL_LO_RNMOS  = 15,
-      IVL_LO_RPMOS  = 16,
-      IVL_LO_XNOR   = 18,
-      IVL_LO_XOR    = 19,
+  IVL_LO_NONE = 0,
+  IVL_LO_AND = 1,
+  IVL_LO_BUF = 2,
+  IVL_LO_BUFIF0 = 3,
+  IVL_LO_BUFIF1 = 4,
+  IVL_LO_BUFT = 24, /* transparent bufz. (NOT "tri-state") */
+  IVL_LO_BUFZ = 5,
+  IVL_LO_CMOS = 22,
+  IVL_LO_NAND = 6,
+  IVL_LO_NMOS = 7,
+  IVL_LO_NOR = 8,
+  IVL_LO_NOT = 9,
+  IVL_LO_NOTIF0 = 10,
+  IVL_LO_NOTIF1 = 11,
+  IVL_LO_OR = 12,
+  IVL_LO_PMOS = 17,
+  IVL_LO_PULLDOWN = 13,
+  IVL_LO_PULLUP = 14,
+  IVL_LO_RCMOS = 23,
+  IVL_LO_RNMOS = 15,
+  IVL_LO_RPMOS = 16,
+  IVL_LO_XNOR = 18,
+  IVL_LO_XOR = 19,
 
-      IVL_LO_UDP    = 21
+  IVL_LO_UDP = 21
 } ivl_logic_t;
 
 /* This is the type of a ivl_switch_t object */
 typedef enum ivl_switch_type_e {
-      IVL_SW_TRAN     = 0,
-      IVL_SW_TRANIF0  = 1,
-      IVL_SW_TRANIF1  = 2,
-      IVL_SW_RTRAN    = 3,
-      IVL_SW_RTRANIF0 = 4,
-      IVL_SW_RTRANIF1 = 5,
-      IVL_SW_TRAN_VP  = 6
+  IVL_SW_TRAN = 0,
+  IVL_SW_TRANIF0 = 1,
+  IVL_SW_TRANIF1 = 2,
+  IVL_SW_RTRAN = 3,
+  IVL_SW_RTRANIF0 = 4,
+  IVL_SW_RTRANIF1 = 5,
+  IVL_SW_TRAN_VP = 6
 } ivl_switch_type_t;
 
 /* This is the type of an LPM object. */
 typedef enum ivl_lpm_type_e {
-      IVL_LPM_ABS    = 32,
-      IVL_LPM_ADD    =  0,
-      IVL_LPM_ARRAY  = 30,
-      IVL_LPM_CAST_INT  = 34,
-      IVL_LPM_CAST_INT2 = 35,
-      IVL_LPM_CAST_REAL = 33,
-      IVL_LPM_CONCAT = 16,
-      IVL_LPM_CONCATZ = 36, /* Transparent concat */
-      IVL_LPM_CMP_EEQ= 18, /* Case EQ (===) */
-      IVL_LPM_CMP_EQX= 37, /* Wildcard EQ (casex) */
-      IVL_LPM_CMP_EQZ= 38, /* casez EQ */
-      IVL_LPM_CMP_WEQ= 41,
-      IVL_LPM_CMP_WNE= 42,
-      IVL_LPM_CMP_EQ = 10,
-      IVL_LPM_CMP_GE =  1,
-      IVL_LPM_CMP_GT =  2,
-      IVL_LPM_CMP_NE = 11,
-      IVL_LPM_CMP_NEE= 19, /* Case NE (!==) */
-      IVL_LPM_DIVIDE = 12,
-      IVL_LPM_FF     =  3,
-      IVL_LPM_LATCH  = 40,
-      IVL_LPM_MOD    = 13,
-      IVL_LPM_MULT   =  4,
-      IVL_LPM_MUX    =  5,
-      /* IVL_LPM_PART_BI= 28, / obsolete */
-      IVL_LPM_PART_VP= 15, /* part select: vector to part */
-      IVL_LPM_PART_PV= 17, /* part select: part written to vector */
-      IVL_LPM_POW    = 31,
-      IVL_LPM_RE_AND = 20,
-      IVL_LPM_RE_NAND= 21,
-      IVL_LPM_RE_NOR = 22,
-      IVL_LPM_RE_OR  = 23,
-      IVL_LPM_RE_XNOR= 24,
-      IVL_LPM_RE_XOR = 25,
-      IVL_LPM_REPEAT = 26,
-      IVL_LPM_SFUNC  = 29,
-      IVL_LPM_SHIFTL =  6,
-      IVL_LPM_SHIFTR =  7,
-      IVL_LPM_SIGN_EXT=27,
-      IVL_LPM_SUB    =  8,
-      IVL_LPM_SUBSTITUTE=39,
-      /* IVL_LPM_RAM =  9, / obsolete */
-      IVL_LPM_UFUNC  = 14
+  IVL_LPM_ABS = 32,
+  IVL_LPM_ADD = 0,
+  IVL_LPM_ARRAY = 30,
+  IVL_LPM_CAST_INT = 34,
+  IVL_LPM_CAST_INT2 = 35,
+  IVL_LPM_CAST_REAL = 33,
+  IVL_LPM_CONCAT = 16,
+  IVL_LPM_CONCATZ = 36, /* Transparent concat */
+  IVL_LPM_CMP_EEQ = 18, /* Case EQ (===) */
+  IVL_LPM_CMP_EQX = 37, /* Wildcard EQ (casex) */
+  IVL_LPM_CMP_EQZ = 38, /* casez EQ */
+  IVL_LPM_CMP_WEQ = 41,
+  IVL_LPM_CMP_WNE = 42,
+  IVL_LPM_CMP_EQ = 10,
+  IVL_LPM_CMP_GE = 1,
+  IVL_LPM_CMP_GT = 2,
+  IVL_LPM_CMP_NE = 11,
+  IVL_LPM_CMP_NEE = 19, /* Case NE (!==) */
+  IVL_LPM_DIVIDE = 12,
+  IVL_LPM_FF = 3,
+  IVL_LPM_LATCH = 40,
+  IVL_LPM_MOD = 13,
+  IVL_LPM_MULT = 4,
+  IVL_LPM_MUX = 5,
+  /* IVL_LPM_PART_BI= 28, / obsolete */
+  IVL_LPM_PART_VP = 15, /* part select: vector to part */
+  IVL_LPM_PART_PV = 17, /* part select: part written to vector */
+  IVL_LPM_POW = 31,
+  IVL_LPM_RE_AND = 20,
+  IVL_LPM_RE_NAND = 21,
+  IVL_LPM_RE_NOR = 22,
+  IVL_LPM_RE_OR = 23,
+  IVL_LPM_RE_XNOR = 24,
+  IVL_LPM_RE_XOR = 25,
+  IVL_LPM_REPEAT = 26,
+  IVL_LPM_SFUNC = 29,
+  IVL_LPM_SHIFTL = 6,
+  IVL_LPM_SHIFTR = 7,
+  IVL_LPM_SIGN_EXT = 27,
+  IVL_LPM_SUB = 8,
+  IVL_LPM_SUBSTITUTE = 39,
+  /* IVL_LPM_RAM =  9, / obsolete */
+  IVL_LPM_UFUNC = 14
 } ivl_lpm_type_t;
 
 /* The path edge type is the edge type used to select a specific
    delay. */
 typedef enum ivl_path_edge_e {
-      IVL_PE_01 = 0, IVL_PE_10, IVL_PE_0z,
-      IVL_PE_z1,     IVL_PE_1z, IVL_PE_z0,
-      IVL_PE_0x,     IVL_PE_x1, IVL_PE_1x,
-      IVL_PE_x0,     IVL_PE_xz, IVL_PE_zx,
-      IVL_PE_COUNT
+  IVL_PE_01 = 0,
+  IVL_PE_10,
+  IVL_PE_0z,
+  IVL_PE_z1,
+  IVL_PE_1z,
+  IVL_PE_z0,
+  IVL_PE_0x,
+  IVL_PE_x1,
+  IVL_PE_1x,
+  IVL_PE_x0,
+  IVL_PE_xz,
+  IVL_PE_zx,
+  IVL_PE_COUNT
 } ivl_path_edge_t;
 
 /* Processes are initial, always, or final blocks with a statement. This is
    the type of the ivl_process_t object. */
 typedef enum ivl_process_type_e ENUM_UNSIGNED_INT {
-      IVL_PR_INITIAL      = 0,
-      IVL_PR_ALWAYS       = 1,
-      IVL_PR_ALWAYS_COMB  = 3,
-      IVL_PR_ALWAYS_FF    = 4,
-      IVL_PR_ALWAYS_LATCH = 5,
-      IVL_PR_FINAL        = 2
+  IVL_PR_INITIAL = 0,
+  IVL_PR_ALWAYS = 1,
+  IVL_PR_ALWAYS_COMB = 3,
+  IVL_PR_ALWAYS_FF = 4,
+  IVL_PR_ALWAYS_LATCH = 5,
+  IVL_PR_FINAL = 2
 } ivl_process_type_t;
 
 /* These are the sorts of reasons a scope may come to be. These types
    are properties of ivl_scope_t objects. */
 typedef enum ivl_scope_type_e {
-      IVL_SCT_MODULE  = 0,
-      IVL_SCT_FUNCTION= 1,
-      IVL_SCT_TASK    = 2,
-      IVL_SCT_BEGIN   = 3,
-      IVL_SCT_FORK    = 4,
-      IVL_SCT_GENERATE= 5,
-      IVL_SCT_PACKAGE = 6,
-      IVL_SCT_CLASS   = 7
+  IVL_SCT_MODULE = 0,
+  IVL_SCT_FUNCTION = 1,
+  IVL_SCT_TASK = 2,
+  IVL_SCT_BEGIN = 3,
+  IVL_SCT_FORK = 4,
+  IVL_SCT_GENERATE = 5,
+  IVL_SCT_PACKAGE = 6,
+  IVL_SCT_CLASS = 7
 } ivl_scope_type_t;
 
 /* Signals (ivl_signal_t) that are ports into the scope that contains
    them have a port type. Otherwise, they are port IVL_SIP_NONE. */
 typedef enum OUT {
-      IVL_SIP_NONE  = 0,
-      IVL_SIP_INPUT = 1,
-      IVL_SIP_OUTPUT= 2,
-      IVL_SIP_INOUT = 3
+  IVL_SIP_NONE = 0,
+  IVL_SIP_INPUT = 1,
+  IVL_SIP_OUTPUT = 2,
+  IVL_SIP_INOUT = 3
 } ivl_signal_port_t;
 
 /* This is the type code for an ivl_signal_t object. Implicit types
    are resolved by the core compiler, and integers are converted into
    signed registers. */
 typedef enum ivl_signal_type_e {
-      IVL_SIT_NONE = 0,
-      IVL_SIT_REG  = 1,
-      IVL_SIT_TRI  = 4,
-      IVL_SIT_TRI0 = 5,
-      IVL_SIT_TRI1 = 6,
-      IVL_SIT_TRIAND = 7,
-      IVL_SIT_TRIOR  = 8,
-      IVL_SIT_UWIRE  = 9
+  IVL_SIT_NONE = 0,
+  IVL_SIT_REG = 1,
+  IVL_SIT_TRI = 4,
+  IVL_SIT_TRI0 = 5,
+  IVL_SIT_TRI1 = 6,
+  IVL_SIT_TRIAND = 7,
+  IVL_SIT_TRIOR = 8,
+  IVL_SIT_UWIRE = 9
 } ivl_signal_type_t;
 
 /* This is the type code for ivl_statement_t objects. */
 typedef enum ivl_statement_type_e {
-      IVL_ST_NONE    = 0,
-      IVL_ST_NOOP    = 1,
-      IVL_ST_ALLOC   = 25,
-      IVL_ST_ASSIGN    = 2,
-      IVL_ST_ASSIGN_NB = 3,
-      IVL_ST_BLOCK   = 4,
-      IVL_ST_CASE    = 5,
-      IVL_ST_CASER   = 24, /* Case statement with real expressions. */
-      IVL_ST_CASEX   = 6,
-      IVL_ST_CASEZ   = 7,
-      IVL_ST_CASSIGN = 8,
-      IVL_ST_CONDIT  = 9,
-      IVL_ST_CONTRIB = 27,
-      IVL_ST_DEASSIGN = 10,
-      IVL_ST_DELAY   = 11,
-      IVL_ST_DELAYX  = 12,
-      IVL_ST_DISABLE = 13,
-      IVL_ST_DO_WHILE = 30,
-      IVL_ST_FORCE   = 14,
-      IVL_ST_FOREVER = 15,
-      IVL_ST_FORK    = 16,
-      IVL_ST_FORK_JOIN_ANY  = 28,
-      IVL_ST_FORK_JOIN_NONE = 29,
-      IVL_ST_FREE    = 26,
-      IVL_ST_RELEASE = 17,
-      IVL_ST_REPEAT  = 18,
-      IVL_ST_STASK   = 19,
-      IVL_ST_TRIGGER = 20,
-      IVL_ST_UTASK   = 21,
-      IVL_ST_WAIT    = 22,
-      IVL_ST_WHILE   = 23
+  IVL_ST_NONE = 0,
+  IVL_ST_NOOP = 1,
+  IVL_ST_ALLOC = 25,
+  IVL_ST_ASSIGN = 2,
+  IVL_ST_ASSIGN_NB = 3,
+  IVL_ST_BLOCK = 4,
+  IVL_ST_CASE = 5,
+  IVL_ST_CASER = 24, /* Case statement with real expressions. */
+  IVL_ST_CASEX = 6,
+  IVL_ST_CASEZ = 7,
+  IVL_ST_CASSIGN = 8,
+  IVL_ST_CONDIT = 9,
+  IVL_ST_CONTRIB = 27,
+  IVL_ST_DEASSIGN = 10,
+  IVL_ST_DELAY = 11,
+  IVL_ST_DELAYX = 12,
+  IVL_ST_DISABLE = 13,
+  IVL_ST_DO_WHILE = 30,
+  IVL_ST_FORCE = 14,
+  IVL_ST_FOREVER = 15,
+  IVL_ST_FORK = 16,
+  IVL_ST_FORK_JOIN_ANY = 28,
+  IVL_ST_FORK_JOIN_NONE = 29,
+  IVL_ST_FREE = 26,
+  IVL_ST_RELEASE = 17,
+  IVL_ST_REPEAT = 18,
+  IVL_ST_STASK = 19,
+  IVL_ST_TRIGGER = 20,
+  IVL_ST_UTASK = 21,
+  IVL_ST_WAIT = 22,
+  IVL_ST_WHILE = 23
 } ivl_statement_type_t;
 
 /* Case statements can be tagged as unique/unique0/priority. */
 typedef enum ivl_case_quality_t {
-      IVL_CASE_QUALITY_BASIC    = 0,  /* no quality flags */
-      IVL_CASE_QUALITY_UNIQUE   = 1,
-      IVL_CASE_QUALITY_UNIQUE0  = 2,
-      IVL_CASE_QUALITY_PRIORITY = 3
+  IVL_CASE_QUALITY_BASIC = 0, /* no quality flags */
+  IVL_CASE_QUALITY_UNIQUE = 1,
+  IVL_CASE_QUALITY_UNIQUE0 = 2,
+  IVL_CASE_QUALITY_PRIORITY = 3
 } ivl_case_quality_t;
 
 /* SystemVerilog allows a system function to be called as a task. */
 typedef enum ivl_sfunc_as_task_e {
-      IVL_SFUNC_AS_TASK_ERROR   = 0,
-      IVL_SFUNC_AS_TASK_WARNING = 1,
-      IVL_SFUNC_AS_TASK_IGNORE  = 2
+  IVL_SFUNC_AS_TASK_ERROR = 0,
+  IVL_SFUNC_AS_TASK_WARNING = 1,
+  IVL_SFUNC_AS_TASK_IGNORE = 2
 } ivl_sfunc_as_task_t;
 
 /* This is the type of a variable, and also used as the type for an
    expression. */
 typedef enum ivl_variable_type_e ENUM_UNSIGNED_INT {
-      IVL_VT_VOID    = 0,  /* Not used */
-      IVL_VT_NO_TYPE = 1,  /* Place holder for missing/unknown type. */
-      IVL_VT_REAL    = 2,
-      IVL_VT_BOOL    = 3,
-      IVL_VT_LOGIC   = 4,
-      IVL_VT_STRING  = 5,
-      IVL_VT_DARRAY  = 6,  /* Array (esp. dynamic array) */
-      IVL_VT_CLASS   = 7,  /* SystemVerilog class instances */
-      IVL_VT_QUEUE   = 8,  /* SystemVerilog queue instances */
-      IVL_VT_VECTOR = IVL_VT_LOGIC /* For compatibility */
+  IVL_VT_VOID = 0,    /* Not used */
+  IVL_VT_NO_TYPE = 1, /* Place holder for missing/unknown type. */
+  IVL_VT_REAL = 2,
+  IVL_VT_BOOL = 3,
+  IVL_VT_LOGIC = 4,
+  IVL_VT_STRING = 5,
+  IVL_VT_DARRAY = 6,           /* Array (esp. dynamic array) */
+  IVL_VT_CLASS = 7,            /* SystemVerilog class instances */
+  IVL_VT_QUEUE = 8,            /* SystemVerilog queue instances */
+  IVL_VT_VECTOR = IVL_VT_LOGIC /* For compatibility */
 } ivl_variable_type_t;
 
 /* This is the type of the function to apply to a process. */
-typedef int (*ivl_process_f)(ivl_process_t net, void*cd);
+typedef int (*ivl_process_f)(ivl_process_t net, void* cd);
 
 /* This is the type of a function to apply to a scope. The ivl_scope_t
    parameter is the scope, and the cd parameter is client data that
    the user passes to the scanner. */
-typedef int (ivl_scope_f)(ivl_scope_t net, void*cd);
+typedef int(ivl_scope_f)(ivl_scope_t net, void* cd);
 
 /* Attributes, which can be attached to various object types, have
    this form. */
 typedef enum ivl_attribute_type_e {
-      IVL_ATT_VOID = 0,
-      IVL_ATT_STR,
-      IVL_ATT_NUM
+  IVL_ATT_VOID = 0,
+  IVL_ATT_STR,
+  IVL_ATT_NUM
 } ivl_attribute_type_t;
 
 struct ivl_attribute_s {
-      const char*key;
-      ivl_attribute_type_t type;
-      union val_ {
-	    const char*str;
-	    long num;
-      } val;
+  const char* key;
+  ivl_attribute_type_t type;
+  union val_ {
+    const char* str;
+    long num;
+  } val;
 };
-typedef const struct ivl_attribute_s*ivl_attribute_t;
+typedef const struct ivl_attribute_s* ivl_attribute_t;
 
 /* BRANCH
  * Branches are analog constructs, a pair of terminals that is used in
@@ -501,7 +509,7 @@ typedef const struct ivl_attribute_s*ivl_attribute_t;
  * expressions. The island is the connection of branches that must be
  * solved together.
  */
-  /* extern ivl_scope_t ivl_branch_scope(ivl_branch_t obj); */
+/* extern ivl_scope_t ivl_branch_scope(ivl_branch_t obj); */
 extern ivl_nexus_t ivl_branch_terminal(ivl_branch_t obj, int idx);
 extern ivl_island_t ivl_branch_island(ivl_branch_t obj);
 
@@ -581,19 +589,17 @@ extern int ivl_path_source_negedge(ivl_delaypath_t obj);
  */
 
 extern const char* ivl_design_delay_sel(ivl_design_t des);
-extern const char* ivl_design_flag(ivl_design_t des, const char*key);
-extern int         ivl_design_process(ivl_design_t des,
-				      ivl_process_f fun, void*cd);
+extern const char* ivl_design_flag(ivl_design_t des, const char* key);
+extern int ivl_design_process(ivl_design_t des, ivl_process_f fun, void* cd);
 extern ivl_scope_t ivl_design_root(ivl_design_t des);
-extern void        ivl_design_roots(ivl_design_t des,
-				    ivl_scope_t **scopes,
-				    unsigned int *nscopes);
-extern int         ivl_design_time_precision(ivl_design_t des);
+extern void ivl_design_roots(ivl_design_t des, ivl_scope_t** scopes,
+                             unsigned int* nscopes);
+extern int ivl_design_time_precision(ivl_design_t des);
 
-extern unsigned        ivl_design_consts(ivl_design_t des);
+extern unsigned ivl_design_consts(ivl_design_t des);
 extern ivl_net_const_t ivl_design_const(ivl_design_t, unsigned idx);
 
-extern unsigned         ivl_design_disciplines(ivl_design_t des);
+extern unsigned ivl_design_disciplines(ivl_design_t des);
 extern ivl_discipline_t ivl_design_discipline(ivl_design_t des, unsigned idx);
 
 /* LITERAL CONSTANTS
@@ -642,12 +648,12 @@ extern ivl_discipline_t ivl_design_discipline(ivl_design_t des, unsigned idx);
  */
 extern ivl_variable_type_t ivl_const_type(ivl_net_const_t net);
 extern const char* ivl_const_bits(ivl_net_const_t net);
-extern ivl_expr_t  ivl_const_delay(ivl_net_const_t net, unsigned transition);
+extern ivl_expr_t ivl_const_delay(ivl_net_const_t net, unsigned transition);
 extern ivl_nexus_t ivl_const_nex(ivl_net_const_t net);
 extern ivl_scope_t ivl_const_scope(ivl_net_const_t net);
-extern int         ivl_const_signed(ivl_net_const_t net);
-extern unsigned    ivl_const_width(ivl_net_const_t net);
-extern double      ivl_const_real(ivl_net_const_t net);
+extern int ivl_const_signed(ivl_net_const_t net);
+extern unsigned ivl_const_width(ivl_net_const_t net);
+extern double ivl_const_real(ivl_net_const_t net);
 
 extern const char* ivl_const_file(ivl_net_const_t net);
 extern unsigned ivl_const_lineno(ivl_net_const_t net);
@@ -674,7 +680,7 @@ extern unsigned ivl_const_lineno(ivl_net_const_t net);
  * is a place-holder internally for incomplete parsing, and is also
  * available for code generators to use.
  */
-extern const char*ivl_discipline_name(ivl_discipline_t net);
+extern const char* ivl_discipline_name(ivl_discipline_t net);
 extern ivl_dis_domain_t ivl_discipline_domain(ivl_discipline_t net);
 extern ivl_nature_t ivl_discipline_potential(ivl_discipline_t net);
 extern ivl_nature_t ivl_discipline_flow(ivl_discipline_t net);
@@ -713,13 +719,13 @@ extern const char* ivl_nature_name(ivl_nature_t net);
  * SEMANTIC NOTES
  */
 extern unsigned ivl_enum_names(ivl_enumtype_t net);
-extern const char*ivl_enum_name(ivl_enumtype_t net, unsigned idx);
-extern const char*ivl_enum_bits(ivl_enumtype_t net, unsigned idx);
+extern const char* ivl_enum_name(ivl_enumtype_t net, unsigned idx);
+extern const char* ivl_enum_bits(ivl_enumtype_t net, unsigned idx);
 extern int ivl_enum_signed(ivl_enumtype_t net);
 extern ivl_variable_type_t ivl_enum_type(ivl_enumtype_t net);
 extern unsigned ivl_enum_width(ivl_enumtype_t net);
 
-extern const char*ivl_enum_file(ivl_enumtype_t net);
+extern const char* ivl_enum_file(ivl_enumtype_t net);
 extern unsigned ivl_enum_lineno(ivl_enumtype_t net);
 
 /* EVENTS
@@ -759,18 +765,17 @@ extern const char* ivl_event_name(ivl_event_t net);
 extern const char* ivl_event_basename(ivl_event_t net);
 extern ivl_scope_t ivl_event_scope(ivl_event_t net);
 
-extern unsigned    ivl_event_nany(ivl_event_t net);
+extern unsigned ivl_event_nany(ivl_event_t net);
 extern ivl_nexus_t ivl_event_any(ivl_event_t net, unsigned idx);
 
-extern unsigned    ivl_event_nneg(ivl_event_t net);
+extern unsigned ivl_event_nneg(ivl_event_t net);
 extern ivl_nexus_t ivl_event_neg(ivl_event_t net, unsigned idx);
 
-extern unsigned    ivl_event_npos(ivl_event_t net);
+extern unsigned ivl_event_npos(ivl_event_t net);
 extern ivl_nexus_t ivl_event_pos(ivl_event_t net, unsigned idx);
 
-extern const char*ivl_event_file(ivl_event_t net);
+extern const char* ivl_event_file(ivl_event_t net);
 extern unsigned ivl_event_lineno(ivl_event_t net);
-
 
 /* EXPRESSIONS
  *
@@ -914,66 +919,65 @@ extern unsigned ivl_event_lineno(ivl_event_t net);
 extern ivl_expr_type_t ivl_expr_type(ivl_expr_t net);
 extern ivl_type_t ivl_expr_net_type(ivl_expr_t net);
 extern ivl_variable_type_t ivl_expr_value(ivl_expr_t net);
-extern const char*ivl_expr_file(ivl_expr_t net);
+extern const char* ivl_expr_file(ivl_expr_t net);
 extern unsigned ivl_expr_lineno(ivl_expr_t net);
 
-  /* IVL_EX_NUMBER */
+/* IVL_EX_NUMBER */
 extern const char* ivl_expr_bits(ivl_expr_t net);
-  /* IVL_EX_BACCESS */
+/* IVL_EX_BACCESS */
 extern ivl_branch_t ivl_expr_branch(ivl_expr_t net);
-  /* IVL_EX_UFUNC */
+/* IVL_EX_UFUNC */
 extern ivl_scope_t ivl_expr_def(ivl_expr_t net);
-  /* IVL_EX_DELAY */
+/* IVL_EX_DELAY */
 extern uint64_t ivl_expr_delay_val(ivl_expr_t net);
-  /* IVL_EX_REALNUM */
+/* IVL_EX_REALNUM */
 extern double ivl_expr_dvalue(ivl_expr_t net);
-  /* IVL_EX_ENUMTYPE */
+/* IVL_EX_ENUMTYPE */
 extern ivl_enumtype_t ivl_expr_enumtype(ivl_expr_t net);
-  /* IVL_EX_PROPERTY IVL_EX_SIGNAL IVL_EX_SFUNC IVL_EX_VARIABLE */
+/* IVL_EX_PROPERTY IVL_EX_SIGNAL IVL_EX_SFUNC IVL_EX_VARIABLE */
 extern const char* ivl_expr_name(ivl_expr_t net);
-  /* IVL_EX_BACCESS */
+/* IVL_EX_BACCESS */
 extern ivl_nature_t ivl_expr_nature(ivl_expr_t net);
-  /* IVL_EX_BINARY IVL_EX_UNARY */
-extern char        ivl_expr_opcode(ivl_expr_t net);
-  /* IVL_EX_BINARY  IVL_EX_UNARY, IVL_EX_MEMORY IVL_EX_NEW IVL_EX_TERNARY */
-extern ivl_expr_t  ivl_expr_oper1(ivl_expr_t net);
-  /* IVL_EX_BINARY IVL_EX_NEW IVL_EX_TERNARY */
-extern ivl_expr_t  ivl_expr_oper2(ivl_expr_t net);
-  /* IVL_EX_TERNARY */
-extern ivl_expr_t  ivl_expr_oper3(ivl_expr_t net);
-  /* and expression */
+/* IVL_EX_BINARY IVL_EX_UNARY */
+extern char ivl_expr_opcode(ivl_expr_t net);
+/* IVL_EX_BINARY  IVL_EX_UNARY, IVL_EX_MEMORY IVL_EX_NEW IVL_EX_TERNARY */
+extern ivl_expr_t ivl_expr_oper1(ivl_expr_t net);
+/* IVL_EX_BINARY IVL_EX_NEW IVL_EX_TERNARY */
+extern ivl_expr_t ivl_expr_oper2(ivl_expr_t net);
+/* IVL_EX_TERNARY */
+extern ivl_expr_t ivl_expr_oper3(ivl_expr_t net);
+/* and expression */
 extern ivl_parameter_t ivl_expr_parameter(ivl_expr_t net);
-  /* IVL_EX_ARRAY_PATTERN IVL_EX_CONCAT IVL_EX_UFUNC */
-extern ivl_expr_t  ivl_expr_parm(ivl_expr_t net, unsigned idx);
-  /* IVL_EX_ARRAY_PATTERN IVL_EX_CONCAT IVL_EX_SFUNC IVL_EX_UFUNC */
-extern unsigned    ivl_expr_parms(ivl_expr_t net);
-  /* IVL_EX_CONCAT */
-extern unsigned    ivl_expr_repeat(ivl_expr_t net);
-  /* IVL_EX_SELECT */
+/* IVL_EX_ARRAY_PATTERN IVL_EX_CONCAT IVL_EX_UFUNC */
+extern ivl_expr_t ivl_expr_parm(ivl_expr_t net, unsigned idx);
+/* IVL_EX_ARRAY_PATTERN IVL_EX_CONCAT IVL_EX_SFUNC IVL_EX_UFUNC */
+extern unsigned ivl_expr_parms(ivl_expr_t net);
+/* IVL_EX_CONCAT */
+extern unsigned ivl_expr_repeat(ivl_expr_t net);
+/* IVL_EX_SELECT */
 extern ivl_select_type_t ivl_expr_sel_type(ivl_expr_t net);
-  /* IVL_EX_EVENT */
+/* IVL_EX_EVENT */
 extern ivl_event_t ivl_expr_event(ivl_expr_t net);
-  /* IVL_EX_PROPERTY */
+/* IVL_EX_PROPERTY */
 extern int ivl_expr_property_idx(ivl_expr_t net);
-  /* IVL_EX_SCOPE */
+/* IVL_EX_SCOPE */
 extern ivl_scope_t ivl_expr_scope(ivl_expr_t net);
-  /* IVL_EX_PROPERTY IVL_EX_SIGNAL */
+/* IVL_EX_PROPERTY IVL_EX_SIGNAL */
 extern ivl_signal_t ivl_expr_signal(ivl_expr_t net);
-  /* any expression */
-extern int         ivl_expr_signed(ivl_expr_t net);
-  /* any expression */
-extern int         ivl_expr_sized(ivl_expr_t net);
-  /* IVL_EX_STRING */
+/* any expression */
+extern int ivl_expr_signed(ivl_expr_t net);
+/* any expression */
+extern int ivl_expr_sized(ivl_expr_t net);
+/* IVL_EX_STRING */
 extern const char* ivl_expr_string(ivl_expr_t net);
-  /* IVL_EX_ULONG */
+/* IVL_EX_ULONG */
 extern unsigned long ivl_expr_uvalue(ivl_expr_t net);
-  /* any expression */
-extern unsigned    ivl_expr_width(ivl_expr_t net);
+/* any expression */
+extern unsigned ivl_expr_width(ivl_expr_t net);
 
-extern const char* ivl_file_table_item(unsigned  idx);
-extern unsigned ivl_file_table_index(const char *);
+extern const char* ivl_file_table_item(unsigned idx);
+extern unsigned ivl_file_table_index(const char*);
 extern unsigned ivl_file_table_size(void);
-
 
 /* ISLAND
  *
@@ -1091,18 +1095,18 @@ extern const char* ivl_logic_basename(ivl_net_logic_t net);
 extern ivl_scope_t ivl_logic_scope(ivl_net_logic_t net);
 extern ivl_logic_t ivl_logic_type(ivl_net_logic_t net);
 extern ivl_nexus_t ivl_logic_pin(ivl_net_logic_t net, unsigned pin);
-extern unsigned    ivl_logic_pins(ivl_net_logic_t net);
-extern ivl_udp_t   ivl_logic_udp(ivl_net_logic_t net);
-extern ivl_expr_t  ivl_logic_delay(ivl_net_logic_t net, unsigned transition);
+extern unsigned ivl_logic_pins(ivl_net_logic_t net);
+extern ivl_udp_t ivl_logic_udp(ivl_net_logic_t net);
+extern ivl_expr_t ivl_logic_delay(ivl_net_logic_t net, unsigned transition);
 extern ivl_drive_t ivl_logic_drive0(ivl_net_logic_t net);
 extern ivl_drive_t ivl_logic_drive1(ivl_net_logic_t net);
-extern unsigned    ivl_logic_width(ivl_net_logic_t net);
-extern unsigned    ivl_logic_is_cassign(ivl_net_logic_t net);
+extern unsigned ivl_logic_width(ivl_net_logic_t net);
+extern unsigned ivl_logic_is_cassign(ivl_net_logic_t net);
 
-  /* DEPRECATED */
-extern const char* ivl_logic_attr(ivl_net_logic_t net, const char*key);
+/* DEPRECATED */
+extern const char* ivl_logic_attr(ivl_net_logic_t net, const char* key);
 
-extern unsigned        ivl_logic_attr_cnt(ivl_net_logic_t net);
+extern unsigned ivl_logic_attr_cnt(ivl_net_logic_t net);
 extern ivl_attribute_t ivl_logic_attr_val(ivl_net_logic_t net, unsigned idx);
 
 /* UDP
@@ -1142,18 +1146,18 @@ extern ivl_attribute_t ivl_logic_attr_val(ivl_net_logic_t net, unsigned idx);
  * element.
  */
 
-extern int         ivl_udp_sequ(ivl_udp_t net);
-extern unsigned    ivl_udp_nin(ivl_udp_t net);
-extern char        ivl_udp_init(ivl_udp_t net);
+extern int ivl_udp_sequ(ivl_udp_t net);
+extern unsigned ivl_udp_nin(ivl_udp_t net);
+extern char ivl_udp_init(ivl_udp_t net);
 extern const char* ivl_udp_row(ivl_udp_t net, unsigned idx);
-extern unsigned    ivl_udp_rows(ivl_udp_t net);
+extern unsigned ivl_udp_rows(ivl_udp_t net);
 extern const char* ivl_udp_name(ivl_udp_t net);
 extern const char* ivl_udp_file(ivl_udp_t net);
-extern unsigned    ivl_udp_lineno(ivl_udp_t net);
+extern unsigned ivl_udp_lineno(ivl_udp_t net);
 extern const char* ivl_udp_port(ivl_udp_t net, unsigned idx);
 
 extern const char* ivl_lpm_file(ivl_lpm_t net);
-extern unsigned    ivl_lpm_lineno(ivl_lpm_t net);
+extern unsigned ivl_lpm_lineno(ivl_lpm_t net);
 
 /* LPM
  * These functions support access to the properties of LPM
@@ -1425,54 +1429,54 @@ extern unsigned    ivl_lpm_lineno(ivl_lpm_t net);
  * re-evaluated when a change is detected on its input ports.
  */
 
-extern const char*    ivl_lpm_name(ivl_lpm_t net); /* (Obsolete) */
-extern const char*    ivl_lpm_basename(ivl_lpm_t net);
-extern ivl_expr_t     ivl_lpm_delay(ivl_lpm_t net, unsigned transition);
-extern ivl_scope_t    ivl_lpm_scope(ivl_lpm_t net);
-extern int            ivl_lpm_signed(ivl_lpm_t net);
+extern const char* ivl_lpm_name(ivl_lpm_t net); /* (Obsolete) */
+extern const char* ivl_lpm_basename(ivl_lpm_t net);
+extern ivl_expr_t ivl_lpm_delay(ivl_lpm_t net, unsigned transition);
+extern ivl_scope_t ivl_lpm_scope(ivl_lpm_t net);
+extern int ivl_lpm_signed(ivl_lpm_t net);
 extern ivl_lpm_type_t ivl_lpm_type(ivl_lpm_t net);
-extern unsigned       ivl_lpm_width(ivl_lpm_t net);
-extern ivl_event_t    ivl_lpm_trigger(ivl_lpm_t net);
+extern unsigned ivl_lpm_width(ivl_lpm_t net);
+extern ivl_event_t ivl_lpm_trigger(ivl_lpm_t net);
 
-  /* IVL_LPM_FF */
+/* IVL_LPM_FF */
 extern ivl_nexus_t ivl_lpm_async_clr(ivl_lpm_t net);
 extern ivl_nexus_t ivl_lpm_async_set(ivl_lpm_t net);
-extern ivl_expr_t  ivl_lpm_aset_value(ivl_lpm_t net);
+extern ivl_expr_t ivl_lpm_aset_value(ivl_lpm_t net);
 extern ivl_nexus_t ivl_lpm_sync_clr(ivl_lpm_t net);
 extern ivl_nexus_t ivl_lpm_sync_set(ivl_lpm_t net);
-extern ivl_expr_t  ivl_lpm_sset_value(ivl_lpm_t net);
-  /* IVL_LPM_ARRAY */
+extern ivl_expr_t ivl_lpm_sset_value(ivl_lpm_t net);
+/* IVL_LPM_ARRAY */
 extern ivl_signal_t ivl_lpm_array(ivl_lpm_t net);
-  /* IVL_LPM_PART IVL_LPM_SUBSTITUTE */
+/* IVL_LPM_PART IVL_LPM_SUBSTITUTE */
 extern unsigned ivl_lpm_base(ivl_lpm_t net);
-  /* IVL_LPM_FF */
-extern unsigned    ivl_lpm_negedge(ivl_lpm_t net);
+/* IVL_LPM_FF */
+extern unsigned ivl_lpm_negedge(ivl_lpm_t net);
 extern ivl_nexus_t ivl_lpm_clk(ivl_lpm_t net);
-  /* IVL_LPM_UFUNC */
-extern ivl_scope_t  ivl_lpm_define(ivl_lpm_t net);
-  /* IVL_LPM_FF IVL_LPM_LATCH*/
+/* IVL_LPM_UFUNC */
+extern ivl_scope_t ivl_lpm_define(ivl_lpm_t net);
+/* IVL_LPM_FF IVL_LPM_LATCH*/
 extern ivl_nexus_t ivl_lpm_enable(ivl_lpm_t net);
-  /* IVL_LPM_ADD IVL_LPM_CONCAT IVL_LPM_FF IVL_LPM_PART IVL_LPM_MULT
-     IVL_LPM_MUX IVL_LPM_POW IVL_LPM_SHIFTL IVL_LPM_SHIFTR IVL_LPM_SUB
-     IVL_LPM_UFUNC IVL_LPM_SUBSTITUTE IVL_LPM_LATCH */
+/* IVL_LPM_ADD IVL_LPM_CONCAT IVL_LPM_FF IVL_LPM_PART IVL_LPM_MULT
+   IVL_LPM_MUX IVL_LPM_POW IVL_LPM_SHIFTL IVL_LPM_SHIFTR IVL_LPM_SUB
+   IVL_LPM_UFUNC IVL_LPM_SUBSTITUTE IVL_LPM_LATCH */
 extern ivl_nexus_t ivl_lpm_data(ivl_lpm_t net, unsigned idx);
-  /* IVL_LPM_ADD IVL_LPM_MULT IVL_LPM_POW IVL_LPM_SUB IVL_LPM_CMP_EQ
-     IVL_LPM_CMP_EEQ IVL_LPM_CMP_EQX IVL_LPM_CMP_EQZ IVL_LPM_CMP_NEE */
+/* IVL_LPM_ADD IVL_LPM_MULT IVL_LPM_POW IVL_LPM_SUB IVL_LPM_CMP_EQ
+   IVL_LPM_CMP_EEQ IVL_LPM_CMP_EQX IVL_LPM_CMP_EQZ IVL_LPM_CMP_NEE */
 extern ivl_nexus_t ivl_lpm_datab(ivl_lpm_t net, unsigned idx);
-  /* IVL_LPM_ADD IVL_LPM_FF IVL_LPM_MULT IVL_LPM_PART IVL_LPM_POW
-     IVL_LPM_SUB IVL_LPM_UFUNC IVL_LPM_CMP_EEQ IVL_LPM_CMP_EQX
-     IVL_LPM_CMP_EQZ IVL_LPM_CMP_NEE IVL_LPM_SUBSTITUTE IVL_LPM_LATCH */
+/* IVL_LPM_ADD IVL_LPM_FF IVL_LPM_MULT IVL_LPM_PART IVL_LPM_POW
+   IVL_LPM_SUB IVL_LPM_UFUNC IVL_LPM_CMP_EEQ IVL_LPM_CMP_EQX
+   IVL_LPM_CMP_EQZ IVL_LPM_CMP_NEE IVL_LPM_SUBSTITUTE IVL_LPM_LATCH */
 extern ivl_nexus_t ivl_lpm_q(ivl_lpm_t net);
 extern ivl_drive_t ivl_lpm_drive0(ivl_lpm_t net);
 extern ivl_drive_t ivl_lpm_drive1(ivl_lpm_t net);
-  /* IVL_LPM_MUX */
+/* IVL_LPM_MUX */
 extern unsigned ivl_lpm_selects(ivl_lpm_t net);
-  /* IVL_LPM_MUX */
+/* IVL_LPM_MUX */
 extern ivl_nexus_t ivl_lpm_select(ivl_lpm_t net);
-  /* IVL_LPM_CONCAT IVL_LPM_MUX IVL_LPM_REPEAT IVL_LPM_UFUNC */
+/* IVL_LPM_CONCAT IVL_LPM_MUX IVL_LPM_REPEAT IVL_LPM_UFUNC */
 extern unsigned ivl_lpm_size(ivl_lpm_t net);
-  /* IVL_LPM_SFUNC */
-extern const char*ivl_lpm_string(ivl_lpm_t net);
+/* IVL_LPM_SFUNC */
+extern const char* ivl_lpm_string(ivl_lpm_t net);
 
 /* LVAL
  * The l-values of assignments are concatenation of ivl_lval_t
@@ -1539,15 +1543,15 @@ extern const char*ivl_lpm_string(ivl_lpm_t net);
  * expression is the canonical index for elements in the property.
  */
 
-extern unsigned    ivl_lval_width(ivl_lval_t net);
-extern ivl_expr_t  ivl_lval_mux(ivl_lval_t net) __attribute__((deprecated)); /* XXXX Obsolete? */
-extern ivl_expr_t  ivl_lval_idx(ivl_lval_t net);
-extern ivl_expr_t  ivl_lval_part_off(ivl_lval_t net);
+extern unsigned ivl_lval_width(ivl_lval_t net);
+extern ivl_expr_t ivl_lval_mux(ivl_lval_t net)
+    __attribute__((deprecated)); /* XXXX Obsolete? */
+extern ivl_expr_t ivl_lval_idx(ivl_lval_t net);
+extern ivl_expr_t ivl_lval_part_off(ivl_lval_t net);
 extern ivl_select_type_t ivl_lval_sel_type(ivl_lval_t net);
 extern int ivl_lval_property_idx(ivl_lval_t net);
 extern ivl_signal_t ivl_lval_sig(ivl_lval_t net);
-extern ivl_lval_t  ivl_lval_nest(ivl_lval_t net);
-
+extern ivl_lval_t ivl_lval_nest(ivl_lval_t net);
 
 /* NEXUS
  * connections of signals and nodes is handled by single-bit
@@ -1624,21 +1628,20 @@ extern ivl_lval_t  ivl_lval_nest(ivl_lval_t net);
  * width. The compiler will insure this is so.
  */
 
-extern const char*     ivl_nexus_name(ivl_nexus_t net) __attribute__((deprecated));
-extern unsigned        ivl_nexus_ptrs(ivl_nexus_t net);
+extern const char* ivl_nexus_name(ivl_nexus_t net) __attribute__((deprecated));
+extern unsigned ivl_nexus_ptrs(ivl_nexus_t net);
 extern ivl_nexus_ptr_t ivl_nexus_ptr(ivl_nexus_t net, unsigned idx);
 
-extern void  ivl_nexus_set_private(ivl_nexus_t net, void*data);
+extern void ivl_nexus_set_private(ivl_nexus_t net, void* data);
 extern void* ivl_nexus_get_private(ivl_nexus_t net);
 
-
-extern ivl_drive_t  ivl_nexus_ptr_drive0(ivl_nexus_ptr_t net);
-extern ivl_drive_t  ivl_nexus_ptr_drive1(ivl_nexus_ptr_t net);
-extern unsigned     ivl_nexus_ptr_pin(ivl_nexus_ptr_t net);
+extern ivl_drive_t ivl_nexus_ptr_drive0(ivl_nexus_ptr_t net);
+extern ivl_drive_t ivl_nexus_ptr_drive1(ivl_nexus_ptr_t net);
+extern unsigned ivl_nexus_ptr_pin(ivl_nexus_ptr_t net);
 extern ivl_branch_t ivl_nexus_ptr_branch(ivl_nexus_ptr_t net);
 extern ivl_net_const_t ivl_nexus_ptr_con(ivl_nexus_ptr_t net);
 extern ivl_net_logic_t ivl_nexus_ptr_log(ivl_nexus_ptr_t net);
-extern ivl_lpm_t    ivl_nexus_ptr_lpm(ivl_nexus_ptr_t net);
+extern ivl_lpm_t ivl_nexus_ptr_lpm(ivl_nexus_ptr_t net);
 extern ivl_switch_t ivl_nexus_ptr_switch(ivl_nexus_ptr_t net);
 extern ivl_signal_t ivl_nexus_ptr_sig(ivl_nexus_ptr_t net);
 
@@ -1690,15 +1693,14 @@ extern ivl_signal_t ivl_nexus_ptr_sig(ivl_nexus_ptr_t net);
  */
 extern const char* ivl_parameter_basename(ivl_parameter_t net);
 extern ivl_scope_t ivl_parameter_scope(ivl_parameter_t net);
-extern ivl_expr_t  ivl_parameter_expr(ivl_parameter_t net);
-extern int         ivl_parameter_msb(ivl_parameter_t net);
-extern int         ivl_parameter_lsb(ivl_parameter_t net);
-extern unsigned    ivl_parameter_width(ivl_parameter_t net);
-extern int         ivl_parameter_signed(ivl_parameter_t net);
-extern int         ivl_parameter_local(ivl_parameter_t net);
+extern ivl_expr_t ivl_parameter_expr(ivl_parameter_t net);
+extern int ivl_parameter_msb(ivl_parameter_t net);
+extern int ivl_parameter_lsb(ivl_parameter_t net);
+extern unsigned ivl_parameter_width(ivl_parameter_t net);
+extern int ivl_parameter_signed(ivl_parameter_t net);
+extern int ivl_parameter_local(ivl_parameter_t net);
 extern const char* ivl_parameter_file(ivl_parameter_t net);
-extern unsigned    ivl_parameter_lineno(ivl_parameter_t net);
-
+extern unsigned ivl_parameter_lineno(ivl_parameter_t net);
 
 /* SCOPE
  * Scopes of various sort have these properties. Use these methods to
@@ -1843,54 +1845,55 @@ extern unsigned    ivl_parameter_lineno(ivl_parameter_t net);
  *    returned by ivl_scope_name above.
  */
 
-extern unsigned        ivl_scope_attr_cnt(ivl_scope_t net);
+extern unsigned ivl_scope_attr_cnt(ivl_scope_t net);
 extern ivl_attribute_t ivl_scope_attr_val(ivl_scope_t net, unsigned idx);
 
-extern int          ivl_scope_children(ivl_scope_t net,
-				       ivl_scope_f func, void*cd);
+extern int ivl_scope_children(ivl_scope_t net, ivl_scope_f func, void* cd);
 
 extern ivl_statement_t ivl_scope_def(ivl_scope_t net);
 extern const char* ivl_scope_def_file(ivl_scope_t net);
 extern unsigned ivl_scope_def_lineno(ivl_scope_t net);
 
-extern size_t      ivl_scope_childs(ivl_scope_t net);
+extern size_t ivl_scope_childs(ivl_scope_t net);
 extern ivl_scope_t ivl_scope_child(ivl_scope_t net, size_t idx);
-extern unsigned   ivl_scope_classes(ivl_scope_t net);
+extern unsigned ivl_scope_classes(ivl_scope_t net);
 extern ivl_type_t ivl_scope_class(ivl_scope_t net, unsigned idx);
-extern unsigned       ivl_scope_enumerates(ivl_scope_t net);
+extern unsigned ivl_scope_enumerates(ivl_scope_t net);
 extern ivl_enumtype_t ivl_scope_enumerate(ivl_scope_t net, unsigned idx);
-extern unsigned     ivl_scope_events(ivl_scope_t net);
-extern ivl_event_t  ivl_scope_event(ivl_scope_t net, unsigned idx);
+extern unsigned ivl_scope_events(ivl_scope_t net);
+extern ivl_event_t ivl_scope_event(ivl_scope_t net, unsigned idx);
 extern const char* ivl_scope_file(ivl_scope_t net);
 extern unsigned ivl_scope_is_auto(ivl_scope_t net);
 extern unsigned ivl_scope_is_cell(ivl_scope_t net);
 extern unsigned ivl_scope_lineno(ivl_scope_t net);
-extern unsigned     ivl_scope_logs(ivl_scope_t net);
+extern unsigned ivl_scope_logs(ivl_scope_t net);
 extern ivl_net_logic_t ivl_scope_log(ivl_scope_t net, unsigned idx);
-extern unsigned     ivl_scope_lpms(ivl_scope_t net);
-extern ivl_lpm_t    ivl_scope_lpm(ivl_scope_t, unsigned idx);
-extern const char*  ivl_scope_name(ivl_scope_t net);
-extern const char*  ivl_scope_basename(ivl_scope_t net);
-extern unsigned     ivl_scope_params(ivl_scope_t net);
+extern unsigned ivl_scope_lpms(ivl_scope_t net);
+extern ivl_lpm_t ivl_scope_lpm(ivl_scope_t, unsigned idx);
+extern const char* ivl_scope_name(ivl_scope_t net);
+extern const char* ivl_scope_basename(ivl_scope_t net);
+extern unsigned ivl_scope_params(ivl_scope_t net);
 extern ivl_parameter_t ivl_scope_param(ivl_scope_t net, unsigned idx);
-extern ivl_scope_t  ivl_scope_parent(ivl_scope_t net);
+extern ivl_scope_t ivl_scope_parent(ivl_scope_t net);
 
 extern unsigned ivl_scope_mod_module_ports(ivl_scope_t net);
-extern const char *ivl_scope_mod_module_port_name(ivl_scope_t net, unsigned idx );
-extern ivl_signal_port_t ivl_scope_mod_module_port_type(ivl_scope_t net, unsigned idx );
-extern unsigned ivl_scope_mod_module_port_width(ivl_scope_t net, unsigned idx );
+extern const char* ivl_scope_mod_module_port_name(ivl_scope_t net,
+                                                  unsigned idx);
+extern ivl_signal_port_t ivl_scope_mod_module_port_type(ivl_scope_t net,
+                                                        unsigned idx);
+extern unsigned ivl_scope_mod_module_port_width(ivl_scope_t net, unsigned idx);
 
-extern unsigned     ivl_scope_ports(ivl_scope_t net);
+extern unsigned ivl_scope_ports(ivl_scope_t net);
 extern ivl_signal_t ivl_scope_port(ivl_scope_t net, unsigned idx);
-extern ivl_nexus_t  ivl_scope_mod_port(ivl_scope_t net, unsigned idx);
-extern unsigned     ivl_scope_sigs(ivl_scope_t net);
+extern ivl_nexus_t ivl_scope_mod_port(ivl_scope_t net, unsigned idx);
+extern unsigned ivl_scope_sigs(ivl_scope_t net);
 extern ivl_signal_t ivl_scope_sig(ivl_scope_t net, unsigned idx);
-extern unsigned     ivl_scope_switches(ivl_scope_t net);
+extern unsigned ivl_scope_switches(ivl_scope_t net);
 extern ivl_switch_t ivl_scope_switch(ivl_scope_t net, unsigned idx);
 extern ivl_scope_type_t ivl_scope_type(ivl_scope_t net);
-extern const char*  ivl_scope_tname(ivl_scope_t net);
-extern int          ivl_scope_time_precision(ivl_scope_t net);
-extern int          ivl_scope_time_units(ivl_scope_t net);
+extern const char* ivl_scope_tname(ivl_scope_t net);
+extern int ivl_scope_time_precision(ivl_scope_t net);
+extern int ivl_scope_time_units(ivl_scope_t net);
 
 extern ivl_variable_type_t ivl_scope_func_type(ivl_scope_t net);
 extern int ivl_scope_func_signed(ivl_scope_t net);
@@ -2011,36 +2014,36 @@ extern unsigned ivl_scope_func_width(ivl_scope_t net);
 
 extern ivl_scope_t ivl_signal_scope(ivl_signal_t net);
 extern ivl_nexus_t ivl_signal_nex(ivl_signal_t net, unsigned word);
-extern int         ivl_signal_array_base(ivl_signal_t net);
-extern unsigned    ivl_signal_array_count(ivl_signal_t net);
-extern unsigned    ivl_signal_array_addr_swapped(ivl_signal_t net);
-extern unsigned    ivl_signal_dimensions(ivl_signal_t net);
+extern int ivl_signal_array_base(ivl_signal_t net);
+extern unsigned ivl_signal_array_count(ivl_signal_t net);
+extern unsigned ivl_signal_array_addr_swapped(ivl_signal_t net);
+extern unsigned ivl_signal_dimensions(ivl_signal_t net);
 extern ivl_discipline_t ivl_signal_discipline(ivl_signal_t net);
-extern unsigned    ivl_signal_packed_dimensions(ivl_signal_t net);
-extern int         ivl_signal_packed_msb(ivl_signal_t net, unsigned dim);
-extern int         ivl_signal_packed_lsb(ivl_signal_t net, unsigned dim);
-extern int         ivl_signal_msb(ivl_signal_t net) __attribute__((deprecated));
-extern int         ivl_signal_lsb(ivl_signal_t net) __attribute__((deprecated));
-extern unsigned    ivl_signal_width(ivl_signal_t net);
+extern unsigned ivl_signal_packed_dimensions(ivl_signal_t net);
+extern int ivl_signal_packed_msb(ivl_signal_t net, unsigned dim);
+extern int ivl_signal_packed_lsb(ivl_signal_t net, unsigned dim);
+extern int ivl_signal_msb(ivl_signal_t net) __attribute__((deprecated));
+extern int ivl_signal_lsb(ivl_signal_t net) __attribute__((deprecated));
+extern unsigned ivl_signal_width(ivl_signal_t net);
 extern ivl_signal_port_t ivl_signal_port(ivl_signal_t net);
-extern int         ivl_signal_module_port_index(ivl_signal_t net);
-extern int         ivl_signal_signed(ivl_signal_t net);
-extern int         ivl_signal_integer(ivl_signal_t net);
-extern int         ivl_signal_local(ivl_signal_t net);
-extern unsigned    ivl_signal_forced_net(ivl_signal_t net);
-extern unsigned    ivl_signal_npath(ivl_signal_t net);
+extern int ivl_signal_module_port_index(ivl_signal_t net);
+extern int ivl_signal_signed(ivl_signal_t net);
+extern int ivl_signal_integer(ivl_signal_t net);
+extern int ivl_signal_local(ivl_signal_t net);
+extern unsigned ivl_signal_forced_net(ivl_signal_t net);
+extern unsigned ivl_signal_npath(ivl_signal_t net);
 extern ivl_delaypath_t ivl_signal_path(ivl_signal_t net, unsigned idx);
 extern ivl_signal_type_t ivl_signal_type(ivl_signal_t net);
 extern ivl_variable_type_t ivl_signal_data_type(ivl_signal_t net);
-extern ivl_type_t  ivl_signal_net_type(ivl_signal_t net);
+extern ivl_type_t ivl_signal_net_type(ivl_signal_t net);
 extern const char* ivl_signal_name(ivl_signal_t net);
 extern const char* ivl_signal_basename(ivl_signal_t net);
-extern const char* ivl_signal_attr(ivl_signal_t net, const char*key);
+extern const char* ivl_signal_attr(ivl_signal_t net, const char* key);
 
 extern const char* ivl_signal_file(ivl_signal_t net);
 extern unsigned ivl_signal_lineno(ivl_signal_t net);
 
-extern unsigned        ivl_signal_attr_cnt(ivl_signal_t net);
+extern unsigned ivl_signal_attr_cnt(ivl_signal_t net);
 extern ivl_attribute_t ivl_signal_attr_val(ivl_signal_t net, unsigned idx);
 
 /* ivl_nexus_t ivl_signal_pin(ivl_signal_t net, unsigned idx); */
@@ -2077,7 +2080,7 @@ extern ivl_scope_t ivl_process_scope(ivl_process_t net);
 
 extern ivl_statement_t ivl_process_stmt(ivl_process_t net);
 
-extern unsigned        ivl_process_attr_cnt(ivl_process_t net);
+extern unsigned ivl_process_attr_cnt(ivl_process_t net);
 extern ivl_attribute_t ivl_process_attr_val(ivl_process_t net, unsigned idx);
 
 extern const char* ivl_process_file(ivl_process_t net);
@@ -2121,7 +2124,7 @@ extern unsigned ivl_stmt_lineno(ivl_statement_t net);
  *    Statements that have event arguments (TRIGGER and WAIT) make
  *    those event objects available through these methods.
  *
-* ivl_stmt_lval
+ * ivl_stmt_lval
  * ivl_stmt_lvals
  *    Return the number of l-values for an assignment statement, or
  *    the specific l-value. If there is more than 1 l-value, then the
@@ -2219,61 +2222,61 @@ extern unsigned ivl_stmt_lineno(ivl_statement_t net);
  * triggers. The statement waits even if the sub-statement is nul.
  */
 
-  /* IVL_ST_BLOCK, IVL_ST_FORK, IVL_ST_FORK_JOIN_ANY, IVL_ST_FORK_JOIN_NONE */
+/* IVL_ST_BLOCK, IVL_ST_FORK, IVL_ST_FORK_JOIN_ANY, IVL_ST_FORK_JOIN_NONE */
 extern unsigned ivl_stmt_block_count(ivl_statement_t net);
-  /* IVL_ST_BLOCK, IVL_ST_FORK, IVL_ST_FORK_JOIN_ANY, IVL_ST_FORK_JOIN_NONE */
+/* IVL_ST_BLOCK, IVL_ST_FORK, IVL_ST_FORK_JOIN_ANY, IVL_ST_FORK_JOIN_NONE */
 extern ivl_scope_t ivl_stmt_block_scope(ivl_statement_t net);
-  /* IVL_ST_BLOCK, IVL_ST_FORK, IVL_ST_FORK_JOIN_ANY, IVL_ST_FORK_JOIN_NONE */
+/* IVL_ST_BLOCK, IVL_ST_FORK, IVL_ST_FORK_JOIN_ANY, IVL_ST_FORK_JOIN_NONE */
 extern ivl_statement_t ivl_stmt_block_stmt(ivl_statement_t net, unsigned i);
-  /* IVL_ST_UTASK IVL_ST_DISABLE */
+/* IVL_ST_UTASK IVL_ST_DISABLE */
 extern ivl_scope_t ivl_stmt_call(ivl_statement_t net);
-  /* IVL_ST_CASE,IVL_ST_CASER,IVL_ST_CASEX,IVL_ST_CASEZ */
+/* IVL_ST_CASE,IVL_ST_CASER,IVL_ST_CASEX,IVL_ST_CASEZ */
 extern unsigned ivl_stmt_case_count(ivl_statement_t net);
-  /* IVL_ST_CASE,IVL_ST_CASER,IVL_ST_CASEX,IVL_ST_CASEZ */
+/* IVL_ST_CASE,IVL_ST_CASER,IVL_ST_CASEX,IVL_ST_CASEZ */
 extern ivl_expr_t ivl_stmt_case_expr(ivl_statement_t net, unsigned i);
-  /* IVL+ST_CASE,IVL_ST_CASER,IVL_ST_CASEX,IVL_ST_CASEZ */
+/* IVL+ST_CASE,IVL_ST_CASER,IVL_ST_CASEX,IVL_ST_CASEZ */
 extern ivl_case_quality_t ivl_stmt_case_quality(ivl_statement_t net);
-  /* IVL_ST_CASE,IVL_ST_CASER,IVL_ST_CASEX,IVL_ST_CASEZ */
+/* IVL_ST_CASE,IVL_ST_CASER,IVL_ST_CASEX,IVL_ST_CASEZ */
 extern ivl_statement_t ivl_stmt_case_stmt(ivl_statement_t net, unsigned i);
-  /* IVL_ST_CONDIT IVL_ST_CASE IVL_ST_REPEAT IVL_ST_WHILE */
-extern ivl_expr_t      ivl_stmt_cond_expr(ivl_statement_t net);
-  /* IVL_ST_CONDIT */
+/* IVL_ST_CONDIT IVL_ST_CASE IVL_ST_REPEAT IVL_ST_WHILE */
+extern ivl_expr_t ivl_stmt_cond_expr(ivl_statement_t net);
+/* IVL_ST_CONDIT */
 extern ivl_statement_t ivl_stmt_cond_false(ivl_statement_t net);
-  /* IVL_ST_CONDIT */
+/* IVL_ST_CONDIT */
 extern ivl_statement_t ivl_stmt_cond_true(ivl_statement_t net);
-  /* IVL_ST_ASSIGN IVL_ST_ASSIGN_NB IVL_ST_DELAYX */
+/* IVL_ST_ASSIGN IVL_ST_ASSIGN_NB IVL_ST_DELAYX */
 extern ivl_expr_t ivl_stmt_delay_expr(ivl_statement_t net);
-  /* IVL_ST_DELAY */
+/* IVL_ST_DELAY */
 extern uint64_t ivl_stmt_delay_val(ivl_statement_t net);
-  /* IVL_ST_WAIT IVL_ST_TRIGGER */
-extern unsigned    ivl_stmt_needs_t0_trigger(ivl_statement_t net);
-extern unsigned    ivl_stmt_nevent(ivl_statement_t net);
+/* IVL_ST_WAIT IVL_ST_TRIGGER */
+extern unsigned ivl_stmt_needs_t0_trigger(ivl_statement_t net);
+extern unsigned ivl_stmt_nevent(ivl_statement_t net);
 extern ivl_event_t ivl_stmt_events(ivl_statement_t net, unsigned idx);
-  /* IVL_ST_CONTRIB */
+/* IVL_ST_CONTRIB */
 extern ivl_expr_t ivl_stmt_lexp(ivl_statement_t net);
-  /* IVL_ST_ASSIGN IVL_ST_ASSIGN_NB IVL_ST_CASSIGN IVL_ST_DEASSIGN
-     IVL_ST_FORCE IVL_ST_RELEASE */
+/* IVL_ST_ASSIGN IVL_ST_ASSIGN_NB IVL_ST_CASSIGN IVL_ST_DEASSIGN
+   IVL_ST_FORCE IVL_ST_RELEASE */
 extern ivl_lval_t ivl_stmt_lval(ivl_statement_t net, unsigned idx);
-  /* IVL_ST_ASSIGN IVL_ST_ASSIGN_NB IVL_ST_CASSIGN IVL_ST_DEASSIGN
-     IVL_ST_FORCE IVL_ST_RELEASE */
+/* IVL_ST_ASSIGN IVL_ST_ASSIGN_NB IVL_ST_CASSIGN IVL_ST_DEASSIGN
+   IVL_ST_FORCE IVL_ST_RELEASE */
 extern unsigned ivl_stmt_lvals(ivl_statement_t net);
-  /* IVL_ST_ASSIGN IVL_ST_ASSIGN_NB IVL_ST_CASSIGN */
+/* IVL_ST_ASSIGN IVL_ST_ASSIGN_NB IVL_ST_CASSIGN */
 extern unsigned ivl_stmt_lwidth(ivl_statement_t net);
-  /* IVL_ST_STASK */
+/* IVL_ST_STASK */
 extern const char* ivl_stmt_name(ivl_statement_t net);
-  /* IVL_ST_ASSIGN */
+/* IVL_ST_ASSIGN */
 extern char ivl_stmt_opcode(ivl_statement_t net);
-  /* IVL_ST_STASK */
+/* IVL_ST_STASK */
 extern ivl_expr_t ivl_stmt_parm(ivl_statement_t net, unsigned idx);
-  /* IVL_ST_STASK */
+/* IVL_ST_STASK */
 extern unsigned ivl_stmt_parm_count(ivl_statement_t net);
-  /* IVL_ST_ASSIGN IVL_ST_ASSIGN_NB IVL_ST_CASSIGN IVL_ST_CONTRIB
-     IVL_ST_FORCE */
+/* IVL_ST_ASSIGN IVL_ST_ASSIGN_NB IVL_ST_CASSIGN IVL_ST_CONTRIB
+   IVL_ST_FORCE */
 extern ivl_expr_t ivl_stmt_rval(ivl_statement_t net);
-  /* IVL_ST_STASK */
+/* IVL_ST_STASK */
 extern ivl_sfunc_as_task_t ivl_stmt_sfunc_as_task(ivl_statement_t net);
-  /* IVL_ST_DELAY, IVL_ST_DELAYX, IVL_ST_FOREVER, IVL_ST_REPEAT
-     IVL_ST_WAIT, IVL_ST_WHILE */
+/* IVL_ST_DELAY, IVL_ST_DELAYX, IVL_ST_FOREVER, IVL_ST_REPEAT
+   IVL_ST_WAIT, IVL_ST_WHILE */
 extern ivl_statement_t ivl_stmt_sub_stmt(ivl_statement_t net);
 
 /* SWITCHES
@@ -2306,13 +2309,13 @@ extern ivl_statement_t ivl_stmt_sub_stmt(ivl_statement_t net);
  */
 extern ivl_switch_type_t ivl_switch_type(ivl_switch_t net);
 extern ivl_scope_t ivl_switch_scope(ivl_switch_t net);
-extern const char*ivl_switch_basename(ivl_switch_t net);
+extern const char* ivl_switch_basename(ivl_switch_t net);
 extern ivl_nexus_t ivl_switch_a(ivl_switch_t net);
 extern ivl_nexus_t ivl_switch_b(ivl_switch_t net);
 extern ivl_nexus_t ivl_switch_enable(ivl_switch_t net);
 extern ivl_island_t ivl_switch_island(ivl_switch_t net);
 
-  /* These are only support for IVL_SW_TRAN_VP switches. */
+/* These are only support for IVL_SW_TRAN_VP switches. */
 extern unsigned ivl_switch_width(ivl_switch_t net);
 extern unsigned ivl_switch_part(ivl_switch_t net);
 extern unsigned ivl_switch_offset(ivl_switch_t net);
@@ -2350,19 +2353,18 @@ extern int ivl_type_packed_lsb(ivl_type_t net, unsigned dim);
 extern int ivl_type_packed_msb(ivl_type_t net, unsigned dim);
 extern int ivl_type_signed(ivl_type_t net);
 extern const char* ivl_type_name(ivl_type_t net);
-extern int         ivl_type_properties(ivl_type_t net);
+extern int ivl_type_properties(ivl_type_t net);
 extern const char* ivl_type_prop_name(ivl_type_t net, int idx);
-extern ivl_type_t  ivl_type_prop_type(ivl_type_t net, int idx);
+extern ivl_type_t ivl_type_prop_type(ivl_type_t net, int idx);
 
-
-#if defined(__MINGW32__) || defined (__CYGWIN32__)
-#  define DLLEXPORT __declspec(dllexport)
+#if defined(__MINGW32__) || defined(__CYGWIN32__)
+#define DLLEXPORT __declspec(dllexport)
 #else
-#  define DLLEXPORT
+#define DLLEXPORT
 #endif
 
 extern DLLEXPORT int target_design(ivl_design_t des);
-extern DLLEXPORT const char* target_query(const char*key);
+extern DLLEXPORT const char* target_query(const char* key);
 
 /* target_design
 
@@ -2379,9 +2381,8 @@ extern DLLEXPORT const char* target_query(const char*key);
    This function is implemented in the loaded target, and not in the
    ivl core. This function is how the target module is invoked. */
 
-typedef int  (*target_design_f)(ivl_design_t des);
-typedef const char* (*target_query_f) (const char*key);
-
+typedef int (*target_design_f)(ivl_design_t des);
+typedef const char* (*target_query_f)(const char* key);
 
 _END_DECL
 

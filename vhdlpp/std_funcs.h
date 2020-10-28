@@ -18,7 +18,8 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
 #include "subprogram.h"
@@ -30,9 +31,10 @@ void preload_std_funcs();
 void delete_std_funcs();
 
 // Adds a subprogram to the standard library subprogram set
-void register_std_subprogram(SubprogramHeader*header);
+void register_std_subprogram(SubprogramHeader* header);
 
-// Returns subprogram header for a requested function or NULL if it does not exist.
+// Returns subprogram header for a requested function or NULL if it does not
+// exist.
 SubHeaderList find_std_subprogram(perm_string name);
 
 #endif /* IVL_std_funcs_H */

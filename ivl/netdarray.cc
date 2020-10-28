@@ -15,33 +15,25 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "netdarray.h"
-# include  <iostream>
+#include "netdarray.h"
+
+#include <iostream>
 
 using namespace std;
 
-netdarray_t::netdarray_t(ivl_type_t vec)
-: netarray_t(vec)
-{
-}
+netdarray_t::netdarray_t(ivl_type_t vec) : netarray_t(vec) {}
 
-netdarray_t::~netdarray_t()
-{
-}
+netdarray_t::~netdarray_t() {}
 
-ivl_variable_type_t netdarray_t::base_type(void) const
-{
-      return IVL_VT_DARRAY;
-}
+ivl_variable_type_t netdarray_t::base_type(void) const { return IVL_VT_DARRAY; }
 
-bool netdarray_t::test_compatibility(ivl_type_t that) const
-{
-      const netdarray_t*that_da = dynamic_cast<const netdarray_t*>(that);
-      if (that_da == 0)
-	    return false;
+bool netdarray_t::test_compatibility(ivl_type_t that) const {
+  const netdarray_t* that_da = dynamic_cast<const netdarray_t*>(that);
+  if (that_da == 0) return false;
 
-      return element_type()->type_compatible(that_da->element_type());
+  return element_type()->type_compatible(that_da->element_type());
 }

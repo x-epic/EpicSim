@@ -15,90 +15,53 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include "config.h"
+#include <cassert>
+#include <iomanip>
+#include <iostream>
+#include <typeinfo>
 
-# include  <typeinfo>
-# include  <iostream>
-# include  <iomanip>
-# include  <cassert>
-
-# include  "netlist.h"
-# include  "compiler.h"
+#include "compiler.h"
+#include "config.h"
+#include "netlist.h"
 
 /*
  *  0 -- Result
  *  1 -- DataA
  *  2 -- DataB
  */
-NetModulo::NetModulo(NetScope*s, perm_string n, unsigned wr,
-		     unsigned wa, unsigned wb)
-: NetNode(s, n, 3),
-  width_r_(wr), width_a_(wa), width_b_(wb)
-{
-      pin(0).set_dir(Link::OUTPUT); // Result
-      pin(1).set_dir(Link::INPUT);  // DataA
-      pin(2).set_dir(Link::INPUT);  // DataB
-      signed_flag_ = false;
+NetModulo::NetModulo(NetScope* s, perm_string n, unsigned wr, unsigned wa,
+                     unsigned wb)
+    : NetNode(s, n, 3), width_r_(wr), width_a_(wa), width_b_(wb) {
+  pin(0).set_dir(Link::OUTPUT);  // Result
+  pin(1).set_dir(Link::INPUT);   // DataA
+  pin(2).set_dir(Link::INPUT);   // DataB
+  signed_flag_ = false;
 }
 
-NetModulo::~NetModulo()
-{
-}
+NetModulo::~NetModulo() {}
 
-unsigned NetModulo::width_r() const
-{
-      return width_r_;
-}
+unsigned NetModulo::width_r() const { return width_r_; }
 
-unsigned NetModulo::width_a() const
-{
-      return width_a_;
-}
+unsigned NetModulo::width_a() const { return width_a_; }
 
-unsigned NetModulo::width_b() const
-{
-      return width_b_;
-}
+unsigned NetModulo::width_b() const { return width_b_; }
 
-Link& NetModulo::pin_Result()
-{
-      return pin(0);
-}
+Link& NetModulo::pin_Result() { return pin(0); }
 
-void NetModulo::set_signed(bool flag)
-{
-      signed_flag_ = flag;
-}
+void NetModulo::set_signed(bool flag) { signed_flag_ = flag; }
 
-bool NetModulo::get_signed() const
-{
-      return signed_flag_;
-}
+bool NetModulo::get_signed() const { return signed_flag_; }
 
-const Link& NetModulo::pin_Result() const
-{
-      return pin(0);
-}
+const Link& NetModulo::pin_Result() const { return pin(0); }
 
-Link& NetModulo::pin_DataA()
-{
-      return pin(1);
-}
+Link& NetModulo::pin_DataA() { return pin(1); }
 
-const Link& NetModulo::pin_DataA() const
-{
-      return pin(1);
-}
+const Link& NetModulo::pin_DataA() const { return pin(1); }
 
-Link& NetModulo::pin_DataB()
-{
-      return pin(2);
-}
+Link& NetModulo::pin_DataB() { return pin(2); }
 
-const Link& NetModulo::pin_DataB() const
-{
-      return pin(2);
-}
+const Link& NetModulo::pin_DataB() const { return pin(2); }

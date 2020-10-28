@@ -15,7 +15,8 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
 /*
@@ -27,43 +28,40 @@
  * already ends with \r\n then it is not changed to \r\r\n.
  */
 
-# include  <stdio.h>
+#include <stdio.h>
 
-int main(int argc, char*argv[])
-{
-      FILE*ifile;
-      FILE*ofile;
-      int ch, pr;
+int main(int argc, char* argv[]) {
+  FILE* ifile;
+  FILE* ofile;
+  int ch, pr;
 
-      if (argc != 3) {
-	    fprintf(stderr, "Usage: %s <input> <output>\n", argv[0]);
-	    return 1;
-      }
+  if (argc != 3) {
+    fprintf(stderr, "Usage: %s <input> <output>\n", argv[0]);
+    return 1;
+  }
 
-      ifile = fopen(argv[1], "rb");
-      if (ifile == 0) {
-	    fprintf(stderr, "Unable to open %s for input.\n", argv[1]);
-	    return 2;
-      }
+  ifile = fopen(argv[1], "rb");
+  if (ifile == 0) {
+    fprintf(stderr, "Unable to open %s for input.\n", argv[1]);
+    return 2;
+  }
 
-      ofile = fopen(argv[2], "wb");
-      if (ofile == 0) {
-	    fprintf(stderr, "Unable to open %s for output.\n", argv[2]);
-	    fclose(ifile);
-	    return 2;
-      }
+  ofile = fopen(argv[2], "wb");
+  if (ofile == 0) {
+    fprintf(stderr, "Unable to open %s for output.\n", argv[2]);
+    fclose(ifile);
+    return 2;
+  }
 
-      pr = 0;
-      while ((ch = fgetc(ifile)) != EOF) {
+  pr = 0;
+  while ((ch = fgetc(ifile)) != EOF) {
+    if ((ch == '\n') && (pr != '\r')) fputc('\r', ofile);
 
-	    if ((ch == '\n') && (pr != '\r'))
-		  fputc('\r', ofile);
+    fputc(ch, ofile);
+    pr = ch;
+  }
 
-	    fputc(ch, ofile);
-	    pr = ch;
-      }
-
-      fclose(ifile);
-      fclose(ofile);
-      return 0;
+  fclose(ifile);
+  fclose(ofile);
+  return 0;
 }

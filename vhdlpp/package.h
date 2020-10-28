@@ -18,34 +18,35 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "scope.h"
-# include  "LineInfo.h"
-# include  <iostream>
+#include <iostream>
+
+#include "LineInfo.h"
+#include "scope.h"
 
 class Package : public Scope, public LineInfo {
+ public:
+  Package(perm_string name, const ActiveScope& ref);
+  ~Package();
 
-    public:
-      Package(perm_string name, const ActiveScope&ref);
-      ~Package();
+  // The the library from which this package came. Having a
+  // source library influences the emit_package() method.
+  void set_library(perm_string);
 
-	// The the library from which this package came. Having a
-	// source library influences the emit_package() method.
-      void set_library(perm_string);
+  perm_string name() const { return name_; }
 
-      perm_string name() const { return name_; }
+  // This method writes a package header to a library file.
+  void write_to_stream(std::ostream& fd) const;
 
-	// This method writes a package header to a library file.
-      void write_to_stream(std::ostream&fd) const;
+  int emit_package(std::ostream& fd) const;
+  int elaborate();
 
-      int emit_package(std::ostream&fd) const;
-      int elaborate();
-
-    private:
-      perm_string from_library_;
-      perm_string name_;
+ private:
+  perm_string from_library_;
+  perm_string name_;
 };
 
 #endif /* IVL_package_H */

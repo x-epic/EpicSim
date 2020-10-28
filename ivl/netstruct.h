@@ -17,65 +17,68 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "LineInfo.h"
-# include  <vector>
-# include  "ivl_target.h"
-# include  "nettypes.h"
+#include <vector>
+
+#include "LineInfo.h"
+#include "ivl_target.h"
+#include "nettypes.h"
 
 class Design;
 
 class netstruct_t : public LineInfo, public ivl_type_s {
+ public:
+  struct member_t {
+    perm_string name;
+    ivl_type_t net_type;
+    inline ivl_variable_type_t data_type() const {
+      return net_type->base_type();
+    };
+    // We need to keep the individual element sign information.
+    bool get_signed() const { return false; };
+  };
 
-    public:
-      struct member_t {
-	    perm_string name;
-	    ivl_type_t net_type;
-	    inline ivl_variable_type_t data_type() const
-	    { return net_type->base_type(); };
-	      // We need to keep the individual element sign information.
-	    bool get_signed() const { return false; };
-      };
+ public:
+  netstruct_t();
+  ~netstruct_t();
 
-    public:
-      netstruct_t();
-      ~netstruct_t();
+  // If this is a union (instead of struct) then this flag is
+  // set. We handle union and struct together because they are
+  // so similar.
+  void union_flag(bool);
+  bool union_flag(void) const;
 
-	// If this is a union (instead of struct) then this flag is
-	// set. We handle union and struct together because they are
-	// so similar.
-      void union_flag(bool);
-      bool union_flag(void) const;
+  void packed(bool flag);
+  bool packed(void) const;
 
-      void packed(bool flag);
-      bool packed(void) const;
+  // Append a new member to the struct/union. This must be done
+  // after the union_flag and packed settings are set. This
+  // function does error checking, and the "des" argument is
+  // only present so that it can set error flags.
+  void append_member(Design* des, const member_t&);
 
-	// Append a new member to the struct/union. This must be done
-	// after the union_flag and packed settings are set. This
-	// function does error checking, and the "des" argument is
-	// only present so that it can set error flags.
-      void append_member(Design*des, const member_t&);
+  // Given the name of a member, return a pointer to the member
+  // description, and set the off value to be the offset into
+  // the packed value where the member begins.
+  const struct member_t* packed_member(perm_string name,
+                                       unsigned long& off) const;
 
-	// Given the name of a member, return a pointer to the member
-	// description, and set the off value to be the offset into
-	// the packed value where the member begins.
-      const struct member_t* packed_member(perm_string name, unsigned long&off) const;
+  // Return the width (in bits) of the packed record, or -1 if
+  // the record is not packed.
+  long packed_width() const;
+  std::vector<netrange_t> slice_dimensions() const;
 
-	// Return the width (in bits) of the packed record, or -1 if
-	// the record is not packed.
-      long packed_width() const;
-      std::vector<netrange_t> slice_dimensions() const;
+  // Return the base type of the packed record, or
+  // IVL_VT_NO_TYPE if the record is not packed.
+  ivl_variable_type_t base_type() const;
 
-	// Return the base type of the packed record, or
-	// IVL_VT_NO_TYPE if the record is not packed.
-      ivl_variable_type_t base_type() const;
-
-    private:
-      bool union_;
-      bool packed_;
-      std::vector<member_t>members_;
+ private:
+  bool union_;
+  bool packed_;
+  std::vector<member_t> members_;
 };
 
 inline bool netstruct_t::union_flag(void) const { return union_; }

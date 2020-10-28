@@ -17,15 +17,16 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  <iostream>
-# include  <list>
-# include  <vector>
-# include  "StringHeap.h"
+#include <cassert>
+#include <iostream>
+#include <list>
+#include <vector>
 
-# include  <cassert>
+#include "StringHeap.h"
 
 /*
  * This class represents a component of a Verilog hierarchical name. A
@@ -36,78 +37,65 @@
  */
 
 class hname_t {
+  friend ostream& operator<<(ostream& out, const hname_t& that);
 
-      friend ostream& operator<< (ostream&out, const hname_t&that);
+ public:
+  hname_t();
+  explicit hname_t(perm_string text);
+  explicit hname_t(perm_string text, int num);
+  explicit hname_t(perm_string text, const std::vector<int>& nums);
+  hname_t(const hname_t& that);
+  ~hname_t();
 
-    public:
-      hname_t ();
-      explicit hname_t (perm_string text);
-      explicit hname_t (perm_string text, int num);
-      explicit hname_t (perm_string text, const std::vector<int>&nums);
-      hname_t (const hname_t&that);
-      ~hname_t();
+  hname_t& operator=(const hname_t&);
 
-      hname_t& operator= (const hname_t&);
+  bool operator==(const hname_t& that) const;
+  bool operator<(const hname_t& that) const;
 
-      bool operator == (const hname_t&that) const;
-      bool operator <  (const hname_t&that) const;
+  // Return the string part of the hname_t.
+  perm_string peek_name(void) const;
 
-	// Return the string part of the hname_t.
-      perm_string peek_name(void) const;
+  size_t has_numbers() const;
+  int peek_number(size_t idx) const;
+  const std::vector<int>& peek_numbers() const;
 
-      size_t has_numbers() const;
-      int peek_number(size_t idx) const;
-      const std::vector<int>&peek_numbers() const;
+ private:
+  perm_string name_;
+  // If this vector has size, then the numbers all together make
+  // up part of the hierarchical name.
+  std::vector<int> number_;
 
-    private:
-      perm_string name_;
-	// If this vector has size, then the numbers all together make
-	// up part of the hierarchical name.
-      std::vector<int> number_;
-
-    private: // not implemented
+ private:  // not implemented
 };
 
-inline hname_t::~hname_t()
-{
+inline hname_t::~hname_t() {}
+
+inline perm_string hname_t::peek_name(void) const { return name_; }
+
+inline int hname_t::peek_number(size_t idx) const {
+  assert(number_.size() > idx);
+  return number_[idx];
 }
 
-inline perm_string hname_t::peek_name(void) const
-{
-      return name_;
+inline const std::vector<int>& hname_t::peek_numbers(void) const {
+  return number_;
 }
 
-inline int hname_t::peek_number(size_t idx) const
-{
-      assert(number_.size() > idx);
-      return number_[idx];
-}
+inline size_t hname_t::has_numbers() const { return number_.size(); }
 
-inline const std::vector<int>& hname_t::peek_numbers(void) const
-{
-      return number_;
-}
+extern ostream& operator<<(ostream&, const hname_t&);
 
-inline size_t hname_t::has_numbers() const
-{
-      return number_.size();
-}
+inline bool operator!=(const hname_t& l, const hname_t& r) { return !(l == r); }
 
-extern ostream& operator<< (ostream&, const hname_t&);
-
-inline bool operator != (const hname_t&l, const hname_t&r)
-{ return ! (l == r); }
-
-inline ostream& operator<< (ostream&out, const list<hname_t>&ll)
-{
-      list<hname_t>::const_iterator cur = ll.begin();
-      out << *cur;
-      ++ cur;
-      while (cur != ll.end()) {
-	    out << "." << *cur;
-	    ++ cur;
-      }
-      return out;
+inline ostream& operator<<(ostream& out, const list<hname_t>& ll) {
+  list<hname_t>::const_iterator cur = ll.begin();
+  out << *cur;
+  ++cur;
+  while (cur != ll.end()) {
+    out << "." << *cur;
+    ++cur;
+  }
+  return out;
 }
 
 #endif /* IVL_HName_H */

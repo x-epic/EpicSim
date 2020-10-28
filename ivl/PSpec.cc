@@ -15,21 +15,22 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "PSpec.h"
+#include "PSpec.h"
 
 PSpecPath::PSpecPath(unsigned src_cnt, unsigned dst_cnt, char polarity,
                      bool full_flag)
-: conditional(false), condition(0), edge(0),
-  src(src_cnt), dst(dst_cnt),
-  data_source_expression(0)
-{
-      full_flag_ = full_flag;
-      polarity_ = polarity;
+    : conditional(false),
+      condition(0),
+      edge(0),
+      src(src_cnt),
+      dst(dst_cnt),
+      data_source_expression(0) {
+  full_flag_ = full_flag;
+  polarity_ = polarity;
 }
 
-PSpecPath::~PSpecPath()
-{
-}
+PSpecPath::~PSpecPath() {}

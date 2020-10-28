@@ -15,60 +15,60 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-#include "sys_priv.h"
 #include <string.h>
 
-static PLI_INT32 sys_finish_calltf(ICARUS_VPI_CONST PLI_BYTE8 *name)
-{
-      vpiHandle callh, argv;
-      s_vpi_value val;
-      long diag_msg = 1;
+#include "sys_priv.h"
 
-      /* Get the argument list and look for the diagnostic message level. */
-      callh = vpi_handle(vpiSysTfCall, 0);
-      argv = vpi_iterate(vpiArgument, callh);
-      if (argv) {
-            vpiHandle arg = vpi_scan(argv);
-            vpi_free_object(argv);
-            val.format = vpiIntVal;
-            vpi_get_value(arg, &val);
-            diag_msg = val.value.integer;
-      }
+static PLI_INT32 sys_finish_calltf(ICARUS_VPI_CONST PLI_BYTE8 *name) {
+  vpiHandle callh, argv;
+  s_vpi_value val;
+  long diag_msg = 1;
 
-      if (strcmp((const char*)name, "$stop") == 0) {
-	    vpi_control(vpiStop, diag_msg);
-	    return 0;
-      }
+  /* Get the argument list and look for the diagnostic message level. */
+  callh = vpi_handle(vpiSysTfCall, 0);
+  argv = vpi_iterate(vpiArgument, callh);
+  if (argv) {
+    vpiHandle arg = vpi_scan(argv);
+    vpi_free_object(argv);
+    val.format = vpiIntVal;
+    vpi_get_value(arg, &val);
+    diag_msg = val.value.integer;
+  }
 
-      vpip_set_return_value(0);
+  if (strcmp((const char *)name, "$stop") == 0) {
+    vpi_control(vpiStop, diag_msg);
+    return 0;
+  }
 
-      vpi_control(vpiFinish, diag_msg);
-      return 0;
+  vpip_set_return_value(0);
+
+  vpi_control(vpiFinish, diag_msg);
+  return 0;
 }
 
-void sys_finish_register(void)
-{
-      s_vpi_systf_data tf_data;
-      vpiHandle res;
+void sys_finish_register(void) {
+  s_vpi_systf_data tf_data;
+  vpiHandle res;
 
-      tf_data.type      = vpiSysTask;
-      tf_data.tfname    = "$finish";
-      tf_data.calltf    = sys_finish_calltf;
-      tf_data.compiletf = sys_one_opt_numeric_arg_compiletf;
-      tf_data.sizetf    = 0;
-      tf_data.user_data = "$finish";
-      res = vpi_register_systf(&tf_data);
-      vpip_make_systf_system_defined(res);
+  tf_data.type = vpiSysTask;
+  tf_data.tfname = "$finish";
+  tf_data.calltf = sys_finish_calltf;
+  tf_data.compiletf = sys_one_opt_numeric_arg_compiletf;
+  tf_data.sizetf = 0;
+  tf_data.user_data = "$finish";
+  res = vpi_register_systf(&tf_data);
+  vpip_make_systf_system_defined(res);
 
-      tf_data.type      = vpiSysTask;
-      tf_data.tfname    = "$stop";
-      tf_data.calltf    = sys_finish_calltf;
-      tf_data.compiletf = sys_one_opt_numeric_arg_compiletf;
-      tf_data.sizetf    = 0;
-      tf_data.user_data = "$stop";
-      res = vpi_register_systf(&tf_data);
-      vpip_make_systf_system_defined(res);
+  tf_data.type = vpiSysTask;
+  tf_data.tfname = "$stop";
+  tf_data.calltf = sys_finish_calltf;
+  tf_data.compiletf = sys_one_opt_numeric_arg_compiletf;
+  tf_data.sizetf = 0;
+  tf_data.user_data = "$stop";
+  res = vpi_register_systf(&tf_data);
+  vpip_make_systf_system_defined(res);
 }

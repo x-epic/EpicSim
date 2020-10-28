@@ -17,13 +17,15 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  <list>
-# include  <ostream>
-# include  "compiler.h"
-# include  "pform.h"
+#include <list>
+#include <ostream>
+
+#include "compiler.h"
+#include "pform.h"
 
 /*
  * The vlltype supports the passing of detailed source file location
@@ -31,41 +33,41 @@
  * YYLTYPE compels the lexor to use this type and not something other.
  */
 struct vlltype {
-      int first_line;
-      int first_column;
-      int last_line;
-      int last_column;
-      const char*text;
-      std::string get_fileline() const;
+  int first_line;
+  int first_column;
+  int last_line;
+  int last_column;
+  const char* text;
+  std::string get_fileline() const;
 };
-# define YYLTYPE struct vlltype
+#define YYLTYPE struct vlltype
 
 class LineInfo;
-inline void FILE_NAME(LineInfo*tmp, const struct vlltype&where)
-{
-      tmp->set_lineno(where.first_line);
-      tmp->set_file(filename_strings.make(where.text));
+inline void FILE_NAME(LineInfo* tmp, const struct vlltype& where) {
+  tmp->set_lineno(where.first_line);
+  tmp->set_file(filename_strings.make(where.text));
 }
 
-  /* This for compatibility with new and older bison versions. */
+/* This for compatibility with new and older bison versions. */
 #ifndef yylloc
-# define yylloc VLlloc
+#define yylloc VLlloc
 #endif
 extern YYLTYPE yylloc;
 
 /*
  * Interface into the lexical analyzer. ...
  */
-extern int  VLlex();
-extern void VLerror(const char*msg);
-extern void VLerror(const YYLTYPE&loc, const char*msg, ...) __attribute__((format(printf,2,3)));
+extern int VLlex();
+extern void VLerror(const char* msg);
+extern void VLerror(const YYLTYPE& loc, const char* msg, ...)
+    __attribute__((format(printf, 2, 3)));
 #define yywarn VLwarn
-extern void VLwarn(const char*msg);
-extern void VLwarn(const YYLTYPE&loc, const char*msg);
+extern void VLwarn(const char* msg);
+extern void VLwarn(const YYLTYPE& loc, const char* msg);
 
 extern void destroy_lexor();
 
-extern ostream& operator << (ostream&, const YYLTYPE&loc);
+extern ostream& operator<<(ostream&, const YYLTYPE& loc);
 
 extern unsigned error_count, warn_count;
 extern unsigned long based_size;
@@ -81,7 +83,7 @@ extern UCDriveType uc_drive;
  * Then the parser calls this function to set the package context so
  * that the lexor can interpret <foo> in the package context.
  */
-extern void lex_in_package_scope(PPackage*pkg);
+extern void lex_in_package_scope(PPackage* pkg);
 
 /*
  * Test if this identifier is a type identifier in the current
@@ -89,8 +91,9 @@ extern void lex_in_package_scope(PPackage*pkg);
  * parser detects typedefs and marks the typedef'ed identifiers as
  * type names.
  */
-extern data_type_t* pform_test_type_identifier(const YYLTYPE&loc, const char*txt);
-extern data_type_t* pform_test_type_identifier(PPackage*pkg, const char*txt);
+extern data_type_t* pform_test_type_identifier(const YYLTYPE& loc,
+                                               const char* txt);
+extern data_type_t* pform_test_type_identifier(PPackage* pkg, const char* txt);
 
 extern bool pform_test_type_identifier_local(perm_string txt);
 
@@ -98,18 +101,18 @@ extern bool pform_test_type_identifier_local(perm_string txt);
  * Test if this identifier is a package name. The pform needs to help
  * the lexor here because the parser detects packages and saves them.
  */
-extern PPackage* pform_test_package_identifier(const char*txt);
+extern PPackage* pform_test_package_identifier(const char* txt);
 
 /*
  * Export these functions because we have to generate PENumber class
  * in pform.cc for user defparam definition from command file.
  */
-extern verinum*make_unsized_dec(const char*txt);
-extern verinum*make_undef_highz_dec(const char*txt);
-extern verinum*make_unsized_binary(const char*txt);
-extern verinum*make_unsized_octal(const char*txt);
-extern verinum*make_unsized_hex(const char*txt);
+extern verinum* make_unsized_dec(const char* txt);
+extern verinum* make_undef_highz_dec(const char* txt);
+extern verinum* make_unsized_binary(const char* txt);
+extern verinum* make_unsized_octal(const char* txt);
+extern verinum* make_unsized_hex(const char* txt);
 
-extern char* strdupnew(char const *str);
+extern char* strdupnew(char const* str);
 
 #endif /* IVL_parse_misc_H */

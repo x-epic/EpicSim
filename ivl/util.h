@@ -17,14 +17,16 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  <map>
-# include  <vector>
-# include  <list>
-# include  "StringHeap.h"
-# include  "verinum.h"
+#include <list>
+#include <map>
+#include <vector>
+
+#include "StringHeap.h"
+#include "verinum.h"
 
 class PExpr;
 class Design;
@@ -35,17 +37,15 @@ class NetScope;
  * looking for a plausible Verilog file to hold the module, and
  * invoking the parser to bring in that file's contents.
  */
-extern bool load_module(const char*type, int&parser_errors);
-
-
+extern bool load_module(const char* type, int& parser_errors);
 
 struct attrib_list_t {
-      perm_string key;
-      verinum val;
+  perm_string key;
+  verinum val;
 };
 
-extern attrib_list_t* evaluate_attributes(const map<perm_string,PExpr*>&att,
-					  unsigned&natt,
-					  Design*des, NetScope*scope);
+extern attrib_list_t* evaluate_attributes(const map<perm_string, PExpr*>& att,
+                                          unsigned& natt, Design* des,
+                                          NetScope* scope);
 
 #endif /* IVL_util_H */

@@ -17,22 +17,24 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "config.h"
-# include  "vpi_user.h"
-# include  "vvp_net.h"
-# include  "vvp_object.h"
-# include  <string>
-# include  <cstddef>
-# include  <cstdlib>
-# include  <cstring>
-# include  <new>
-# include  <cassert>
+#include <cassert>
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
+#include <new>
+#include <string>
+
+#include "config.h"
+#include "vpi_user.h"
+#include "vvp_net.h"
+#include "vvp_object.h"
 
 #ifdef HAVE_IOSFWD
-# include  <iosfwd>
+#include <iosfwd>
 #else
 class ostream;
 #endif
@@ -67,29 +69,26 @@ using namespace std;
  * hooking the output of a vvp_net_t to this port.
  */
 
-
 class vvp_fun_signal_base : public vvp_net_fun_t {
+ public:
+  vvp_fun_signal_base();
 
-    public:
-      vvp_fun_signal_base();
+  void deassign();
+  void deassign_pv(unsigned base, unsigned wid);
 
-      void deassign();
-      void deassign_pv(unsigned base, unsigned wid);
+ public:
+  /* The %cassign/link instruction needs a place to write the
+     source node of the force, so that subsequent %cassign and
+     %deassign instructions can undo the link as needed. */
+  class vvp_net_t* cassign_link;
 
-    public:
+ protected:
+  bool continuous_assign_active_;
+  vvp_vector2_t assign_mask_;
 
-	/* The %cassign/link instruction needs a place to write the
-	   source node of the force, so that subsequent %cassign and
-	   %deassign instructions can undo the link as needed. */
-      class vvp_net_t*cassign_link;
-
-    protected:
-      bool continuous_assign_active_;
-      vvp_vector2_t assign_mask_;
-
-    protected:
-	// This is true until at least one propagation happens.
-      bool needs_init_;
+ protected:
+  // This is true until at least one propagation happens.
+  bool needs_init_;
 };
 
 /*
@@ -97,15 +96,15 @@ class vvp_fun_signal_base : public vvp_net_fun_t {
  * class offers the unified concept of an accessible value.
  */
 class vvp_signal_value {
-    public:
-      virtual ~vvp_signal_value() =0;
-      virtual unsigned value_size() const =0;
-      virtual vvp_bit4_t value(unsigned idx) const =0;
-      virtual vvp_scalar_t scalar_value(unsigned idx) const =0;
-      virtual void vec4_value(vvp_vector4_t&) const =0;
-      virtual double real_value() const;
+ public:
+  virtual ~vvp_signal_value() = 0;
+  virtual unsigned value_size() const = 0;
+  virtual vvp_bit4_t value(unsigned idx) const = 0;
+  virtual vvp_scalar_t scalar_value(unsigned idx) const = 0;
+  virtual void vec4_value(vvp_vector4_t&) const = 0;
+  virtual double real_value() const;
 
-      virtual void get_signal_value(struct t_vpi_value*vp);
+  virtual void get_signal_value(struct t_vpi_value* vp);
 };
 
 /*
@@ -113,283 +112,275 @@ class vvp_signal_value {
  * class, in that it adds vector access methods.
  */
 class vvp_fun_signal_vec : public vvp_fun_signal_base {
-    public:
-      virtual const vvp_vector4_t& vec4_unfiltered_value() const =0;
+ public:
+  virtual const vvp_vector4_t& vec4_unfiltered_value() const = 0;
 };
 
 class automatic_signal_base : public vvp_signal_value, public vvp_net_fil_t {
+ public:
+  // Automatic variables cannot be forced or released. Provide
+  // stubs that assert.
+  virtual void release(vvp_net_ptr_t ptr, bool net_flag);
+  virtual void release_pv(vvp_net_ptr_t ptr, unsigned base, unsigned wid,
+                          bool net_flag);
 
-    public:
-	// Automatic variables cannot be forced or released. Provide
-	// stubs that assert.
-      virtual void release(vvp_net_ptr_t ptr, bool net_flag);
-      virtual void release_pv(vvp_net_ptr_t ptr, unsigned base, unsigned wid, bool net_flag);
-
-      virtual unsigned filter_size() const;
-      virtual void force_fil_vec4(const vvp_vector4_t&val, const vvp_vector2_t&mask);
-      virtual void force_fil_vec8(const vvp_vector8_t&val, const vvp_vector2_t&mask);
-      virtual void force_fil_real(double val, const vvp_vector2_t&mask);
-      virtual void get_value(struct t_vpi_value*value);
+  virtual unsigned filter_size() const;
+  virtual void force_fil_vec4(const vvp_vector4_t& val,
+                              const vvp_vector2_t& mask);
+  virtual void force_fil_vec8(const vvp_vector8_t& val,
+                              const vvp_vector2_t& mask);
+  virtual void force_fil_real(double val, const vvp_vector2_t& mask);
+  virtual void get_value(struct t_vpi_value* value);
 };
 
 /*
  * Statically allocated vvp_fun_signal4.
  */
 class vvp_fun_signal4_sa : public vvp_fun_signal_vec {
+ public:
+  explicit vvp_fun_signal4_sa(unsigned wid, vvp_bit4_t init = BIT4_X);
 
-    public:
-      explicit vvp_fun_signal4_sa(unsigned wid, vvp_bit4_t init=BIT4_X);
+  void recv_vec4(vvp_net_ptr_t port, const vvp_vector4_t& bit, vvp_context_t);
+  void recv_vec8(vvp_net_ptr_t port, const vvp_vector8_t& bit);
 
-      void recv_vec4(vvp_net_ptr_t port, const vvp_vector4_t&bit,
-                     vvp_context_t);
-      void recv_vec8(vvp_net_ptr_t port, const vvp_vector8_t&bit);
+  // Part select variants of above
+  void recv_vec4_pv(vvp_net_ptr_t port, const vvp_vector4_t& bit, unsigned base,
+                    unsigned wid, unsigned vwid, vvp_context_t);
+  void recv_vec8_pv(vvp_net_ptr_t port, const vvp_vector8_t& bit, unsigned base,
+                    unsigned wid, unsigned vwid);
 
-	// Part select variants of above
-      void recv_vec4_pv(vvp_net_ptr_t port, const vvp_vector4_t&bit,
-			unsigned base, unsigned wid, unsigned vwid,
-                        vvp_context_t);
-      void recv_vec8_pv(vvp_net_ptr_t port, const vvp_vector8_t&bit,
-			unsigned base, unsigned wid, unsigned vwid);
+  // Get information about the vector value.
+  const vvp_vector4_t& vec4_unfiltered_value() const;
 
-	// Get information about the vector value.
-      const vvp_vector4_t& vec4_unfiltered_value() const;
-
-    private:
-      vvp_vector4_t bits4_;
+ private:
+  vvp_vector4_t bits4_;
 };
 
 /*
  * Automatically allocated vvp_fun_signal4.
  */
-class vvp_fun_signal4_aa : public vvp_fun_signal_vec, public automatic_signal_base, public automatic_hooks_s {
+class vvp_fun_signal4_aa : public vvp_fun_signal_vec,
+                           public automatic_signal_base,
+                           public automatic_hooks_s {
+ public:
+  explicit vvp_fun_signal4_aa(unsigned wid, vvp_bit4_t init = BIT4_X);
+  ~vvp_fun_signal4_aa();
 
-    public:
-      explicit vvp_fun_signal4_aa(unsigned wid, vvp_bit4_t init=BIT4_X);
-      ~vvp_fun_signal4_aa();
-
-      void alloc_instance(vvp_context_t context);
-      void reset_instance(vvp_context_t context);
+  void alloc_instance(vvp_context_t context);
+  void reset_instance(vvp_context_t context);
 #ifdef CHECK_WITH_VALGRIND
-      void free_instance(vvp_context_t context);
+  void free_instance(vvp_context_t context);
 #endif
 
-      void recv_vec4(vvp_net_ptr_t port, const vvp_vector4_t&bit,
-                     vvp_context_t context);
+  void recv_vec4(vvp_net_ptr_t port, const vvp_vector4_t& bit,
+                 vvp_context_t context);
 
-	// Part select variants of above
-      void recv_vec4_pv(vvp_net_ptr_t port, const vvp_vector4_t&bit,
-			unsigned base, unsigned wid, unsigned vwid,
-                        vvp_context_t);
+  // Part select variants of above
+  void recv_vec4_pv(vvp_net_ptr_t port, const vvp_vector4_t& bit, unsigned base,
+                    unsigned wid, unsigned vwid, vvp_context_t);
 
-	// Get information about the vector value.
-      unsigned   value_size() const;
-      vvp_bit4_t value(unsigned idx) const;
-      vvp_scalar_t scalar_value(unsigned idx) const;
-      void vec4_value(vvp_vector4_t&) const;
-      const vvp_vector4_t& vec4_unfiltered_value() const;
+  // Get information about the vector value.
+  unsigned value_size() const;
+  vvp_bit4_t value(unsigned idx) const;
+  vvp_scalar_t scalar_value(unsigned idx) const;
+  void vec4_value(vvp_vector4_t&) const;
+  const vvp_vector4_t& vec4_unfiltered_value() const;
 
-    public: // These objects are only permallocated.
-      static void* operator new(std::size_t size) { return vvp_net_fun_t::heap_.alloc(size); }
-      static void operator delete(void*obj);
+ public:  // These objects are only permallocated.
+  static void* operator new(std::size_t size) {
+    return vvp_net_fun_t::heap_.alloc(size);
+  }
+  static void operator delete(void* obj);
 
-    private:
-      unsigned context_idx_;
-      unsigned size_;
+ private:
+  unsigned context_idx_;
+  unsigned size_;
 };
 
 class vvp_fun_signal_real : public vvp_fun_signal_base {
+ public:
+  explicit vvp_fun_signal_real(){};
 
-    public:
-      explicit vvp_fun_signal_real() {};
+  // Get information about the vector value.
+  virtual double real_unfiltered_value() const = 0;
 
-	// Get information about the vector value.
-      virtual double real_unfiltered_value() const = 0;
-
-      unsigned size() const { return 1; }
+  unsigned size() const { return 1; }
 };
 
 /*
  * Statically allocated vvp_fun_signal_real.
  */
 class vvp_fun_signal_real_sa : public vvp_fun_signal_real {
+ public:
+  explicit vvp_fun_signal_real_sa();
 
-    public:
-      explicit vvp_fun_signal_real_sa();
+  void recv_real(vvp_net_ptr_t port, double bit, vvp_context_t);
 
-      void recv_real(vvp_net_ptr_t port, double bit,
-                     vvp_context_t);
+  // Get information about the vector value.
+  double real_unfiltered_value() const;
 
-	// Get information about the vector value.
-      double real_unfiltered_value() const;
-
-    private:
-      double bits_;
+ private:
+  double bits_;
 };
 
 /*
  * Automatically allocated vvp_fun_signal_real.
  */
-class vvp_fun_signal_real_aa : public vvp_fun_signal_real, public automatic_signal_base, public automatic_hooks_s {
+class vvp_fun_signal_real_aa : public vvp_fun_signal_real,
+                               public automatic_signal_base,
+                               public automatic_hooks_s {
+ public:
+  explicit vvp_fun_signal_real_aa();
+  ~vvp_fun_signal_real_aa();
 
-    public:
-      explicit vvp_fun_signal_real_aa();
-      ~vvp_fun_signal_real_aa();
-
-      void alloc_instance(vvp_context_t context);
-      void reset_instance(vvp_context_t context);
+  void alloc_instance(vvp_context_t context);
+  void reset_instance(vvp_context_t context);
 #ifdef CHECK_WITH_VALGRIND
-      void free_instance(vvp_context_t context);
+  void free_instance(vvp_context_t context);
 #endif
 
-      void recv_real(vvp_net_ptr_t port, double bit,
-                     vvp_context_t context);
+  void recv_real(vvp_net_ptr_t port, double bit, vvp_context_t context);
 
-	// Get information about the vector value.
-      double real_unfiltered_value() const;
+  // Get information about the vector value.
+  double real_unfiltered_value() const;
 
-	// Get information about the vector value.
-      unsigned   value_size() const;
-      vvp_bit4_t value(unsigned idx) const;
-      vvp_scalar_t scalar_value(unsigned idx) const;
-      void vec4_value(vvp_vector4_t&) const;
-      double real_value() const;
-      void get_signal_value(struct t_vpi_value*vp);
+  // Get information about the vector value.
+  unsigned value_size() const;
+  vvp_bit4_t value(unsigned idx) const;
+  vvp_scalar_t scalar_value(unsigned idx) const;
+  void vec4_value(vvp_vector4_t&) const;
+  double real_value() const;
+  void get_signal_value(struct t_vpi_value* vp);
 
-    public: // These objects are only permallocated.
-      static void* operator new(std::size_t size);
-      static void operator delete(void*obj);
+ public:  // These objects are only permallocated.
+  static void* operator new(std::size_t size);
+  static void operator delete(void* obj);
 
-    private:
-      unsigned context_idx_;
+ private:
+  unsigned context_idx_;
 };
 
-
 class vvp_fun_signal_string : public vvp_fun_signal_base {
+ public:
+  explicit vvp_fun_signal_string(){};
 
-    public:
-      explicit vvp_fun_signal_string() {};
+  unsigned size() const { return 1; }
 
-      unsigned size() const { return 1; }
+  virtual const std::string& get_string() const = 0;
 
-      virtual const std::string& get_string() const =0;
-
-    protected:
-      std::string value_;
+ protected:
+  std::string value_;
 };
 
 /*
  * Statically allocated vvp_fun_signal_string.
  */
 class vvp_fun_signal_string_sa : public vvp_fun_signal_string {
+ public:
+  explicit vvp_fun_signal_string_sa();
 
-    public:
-      explicit vvp_fun_signal_string_sa();
+  void recv_string(vvp_net_ptr_t port, const std::string& bit,
+                   vvp_context_t context);
 
-      void recv_string(vvp_net_ptr_t port, const std::string&bit,
-		       vvp_context_t context);
+  const std::string& get_string() const;
 
-      const std::string& get_string() const;
-
-    private:
-      std::string value_;
+ private:
+  std::string value_;
 };
 
 /*
  * Automatically allocated vvp_fun_signal_real.
  */
-class vvp_fun_signal_string_aa : public vvp_fun_signal_string, public automatic_signal_base, public automatic_hooks_s {
+class vvp_fun_signal_string_aa : public vvp_fun_signal_string,
+                                 public automatic_signal_base,
+                                 public automatic_hooks_s {
+ public:
+  explicit vvp_fun_signal_string_aa();
+  ~vvp_fun_signal_string_aa();
 
-    public:
-      explicit vvp_fun_signal_string_aa();
-      ~vvp_fun_signal_string_aa();
-
-      void alloc_instance(vvp_context_t context);
-      void reset_instance(vvp_context_t context);
+  void alloc_instance(vvp_context_t context);
+  void reset_instance(vvp_context_t context);
 #ifdef CHECK_WITH_VALGRIND
-      void free_instance(vvp_context_t context);
+  void free_instance(vvp_context_t context);
 #endif
-      void recv_string(vvp_net_ptr_t port, const std::string&bit,
-		       vvp_context_t context);
+  void recv_string(vvp_net_ptr_t port, const std::string& bit,
+                   vvp_context_t context);
 
-	// Get information about the vector value.
-      unsigned   value_size() const;
-      vvp_bit4_t value(unsigned idx) const;
-      vvp_scalar_t scalar_value(unsigned idx) const;
-      void vec4_value(vvp_vector4_t&) const;
-      double real_value() const;
-      const std::string& get_string() const;
-      void get_signal_value(struct t_vpi_value*vp);
+  // Get information about the vector value.
+  unsigned value_size() const;
+  vvp_bit4_t value(unsigned idx) const;
+  vvp_scalar_t scalar_value(unsigned idx) const;
+  void vec4_value(vvp_vector4_t&) const;
+  double real_value() const;
+  const std::string& get_string() const;
+  void get_signal_value(struct t_vpi_value* vp);
 
-    public: // These objects are only permallocated.
-      static void* operator new(std::size_t size);
-      static void operator delete(void*obj);
+ public:  // These objects are only permallocated.
+  static void* operator new(std::size_t size);
+  static void operator delete(void* obj);
 
-    private:
-      unsigned context_idx_;
+ private:
+  unsigned context_idx_;
 };
 
 class vvp_fun_signal_object : public vvp_fun_signal_base {
+ public:
+  explicit vvp_fun_signal_object(){};
+  unsigned size() const { return 1; }
 
-    public:
-      explicit vvp_fun_signal_object() {};
-      unsigned size() const { return 1; }
-
-      virtual vvp_object_t get_object() const =0;
+  virtual vvp_object_t get_object() const = 0;
 };
 
 /*
  * Statically allocated vvp_fun_signal_string.
  */
 class vvp_fun_signal_object_sa : public vvp_fun_signal_object {
+ public:
+  explicit vvp_fun_signal_object_sa();
 
-    public:
-      explicit vvp_fun_signal_object_sa();
+  void recv_object(vvp_net_ptr_t port, vvp_object_t bit, vvp_context_t context);
 
-      void recv_object(vvp_net_ptr_t port, vvp_object_t bit,
-		    vvp_context_t context);
+  vvp_object_t get_object() const;
 
-      vvp_object_t get_object() const;
-
-    private:
-      vvp_object_t value_;
+ private:
+  vvp_object_t value_;
 };
 
 /*
  * Automatically allocated vvp_fun_signal_real.
  */
-class vvp_fun_signal_object_aa : public vvp_fun_signal_object, public automatic_signal_base, public automatic_hooks_s {
+class vvp_fun_signal_object_aa : public vvp_fun_signal_object,
+                                 public automatic_signal_base,
+                                 public automatic_hooks_s {
+ public:
+  explicit vvp_fun_signal_object_aa();
+  ~vvp_fun_signal_object_aa();
 
-    public:
-      explicit vvp_fun_signal_object_aa();
-      ~vvp_fun_signal_object_aa();
-
-      void alloc_instance(vvp_context_t context);
-      void reset_instance(vvp_context_t context);
+  void alloc_instance(vvp_context_t context);
+  void reset_instance(vvp_context_t context);
 #ifdef CHECK_WITH_VALGRIND
-      void free_instance(vvp_context_t context);
+  void free_instance(vvp_context_t context);
 #endif
 
-      void recv_object(vvp_net_ptr_t port, vvp_object_t bit,
-		    vvp_context_t context);
+  void recv_object(vvp_net_ptr_t port, vvp_object_t bit, vvp_context_t context);
 
-	// Get information about the vector value.
-      unsigned   value_size() const;
-      vvp_bit4_t value(unsigned idx) const;
-      vvp_scalar_t scalar_value(unsigned idx) const;
-      void vec4_value(vvp_vector4_t&) const;
-	//double real_value() const;
-	//void get_signal_value(struct t_vpi_value*vp);
+  // Get information about the vector value.
+  unsigned value_size() const;
+  vvp_bit4_t value(unsigned idx) const;
+  vvp_scalar_t scalar_value(unsigned idx) const;
+  void vec4_value(vvp_vector4_t&) const;
+  // double real_value() const;
+  // void get_signal_value(struct t_vpi_value*vp);
 
-      vvp_object_t get_object() const;
+  vvp_object_t get_object() const;
 
-    public: // These objects are only permallocated.
-      static void* operator new(std::size_t size);
-      static void operator delete(void*obj);
+ public:  // These objects are only permallocated.
+  static void* operator new(std::size_t size);
+  static void operator delete(void* obj);
 
-    private:
-      unsigned context_idx_;
+ private:
+  unsigned context_idx_;
 };
-
 
 /* vvp_wire
  * The vvp_wire is different from vvp_variable objects in that it
@@ -407,137 +398,135 @@ class vvp_fun_signal_object_aa : public vvp_fun_signal_object, public automatic_
  *            vvp_wire_base
  */
 
-class vvp_wire_base  : public vvp_net_fil_t, public vvp_signal_value {
+class vvp_wire_base : public vvp_net_fil_t, public vvp_signal_value {
+ public:
+  vvp_wire_base();
+  ~vvp_wire_base();
 
-    public:
-      vvp_wire_base();
-      ~vvp_wire_base();
-
-        // Support for $countdrivers
-      virtual vvp_bit4_t driven_value(unsigned idx) const;
-      virtual bool is_forced(unsigned idx) const;
+  // Support for $countdrivers
+  virtual vvp_bit4_t driven_value(unsigned idx) const;
+  virtual bool is_forced(unsigned idx) const;
 };
 
 class vvp_wire_vec4 : public vvp_wire_base {
+ public:
+  vvp_wire_vec4(unsigned wid, vvp_bit4_t init);
 
-    public:
-      vvp_wire_vec4(unsigned wid, vvp_bit4_t init);
+  // The main filter behavior for this class. These methods take
+  // the value that the node is driven to, and applies the force
+  // filters. In wires, this also saves the driven value, so
+  // that when a force is released, we can revert to the driven value.
+  prop_t filter_vec4(const vvp_vector4_t& bit, vvp_vector4_t& rep,
+                     unsigned base, unsigned vwid);
+  prop_t filter_vec8(const vvp_vector8_t& val, vvp_vector8_t& rep,
+                     unsigned base, unsigned vwid);
 
-	// The main filter behavior for this class. These methods take
-	// the value that the node is driven to, and applies the force
-	// filters. In wires, this also saves the driven value, so
-	// that when a force is released, we can revert to the driven value.
-      prop_t filter_vec4(const vvp_vector4_t&bit, vvp_vector4_t&rep,
-			 unsigned base, unsigned vwid);
-      prop_t filter_vec8(const vvp_vector8_t&val, vvp_vector8_t&rep,
-			 unsigned base, unsigned vwid);
+  // Abstract methods from vvp_vpi_callback
+  void get_value(struct t_vpi_value* value);
+  // Abstract methods from vvp_net_fit_t
+  unsigned filter_size() const;
+  void force_fil_vec4(const vvp_vector4_t& val, const vvp_vector2_t& mask);
+  void force_fil_vec8(const vvp_vector8_t& val, const vvp_vector2_t& mask);
+  void force_fil_real(double val, const vvp_vector2_t& mask);
+  void release(vvp_net_ptr_t ptr, bool net_flag);
+  void release_pv(vvp_net_ptr_t ptr, unsigned base, unsigned wid,
+                  bool net_flag);
 
-	// Abstract methods from vvp_vpi_callback
-      void get_value(struct t_vpi_value*value);
-	// Abstract methods from vvp_net_fit_t
-      unsigned filter_size() const;
-      void force_fil_vec4(const vvp_vector4_t&val, const vvp_vector2_t&mask);
-      void force_fil_vec8(const vvp_vector8_t&val, const vvp_vector2_t&mask);
-      void force_fil_real(double val, const vvp_vector2_t&mask);
-      void release(vvp_net_ptr_t ptr, bool net_flag);
-      void release_pv(vvp_net_ptr_t ptr, unsigned base, unsigned wid, bool net_flag);
+  // Implementation of vvp_signal_value methods
+  unsigned value_size() const;
+  vvp_bit4_t value(unsigned idx) const;
+  vvp_scalar_t scalar_value(unsigned idx) const;
+  void vec4_value(vvp_vector4_t&) const;
 
-	// Implementation of vvp_signal_value methods
-      unsigned value_size() const;
-      vvp_bit4_t value(unsigned idx) const;
-      vvp_scalar_t scalar_value(unsigned idx) const;
-      void vec4_value(vvp_vector4_t&) const;
+  // Support for $countdrivers
+  vvp_bit4_t driven_value(unsigned idx) const;
+  bool is_forced(unsigned idx) const;
 
-        // Support for $countdrivers
-      vvp_bit4_t driven_value(unsigned idx) const;
-      bool is_forced(unsigned idx) const;
+ private:
+  vvp_bit4_t filtered_value_(unsigned idx) const;
 
-    private:
-      vvp_bit4_t filtered_value_(unsigned idx) const;
-
-    private:
-      bool needs_init_;
-      vvp_vector4_t bits4_; // The tracked driven value
-      vvp_vector4_t force4_; // the value being forced
+ private:
+  bool needs_init_;
+  vvp_vector4_t bits4_;   // The tracked driven value
+  vvp_vector4_t force4_;  // the value being forced
 };
 
 class vvp_wire_vec8 : public vvp_wire_base {
+ public:
+  explicit vvp_wire_vec8(unsigned wid);
 
-    public:
-      explicit vvp_wire_vec8(unsigned wid);
+  // The main filter behavior for this class
+  prop_t filter_vec4(const vvp_vector4_t& bit, vvp_vector4_t& rep,
+                     unsigned base, unsigned vwid);
+  prop_t filter_vec8(const vvp_vector8_t& val, vvp_vector8_t& rep,
+                     unsigned base, unsigned vwid);
 
-	// The main filter behavior for this class
-      prop_t filter_vec4(const vvp_vector4_t&bit, vvp_vector4_t&rep,
-			 unsigned base, unsigned vwid);
-      prop_t filter_vec8(const vvp_vector8_t&val, vvp_vector8_t&rep,
-			 unsigned base, unsigned vwid);
+  // island ports use this method to filter arbitrary values
+  // through the force filter.
+  prop_t filter_input_vec8(const vvp_vector8_t& val, vvp_vector8_t& rep) const;
 
-	// island ports use this method to filter arbitrary values
-	// through the force filter.
-      prop_t filter_input_vec8(const vvp_vector8_t&val, vvp_vector8_t&rep) const;
+  // Abstract methods from vvp_vpi_callback
+  void get_value(struct t_vpi_value* value);
+  // Abstract methods from vvp_net_fit_t
+  unsigned filter_size() const;
+  void force_fil_vec4(const vvp_vector4_t& val, const vvp_vector2_t& mask);
+  void force_fil_vec8(const vvp_vector8_t& val, const vvp_vector2_t& mask);
+  void force_fil_real(double val, const vvp_vector2_t& mask);
+  void release(vvp_net_ptr_t ptr, bool net_flag);
+  void release_pv(vvp_net_ptr_t ptr, unsigned base, unsigned wid,
+                  bool net_flag);
 
+  // Implementation of vvp_signal_value methods
+  unsigned value_size() const;
+  vvp_bit4_t value(unsigned idx) const;
+  vvp_scalar_t scalar_value(unsigned idx) const;
+  void vec4_value(vvp_vector4_t&) const;
+  // This is new to vvp_wire_vec8
+  vvp_vector8_t vec8_value() const;
 
-	// Abstract methods from vvp_vpi_callback
-      void get_value(struct t_vpi_value*value);
-	// Abstract methods from vvp_net_fit_t
-      unsigned filter_size() const;
-      void force_fil_vec4(const vvp_vector4_t&val, const vvp_vector2_t&mask);
-      void force_fil_vec8(const vvp_vector8_t&val, const vvp_vector2_t&mask);
-      void force_fil_real(double val, const vvp_vector2_t&mask);
-      void release(vvp_net_ptr_t ptr, bool net_flag);
-      void release_pv(vvp_net_ptr_t ptr, unsigned base, unsigned wid, bool net_flag);
+  // Support for $countdrivers
+  vvp_bit4_t driven_value(unsigned idx) const;
+  bool is_forced(unsigned idx) const;
 
-	// Implementation of vvp_signal_value methods
-      unsigned value_size() const;
-      vvp_bit4_t value(unsigned idx) const;
-      vvp_scalar_t scalar_value(unsigned idx) const;
-      void vec4_value(vvp_vector4_t&) const;
-	// This is new to vvp_wire_vec8
-      vvp_vector8_t vec8_value() const;
+ private:
+  vvp_scalar_t filtered_value_(unsigned idx) const;
 
-        // Support for $countdrivers
-      vvp_bit4_t driven_value(unsigned idx) const;
-      bool is_forced(unsigned idx) const;
-
-    private:
-      vvp_scalar_t filtered_value_(unsigned idx) const;
-
-    private:
-      bool needs_init_;
-      vvp_vector8_t bits8_;
-      vvp_vector8_t force8_; // the value being forced
+ private:
+  bool needs_init_;
+  vvp_vector8_t bits8_;
+  vvp_vector8_t force8_;  // the value being forced
 };
 
 class vvp_wire_real : public vvp_wire_base {
+ public:
+  explicit vvp_wire_real(void);
 
-    public:
-      explicit vvp_wire_real(void);
+  // The main filter behavior for this class
+  prop_t filter_real(double& bit);
 
-	// The main filter behavior for this class
-      prop_t filter_real(double&bit);
+  // Abstract methods from vvp_vpi_callback
+  void get_value(struct t_vpi_value* value);
+  // Abstract methods from vvp_net_fit_t
+  unsigned filter_size() const;
+  void force_fil_vec4(const vvp_vector4_t& val, const vvp_vector2_t& mask);
+  void force_fil_vec8(const vvp_vector8_t& val, const vvp_vector2_t& mask);
+  void force_fil_real(double val, const vvp_vector2_t& mask);
+  void release(vvp_net_ptr_t ptr, bool net_flag);
+  void release_pv(vvp_net_ptr_t ptr, unsigned base, unsigned wid,
+                  bool net_flag);
 
-	// Abstract methods from vvp_vpi_callback
-      void get_value(struct t_vpi_value*value);
-	// Abstract methods from vvp_net_fit_t
-      unsigned filter_size() const;
-      void force_fil_vec4(const vvp_vector4_t&val, const vvp_vector2_t&mask);
-      void force_fil_vec8(const vvp_vector8_t&val, const vvp_vector2_t&mask);
-      void force_fil_real(double val, const vvp_vector2_t&mask);
-      void release(vvp_net_ptr_t ptr, bool net_flag);
-      void release_pv(vvp_net_ptr_t ptr, unsigned base, unsigned wid, bool net_flag);
+  // Implementation of vvp_signal_value methods
+  unsigned value_size() const;
+  vvp_bit4_t value(unsigned idx) const;
+  vvp_scalar_t scalar_value(unsigned idx) const;
+  void vec4_value(vvp_vector4_t&) const;
+  double real_value() const;
 
-	// Implementation of vvp_signal_value methods
-      unsigned value_size() const;
-      vvp_bit4_t value(unsigned idx) const;
-      vvp_scalar_t scalar_value(unsigned idx) const;
-      void vec4_value(vvp_vector4_t&) const;
-      double real_value() const;
+  void get_signal_value(struct t_vpi_value* vp);
 
-      void get_signal_value(struct t_vpi_value*vp);
-
-    private:
-      double bit_;
-      double force_;
+ private:
+  double bit_;
+  double force_;
 };
 
 #if 0

@@ -15,65 +15,58 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include "config.h"
+#include "parse_misc.h"
 
-# include  "parse_misc.h"
-# include  <cstdarg>
-# include  <cstdio>
-# include  <iostream>
+#include <cstdarg>
+#include <cstdio>
+#include <iostream>
 
-extern const char*vl_file;
+#include "config.h"
+
+extern const char* vl_file;
 unsigned error_count = 0;
 unsigned warn_count = 0;
 unsigned long based_size = 0;
 
-std::ostream& operator << (std::ostream&o, const YYLTYPE&loc)
-{
-      if (loc.text)
-	    o << loc.text << ":";
-      else
-	    o << "<>:";
-      o << loc.first_line;
-      return o;
+std::ostream& operator<<(std::ostream& o, const YYLTYPE& loc) {
+  if (loc.text)
+    o << loc.text << ":";
+  else
+    o << "<>:";
+  o << loc.first_line;
+  return o;
 }
 
-void VLwarn(const char*msg)
-{
-      warn_count += 1;
-      cerr << yylloc.text << ":" << yylloc.first_line << ": " << msg << endl;
+void VLwarn(const char* msg) {
+  warn_count += 1;
+  cerr << yylloc.text << ":" << yylloc.first_line << ": " << msg << endl;
 }
 
-void VLerror(const char*msg)
-{
-      error_count += 1;
-      cerr << yylloc.text << ":" << yylloc.first_line << ": " << msg << endl;
+void VLerror(const char* msg) {
+  error_count += 1;
+  cerr << yylloc.text << ":" << yylloc.first_line << ": " << msg << endl;
 }
 
-void VLerror(const YYLTYPE&loc, const char*msg, ...)
-{
-      va_list ap;
-      va_start(ap, msg);
+void VLerror(const YYLTYPE& loc, const char* msg, ...) {
+  va_list ap;
+  va_start(ap, msg);
 
-      fprintf(stderr, "%s:%d: ", loc.text, loc.first_line);
-      vfprintf(stderr, msg, ap);
-      va_end(ap);
-      fprintf(stderr, "\n");
+  fprintf(stderr, "%s:%d: ", loc.text, loc.first_line);
+  vfprintf(stderr, msg, ap);
+  va_end(ap);
+  fprintf(stderr, "\n");
 
-      error_count += 1;
-      based_size = 0; /* Clear the base information if we have an error. */
+  error_count += 1;
+  based_size = 0; /* Clear the base information if we have an error. */
 }
 
-void yywarn(const YYLTYPE&loc, const char*msg)
-{
-      warn_count += 1;
-      cerr << loc << ": warning: " << msg << endl;
+void yywarn(const YYLTYPE& loc, const char* msg) {
+  warn_count += 1;
+  cerr << loc << ": warning: " << msg << endl;
 }
 
-int VLwrap()
-{
-      return -1;
-}
-
+int VLwrap() { return -1; }

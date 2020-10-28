@@ -17,22 +17,24 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
 // This for the perm_string type.
-# include  "StringHeap.h"
-# include  "PNamedItem.h"
-# include  "verinum.h"
-# include  "named.h"
-# include  "netstruct.h"
-# include  "property_qual.h"
-# include  "ivl_target.h"
-# include  <iostream>
-# include  <list>
-# include  <vector>
-# include  <map>
-# include  <memory>
+#include <iostream>
+#include <list>
+#include <map>
+#include <memory>
+#include <vector>
+
+#include "PNamedItem.h"
+#include "StringHeap.h"
+#include "ivl_target.h"
+#include "named.h"
+#include "netstruct.h"
+#include "property_qual.h"
+#include "verinum.h"
 
 #if __cplusplus < 201103L
 #define unique_ptr auto_ptr
@@ -75,7 +77,7 @@ typedef named<PExpr*> named_pexpr_t;
  *       first = PENull
  *       second = 0
  */
-typedef std::pair<PExpr*,PExpr*> pform_range_t;
+typedef std::pair<PExpr*, PExpr*> pform_range_t;
 
 /*
  * The pform_port_t holds the name and optional unpacked dimensions
@@ -83,13 +85,13 @@ typedef std::pair<PExpr*,PExpr*> pform_range_t;
  * declarations.
  */
 struct pform_port_t {
-      pform_port_t(perm_string n, list<pform_range_t>*ud, PExpr*e)
-	: name(n), udims(ud), expr(e) { }
-      ~pform_port_t() { }
+  pform_port_t(perm_string n, list<pform_range_t>* ud, PExpr* e)
+      : name(n), udims(ud), expr(e) {}
+  ~pform_port_t() {}
 
-      perm_string name;
-      list<pform_range_t>*udims;
-      PExpr*expr;
+  perm_string name;
+  list<pform_range_t>* udims;
+  PExpr* expr;
 };
 
 /*
@@ -101,36 +103,43 @@ struct pform_port_t {
  * that is the last item in the variable.
  */
 struct index_component_t {
-      enum ctype_t { SEL_NONE, SEL_BIT, SEL_BIT_LAST, SEL_PART, SEL_IDX_UP, SEL_IDX_DO };
+  enum ctype_t {
+    SEL_NONE,
+    SEL_BIT,
+    SEL_BIT_LAST,
+    SEL_PART,
+    SEL_IDX_UP,
+    SEL_IDX_DO
+  };
 
-      index_component_t() : sel(SEL_NONE), msb(0), lsb(0) { };
-      ~index_component_t() { }
+  index_component_t() : sel(SEL_NONE), msb(0), lsb(0){};
+  ~index_component_t() {}
 
-      ctype_t sel;
-      class PExpr*msb;
-      class PExpr*lsb;
+  ctype_t sel;
+  class PExpr* msb;
+  class PExpr* lsb;
 };
 
 struct name_component_t {
-      explicit name_component_t(perm_string n) : name(n) { }
-      ~name_component_t() { }
+  explicit name_component_t(perm_string n) : name(n) {}
+  ~name_component_t() {}
 
-      perm_string name;
-      std::list<index_component_t>index;
+  perm_string name;
+  std::list<index_component_t> index;
 };
 
 struct decl_assignment_t {
-      perm_string name;
-      std::list<pform_range_t>index;
-      std::unique_ptr<PExpr> expr;
+  perm_string name;
+  std::list<pform_range_t> index;
+  std::unique_ptr<PExpr> expr;
 };
 
 struct pform_tf_port_t {
-      PWire*port;
-      PExpr*defe;
+  PWire* port;
+  PExpr* defe;
 
-      inline pform_tf_port_t() : port(0), defe(0) { }
-      inline explicit pform_tf_port_t(PWire*p) : port(p), defe(0) { }
+  inline pform_tf_port_t() : port(0), defe(0) {}
+  inline explicit pform_tf_port_t(PWire* p) : port(p), defe(0) {}
 };
 
 /*
@@ -139,31 +148,31 @@ struct pform_tf_port_t {
  * that dynamic types will work.
  */
 class data_type_t : public PNamedItem {
-    public:
-      inline explicit data_type_t() { }
-      virtual ~data_type_t() = 0;
-	// This method is used to figure out the base type of a packed
-	// compound object. Return IVL_VT_NO_TYPE if the type is not packed.
-      virtual ivl_variable_type_t figure_packed_base_type(void)const;
-	// This method is used by the pform dumper to diagnostic dump.
-      virtual void pform_dump(std::ostream&out, unsigned indent) const;
+ public:
+  inline explicit data_type_t() {}
+  virtual ~data_type_t() = 0;
+  // This method is used to figure out the base type of a packed
+  // compound object. Return IVL_VT_NO_TYPE if the type is not packed.
+  virtual ivl_variable_type_t figure_packed_base_type(void) const;
+  // This method is used by the pform dumper to diagnostic dump.
+  virtual void pform_dump(std::ostream& out, unsigned indent) const;
 
-      ivl_type_s* elaborate_type(Design*des, NetScope*scope);
+  ivl_type_s* elaborate_type(Design* des, NetScope* scope);
 
-      virtual SymbolType symbol_type() const;
+  virtual SymbolType symbol_type() const;
 
-      perm_string name;
+  perm_string name;
 
-    private:
-	// Elaborate the type to an ivl_type_s type.
-      virtual ivl_type_s* elaborate_type_raw(Design*des, NetScope*scope) const;
+ private:
+  // Elaborate the type to an ivl_type_s type.
+  virtual ivl_type_s* elaborate_type_raw(Design* des, NetScope* scope) const;
 
-	// Keep per-scope elaboration results cached.
-      std::map<Definitions*,ivl_type_s*> cache_type_elaborate_;
+  // Keep per-scope elaboration results cached.
+  std::map<Definitions*, ivl_type_s*> cache_type_elaborate_;
 };
 
 struct void_type_t : public data_type_t {
-      virtual void pform_dump(std::ostream&out, unsigned indent) const;
+  virtual void pform_dump(std::ostream& out, unsigned indent) const;
 };
 
 /*
@@ -173,42 +182,42 @@ struct void_type_t : public data_type_t {
  * until it is elaborated in a scope.
  */
 struct enum_type_t : public data_type_t {
-	// Return the elaborated version of the type.
-      virtual ivl_type_s*elaborate_type_raw(Design*des, NetScope*scope) const;
+  // Return the elaborated version of the type.
+  virtual ivl_type_s* elaborate_type_raw(Design* des, NetScope* scope) const;
 
-      SymbolType symbol_type() const;
+  SymbolType symbol_type() const;
 
-      ivl_variable_type_t base_type;
-      bool signed_flag;
-      bool integer_flag; // True if "integer" was used
-      std::unique_ptr< list<pform_range_t> > range;
-      std::unique_ptr< list<named_pexpr_t> > names;
-      LineInfo li;
+  ivl_variable_type_t base_type;
+  bool signed_flag;
+  bool integer_flag;  // True if "integer" was used
+  std::unique_ptr<list<pform_range_t> > range;
+  std::unique_ptr<list<named_pexpr_t> > names;
+  LineInfo li;
 };
 
 struct struct_member_t : public LineInfo {
-      std::unique_ptr<data_type_t> type;
-      std::unique_ptr< list<decl_assignment_t*> > names;
-      void pform_dump(std::ostream&out, unsigned indent) const;
+  std::unique_ptr<data_type_t> type;
+  std::unique_ptr<list<decl_assignment_t*> > names;
+  void pform_dump(std::ostream& out, unsigned indent) const;
 };
 
 struct struct_type_t : public data_type_t {
-      virtual ivl_variable_type_t figure_packed_base_type(void)const;
-      virtual void pform_dump(std::ostream&out, unsigned indent) const;
-      virtual netstruct_t* elaborate_type_raw(Design*des, NetScope*scope) const;
+  virtual ivl_variable_type_t figure_packed_base_type(void) const;
+  virtual void pform_dump(std::ostream& out, unsigned indent) const;
+  virtual netstruct_t* elaborate_type_raw(Design* des, NetScope* scope) const;
 
-      bool packed_flag;
-      bool union_flag;
-      std::unique_ptr< list<struct_member_t*> > members;
+  bool packed_flag;
+  bool union_flag;
+  std::unique_ptr<list<struct_member_t*> > members;
 };
 
 struct atom2_type_t : public data_type_t {
-      inline explicit atom2_type_t(int tc, bool flag)
-      : type_code(tc), signed_flag(flag) { }
-      int type_code;
-      bool signed_flag;
+  inline explicit atom2_type_t(int tc, bool flag)
+      : type_code(tc), signed_flag(flag) {}
+  int type_code;
+  bool signed_flag;
 
-      ivl_type_s* elaborate_type_raw(Design*des, NetScope*scope) const;
+  ivl_type_s* elaborate_type_raw(Design* des, NetScope* scope) const;
 };
 
 extern atom2_type_t size_type;
@@ -233,28 +242,33 @@ extern atom2_type_t size_type;
  * this case, so the implicit_flag member is set to true in that case.
  */
 struct vector_type_t : public data_type_t {
-      inline explicit vector_type_t(ivl_variable_type_t bt, bool sf,
-				    std::list<pform_range_t>*pd)
-      : base_type(bt), signed_flag(sf), reg_flag(false), integer_flag(false), implicit_flag(false), pdims(pd) { }
-      virtual ivl_variable_type_t figure_packed_base_type(void)const;
-      virtual void pform_dump(std::ostream&out, unsigned indent) const;
-      ivl_type_s* elaborate_type_raw(Design*des, NetScope*scope) const;
+  inline explicit vector_type_t(ivl_variable_type_t bt, bool sf,
+                                std::list<pform_range_t>* pd)
+      : base_type(bt),
+        signed_flag(sf),
+        reg_flag(false),
+        integer_flag(false),
+        implicit_flag(false),
+        pdims(pd) {}
+  virtual ivl_variable_type_t figure_packed_base_type(void) const;
+  virtual void pform_dump(std::ostream& out, unsigned indent) const;
+  ivl_type_s* elaborate_type_raw(Design* des, NetScope* scope) const;
 
-      ivl_variable_type_t base_type;
-      bool signed_flag;
-      bool reg_flag; // True if "reg" was used
-      bool integer_flag; // True if "integer" was used
-      bool implicit_flag; // True if this type is implicitly logic/reg
-      std::unique_ptr< list<pform_range_t> > pdims;
+  ivl_variable_type_t base_type;
+  bool signed_flag;
+  bool reg_flag;       // True if "reg" was used
+  bool integer_flag;   // True if "integer" was used
+  bool implicit_flag;  // True if this type is implicitly logic/reg
+  std::unique_ptr<list<pform_range_t> > pdims;
 };
 
 struct array_base_t : public data_type_t {
-    public:
-      inline explicit array_base_t(data_type_t*btype, std::list<pform_range_t>*pd)
-      : base_type(btype), dims(pd) { }
+ public:
+  inline explicit array_base_t(data_type_t* btype, std::list<pform_range_t>* pd)
+      : base_type(btype), dims(pd) {}
 
-      data_type_t*base_type;
-      std::unique_ptr< list<pform_range_t> > dims;
+  data_type_t* base_type;
+  std::unique_ptr<list<pform_range_t> > dims;
 };
 
 /*
@@ -264,83 +278,87 @@ struct array_base_t : public data_type_t {
  * worked out during elaboration.
  */
 struct parray_type_t : public array_base_t {
-      inline explicit parray_type_t(data_type_t*btype, std::list<pform_range_t>*pd)
-      : array_base_t(btype, pd) { }
+  inline explicit parray_type_t(data_type_t* btype,
+                                std::list<pform_range_t>* pd)
+      : array_base_t(btype, pd) {}
 
-      virtual ivl_variable_type_t figure_packed_base_type(void)const;
-      virtual void pform_dump(std::ostream&out, unsigned indent) const;
-      virtual ivl_type_s* elaborate_type_raw(Design*des, NetScope*scope) const;
+  virtual ivl_variable_type_t figure_packed_base_type(void) const;
+  virtual void pform_dump(std::ostream& out, unsigned indent) const;
+  virtual ivl_type_s* elaborate_type_raw(Design* des, NetScope* scope) const;
 };
 
 /*
  * The uarray_type_t represents unpacked array types.
  */
 struct uarray_type_t : public array_base_t {
-      inline explicit uarray_type_t(data_type_t*btype, std::list<pform_range_t>*pd)
-      : array_base_t(btype, pd) { }
+  inline explicit uarray_type_t(data_type_t* btype,
+                                std::list<pform_range_t>* pd)
+      : array_base_t(btype, pd) {}
 
-    public:
-      virtual void pform_dump(std::ostream&out, unsigned indent) const;
-      virtual ivl_type_s* elaborate_type_raw(Design*des, NetScope*scope) const;
+ public:
+  virtual void pform_dump(std::ostream& out, unsigned indent) const;
+  virtual ivl_type_s* elaborate_type_raw(Design* des, NetScope* scope) const;
 };
 
 struct real_type_t : public data_type_t {
-      enum type_t { REAL, SHORTREAL };
-      inline explicit real_type_t(type_t tc) : type_code(tc) { }
-      type_t type_code;
+  enum type_t { REAL, SHORTREAL };
+  inline explicit real_type_t(type_t tc) : type_code(tc) {}
+  type_t type_code;
 
-      ivl_type_s* elaborate_type_raw(Design*des, NetScope*scope) const;
+  ivl_type_s* elaborate_type_raw(Design* des, NetScope* scope) const;
 };
 
 struct string_type_t : public data_type_t {
-      inline explicit string_type_t() { }
-      ~string_type_t();
+  inline explicit string_type_t() {}
+  ~string_type_t();
 
-      ivl_type_s* elaborate_type_raw(Design*des, NetScope*scope) const;
+  ivl_type_s* elaborate_type_raw(Design* des, NetScope* scope) const;
 };
 
 struct class_type_t : public data_type_t {
+  inline explicit class_type_t(perm_string n)
+      : base_type(0), save_elaborated_type(0) {
+    name = n;
+  }
 
-      inline explicit class_type_t(perm_string n)
-      : base_type(0), save_elaborated_type(0) { name = n; }
+  void pform_dump(std::ostream& out, unsigned indent) const;
+  void pform_dump_init(std::ostream& out, unsigned indent) const;
 
-      void pform_dump(std::ostream&out, unsigned indent) const;
-      void pform_dump_init(std::ostream&out, unsigned indent) const;
+  // This is the named type that is supposed to be the base
+  // class that we are extending. This is nil if there is no
+  // hierarchy. If there are arguments to the base class, then
+  // put them in the base_args vector.
+  data_type_t* base_type;
+  std::list<PExpr*> base_args;
 
-	// This is the named type that is supposed to be the base
-	// class that we are extending. This is nil if there is no
-	// hierarchy. If there are arguments to the base class, then
-	// put them in the base_args vector.
-      data_type_t*base_type;
-      std::list<PExpr*>base_args;
+  // This is a map of the properties. Map the name to the type.
+  struct prop_info_t {
+    inline prop_info_t() : qual(property_qualifier_t::make_none()), type(0) {}
+    inline prop_info_t(property_qualifier_t q, data_type_t* t)
+        : qual(q), type(t) {}
+    property_qualifier_t qual;
+    data_type_t* type;
+  };
+  std::map<perm_string, struct prop_info_t> properties;
 
-	// This is a map of the properties. Map the name to the type.
-      struct prop_info_t {
-	    inline prop_info_t() : qual(property_qualifier_t::make_none()), type(0) { }
-	    inline prop_info_t(property_qualifier_t q, data_type_t*t) : qual(q), type(t) { }
-	    property_qualifier_t qual;
-	    data_type_t* type;
-      };
-      std::map<perm_string, struct prop_info_t> properties;
+  // This is an ordered list of property initializers. The name
+  // is the name of the property to be assigned, and the val is
+  // the expression that is assigned.
+  std::vector<Statement*> initialize;
 
-	// This is an ordered list of property initializers. The name
-	// is the name of the property to be assigned, and the val is
-	// the expression that is assigned.
-      std::vector<Statement*> initialize;
+  // This is an ordered list of property initializers for static
+  // properties. These are run in a synthetic "initial" block
+  // without waiting for any constructor.
+  std::vector<Statement*> initialize_static;
 
-	// This is an ordered list of property initializers for static
-	// properties. These are run in a synthetic "initial" block
-	// without waiting for any constructor.
-      std::vector<Statement*> initialize_static;
+  ivl_type_s* elaborate_type_raw(Design*, NetScope*) const;
+  // The save_elaborated_type member must be set to the pointer
+  // to the netclass_t object that is created to represent this
+  // type. The elaborate_type_raw() method uses this pointer,
+  // and it is used in some other situations as well.
+  netclass_t* save_elaborated_type;
 
-      ivl_type_s* elaborate_type_raw(Design*, NetScope*) const;
-	// The save_elaborated_type member must be set to the pointer
-	// to the netclass_t object that is created to represent this
-	// type. The elaborate_type_raw() method uses this pointer,
-	// and it is used in some other situations as well.
-      netclass_t* save_elaborated_type;
-
-      virtual SymbolType symbol_type() const;
+  virtual SymbolType symbol_type() const;
 };
 
 /*
@@ -371,20 +389,19 @@ struct class_type_t : public data_type_t {
  */
 typedef std::list<name_component_t> pform_name_t;
 
-
-inline perm_string peek_head_name(const pform_name_t&that)
-{
-      return that.front().name;
+inline perm_string peek_head_name(const pform_name_t& that) {
+  return that.front().name;
 }
 
-inline perm_string peek_tail_name(const pform_name_t&that)
-{
-      return that.back().name;
+inline perm_string peek_tail_name(const pform_name_t& that) {
+  return that.back().name;
 }
 
-extern std::ostream& operator<< (std::ostream&out, const pform_name_t&);
-extern std::ostream& operator<< (std::ostream&out, const name_component_t&that);
-extern std::ostream& operator<< (std::ostream&out, const index_component_t&that);
+extern std::ostream& operator<<(std::ostream& out, const pform_name_t&);
+extern std::ostream& operator<<(std::ostream& out,
+                                const name_component_t& that);
+extern std::ostream& operator<<(std::ostream& out,
+                                const index_component_t& that);
 
 #if __cplusplus < 201103L
 #undef unique_ptr

@@ -17,21 +17,22 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
 struct stringheap_cell;
 
 struct stringheap_s {
-      struct stringheap_cell*cell_lst;
-      unsigned cell_off;
+  struct stringheap_cell* cell_lst;
+  unsigned cell_off;
 };
 
 /*
  * Allocate the string from the heap.
  */
-const char*strdup_sh(struct stringheap_s*hp, const char*str);
+const char* strdup_sh(struct stringheap_s* hp, const char* str);
 
-void string_heap_delete(struct stringheap_s*hp);
+void string_heap_delete(struct stringheap_s* hp);
 
 #endif /* IVL_stringheap_H */

@@ -42,4 +42,3 @@
 #endif
 #define wave_alloca alloca
 #endif
-

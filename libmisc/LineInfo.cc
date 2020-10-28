@@ -15,49 +15,36 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "LineInfo.h"
-# include  <sstream>
+#include "LineInfo.h"
+
+#include <sstream>
 
 using namespace std;
 
-LineInfo::LineInfo()
-: lineno_(0)
-{
+LineInfo::LineInfo() : lineno_(0) {}
+
+LineInfo::LineInfo(const LineInfo& that)
+    : file_(that.file_), lineno_(that.lineno_) {}
+
+LineInfo::~LineInfo() {}
+
+string LineInfo::get_fileline() const {
+  ostringstream buf;
+  buf << (file_.str() ? file_.str() : "") << ":" << lineno_;
+
+  string res = buf.str();
+  return res;
 }
 
-LineInfo::LineInfo(const LineInfo&that) :
-    file_(that.file_), lineno_(that.lineno_)
-{
+void LineInfo::set_line(const LineInfo& that) {
+  file_ = that.file_;
+  lineno_ = that.lineno_;
 }
 
-LineInfo::~LineInfo()
-{
-}
+void LineInfo::set_file(perm_string f) { file_ = f; }
 
-string LineInfo::get_fileline() const
-{
-      ostringstream buf;
-      buf << (file_.str()? file_.str() : "") << ":" << lineno_;
-
-      string res = buf.str();
-      return res;
-}
-
-void LineInfo::set_line(const LineInfo&that)
-{
-      file_ = that.file_;
-      lineno_ = that.lineno_;
-}
-
-void LineInfo::set_file(perm_string f)
-{
-      file_ = f;
-}
-
-void LineInfo::set_lineno(unsigned n)
-{
-      lineno_ = n;
-}
+void LineInfo::set_lineno(unsigned n) { lineno_ = n; }

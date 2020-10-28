@@ -17,42 +17,43 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  <stddef.h>
+#include <stddef.h>
 
-  /* This is the integer-width argument that will be passed to ivl. */
+/* This is the integer-width argument that will be passed to ivl. */
 extern unsigned integer_width;
 
-  /* This is the width-cap argument that will be passed to ivl. */
+/* This is the width-cap argument that will be passed to ivl. */
 extern unsigned width_cap;
 
-extern const char*vhdlpp_work;
-extern const char**vhdlpp_libdir;
+extern const char* vhdlpp_work;
+extern const char** vhdlpp_libdir;
 extern unsigned vhdlpp_libdir_cnt;
 
-  /* Perform variable substitutions on the string. */
-extern char* substitutions(const char*str);
+/* Perform variable substitutions on the string. */
+extern char* substitutions(const char* str);
 
-  /* Add the name to the list of source files. */
-extern void process_file_name(const char*name, int lib_flag);
+/* Add the name to the list of source files. */
+extern void process_file_name(const char* name, int lib_flag);
 
-  /* Add the name to the list of library directories. */
-extern void process_library_switch(const char*name);
-extern void process_library_nocase_switch(const char*name);
-extern void process_library2_switch(const char*name);
+/* Add the name to the list of library directories. */
+extern void process_library_switch(const char* name);
+extern void process_library_nocase_switch(const char* name);
+extern void process_library2_switch(const char* name);
 
-  /* Add a new include file search directory */
-extern void process_include_dir(const char*name);
+/* Add a new include file search directory */
+extern void process_include_dir(const char* name);
 
-  /* Add a new -D define. */
-extern void process_define(const char*name);
+/* Add a new -D define. */
+extern void process_define(const char* name);
 
-  /* Add a new parameter definition */
-extern void process_parameter(const char*name);
+/* Add a new parameter definition */
+extern void process_parameter(const char* name);
 
-  /* Set the default timescale for the simulator. */
-extern void process_timescale(const char*ts_string);
+/* Set the default timescale for the simulator. */
+extern void process_timescale(const char* ts_string);
 
 #endif /* IVL_globals_H */

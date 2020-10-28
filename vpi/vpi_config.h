@@ -17,20 +17,21 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
 /* # undef HAVE_LIBIBERTY_H */
-# define HAVE_INTTYPES_H 1
-# define HAVE_LIBZ 1
-# define HAVE_LIBBZ2 1
-# define HAVE_FMIN 1
-# define HAVE_FMAX 1
+#define HAVE_INTTYPES_H 1
+#define HAVE_LIBZ 1
+#define HAVE_LIBBZ2 1
+#define HAVE_FMIN 1
+#define HAVE_FMAX 1
 /* # undef WORDS_BIGENDIAN */
 
-# define _LARGEFILE_SOURCE 1
+#define _LARGEFILE_SOURCE 1
 #ifdef _LARGEFILE_SOURCE
-# define _FILE_OFFSET_BITS 64
+#define _FILE_OFFSET_BITS 64
 #endif
 
 #endif /* IVL_vpi_config_H */

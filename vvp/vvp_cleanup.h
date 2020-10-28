@@ -17,12 +17,13 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include "config.h"
-# include "vpi_priv.h"
-# include "vvp_net.h"
+#include "config.h"
+#include "vpi_priv.h"
+#include "vvp_net.h"
 
 /* Routines used to cleanup the runtime memory when it is all finished. */
 
@@ -64,9 +65,8 @@ extern void thread_vthr_delete(class __vpiHandle *item);
 extern void thread_word_delete(class __vpiHandle *item);
 extern void vpi_call_delete(class __vpiHandle *item);
 extern void exec_ufunc_delete(vvp_code_t euf_code);
-extern void vthreads_delete(__vpiScope*scope);
+extern void vthreads_delete(__vpiScope *scope);
 extern void vvp_net_delete(vvp_net_t *item);
-
 
 extern void pool_local_net(vvp_net_t *net);
 

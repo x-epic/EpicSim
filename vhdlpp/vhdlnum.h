@@ -7,8 +7,8 @@
 #warning vhdlnum
 
 class vhdlnum {
-    public:
-        vhdlnum(char* text) {}
+ public:
+  vhdlnum(char* text) {}
 };
 
 #endif /* IVL_vhdlnum_H */

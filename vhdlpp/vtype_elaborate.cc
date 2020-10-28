@@ -16,43 +16,38 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "vtype.h"
-# include  "expression.h"
+#include "expression.h"
+#include "vtype.h"
 
-int VType::elaborate(Entity*, ScopeBase*) const
-{
-      return 0;
+int VType::elaborate(Entity*, ScopeBase*) const { return 0; }
+
+int VTypeArray::elaborate(Entity* ent, ScopeBase* scope) const {
+  int errors = 0;
+
+  errors += etype_->elaborate(ent, scope);
+
+  for (vector<range_t>::const_iterator cur = ranges_.begin();
+       cur != ranges_.end(); ++cur) {
+    Expression* tmp = cur->msb();
+    if (tmp) errors += tmp->elaborate_expr(ent, scope, 0);
+
+    tmp = cur->lsb();
+    if (tmp) errors += tmp->elaborate_expr(ent, scope, 0);
+  }
+
+  return errors;
 }
 
-int VTypeArray::elaborate(Entity*ent, ScopeBase*scope) const
-{
-      int errors = 0;
+int VTypeRangeExpr::elaborate(Entity* ent, ScopeBase* scope) const {
+  int errors = 0;
 
-      errors += etype_->elaborate(ent, scope);
+  errors += base_->elaborate(ent, scope);
+  errors += start_->elaborate_expr(ent, scope, 0);
+  errors += end_->elaborate_expr(ent, scope, 0);
 
-      for (vector<range_t>::const_iterator cur = ranges_.begin()
-		 ; cur != ranges_.end() ; ++ cur) {
-
-	    Expression*tmp = cur->msb();
-	    if (tmp) errors += tmp->elaborate_expr(ent, scope, 0);
-
-	    tmp = cur->lsb();
-	    if (tmp) errors += tmp->elaborate_expr(ent, scope, 0);
-      }
-
-      return errors;
-}
-
-int VTypeRangeExpr::elaborate(Entity*ent, ScopeBase*scope) const
-{
-      int errors = 0;
-
-      errors += base_->elaborate(ent, scope);
-      errors += start_->elaborate_expr(ent, scope, 0);
-      errors += end_->elaborate_expr(ent, scope, 0);
-
-      return errors;
+  return errors;
 }

@@ -16,18 +16,19 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
 #include "vtype.h"
 
 class ActiveScope;
 
-void emit_std_types(ostream&out);
-void generate_global_types(ActiveScope*res);
+void emit_std_types(ostream& out);
+void generate_global_types(ActiveScope* res);
 bool is_global_type(perm_string type_name);
 void delete_global_types();
-const VTypeEnum*find_std_enum_name(perm_string name);
+const VTypeEnum* find_std_enum_name(perm_string name);
 
 extern const VTypePrimitive primitive_BIT;
 extern const VTypePrimitive primitive_INTEGER;

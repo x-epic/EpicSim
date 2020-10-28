@@ -15,83 +15,84 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  <string.h>
-# include  <stdlib.h>
-# include  <stdio.h>
-# include  "ivl_alloc.h"
-# include  "globals.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
+#include "globals.h"
+#include "ivl_alloc.h"
 
-char* substitutions(const char*str)
-{
-      size_t nbuf = strlen(str) + 1;
-      char*buf = malloc(nbuf);
-      char*cp = buf;
+char* substitutions(const char* str) {
+  size_t nbuf = strlen(str) + 1;
+  char* buf = malloc(nbuf);
+  char* cp = buf;
 
-      while (*str) {
+  while (*str) {
+    if ((str[0] == '$') && ((str[1] == '(') || str[1] == '{')) {
+      /* If I find a $(x) or ${x} string in the source, replace
+         it in the destination with the contents of the
+         environment variable x. */
+      char* name;
+      char* value;
+      const char* ep = strchr(str, (str[1] == '(') ? ')' : '}');
+      str += 2;
 
-	    if ((str[0] == '$') && ((str[1] == '(') || str[1] == '{')) {
-		    /* If I find a $(x) or ${x} string in the source, replace
-		       it in the destination with the contents of the
-		       environment variable x. */
-		  char*name;
-		  char*value;
-		  const char*ep = strchr(str, (str[1]=='(') ? ')' : '}');
-		  str += 2;
+      name = malloc(ep - str + 1);
+      strncpy(name, str, ep - str);
+      name[ep - str] = 0;
 
-		  name = malloc(ep-str+1);
-		  strncpy(name, str, ep-str);
-		  name[ep-str] = 0;
+      str = ep + 1;
 
-		  str = ep + 1;
+      value = getenv(name);
+      if (value == 0) {
+        fprintf(stderr,
+                "Warning: environment variable "
+                "\"%s\" not found during command file "
+                "processing.\n",
+                name);
+        free(name);
+        continue;
+      }
+      free(name);
 
-		  value = getenv(name);
-		  if (value == 0) {
-			fprintf(stderr, "Warning: environment variable "
-			        "\"%s\" not found during command file "
-			        "processing.\n", name);
-			free(name);
-			continue;
-		  }
-		  free(name);
-
-		  if (strlen(value) >= (nbuf - (cp-buf))) {
-			size_t old_size = cp - buf;
-			nbuf = (cp - buf) + strlen(value) + 1;
-			buf = realloc(buf, nbuf);
-			cp = buf + old_size;
-		  }
-
-		  strcpy(cp, value);
-		  cp += strlen(cp);
-
-	    } else {
-		  if ( cp == (buf + nbuf) ) {
-			size_t old_size = nbuf;
-			nbuf = old_size + 32;
-			buf = realloc(buf, nbuf);
-			cp = buf + old_size;
-		  }
-
-		  *cp++ = *str++;
-	    }
+      if (strlen(value) >= (nbuf - (cp - buf))) {
+        size_t old_size = cp - buf;
+        nbuf = (cp - buf) + strlen(value) + 1;
+        buf = realloc(buf, nbuf);
+        cp = buf + old_size;
       }
 
-	/* Add the trailing nul to the string, and reallocate the
-	   buffer to be a tight fit. */
-      if ( cp == (buf + nbuf) ) {
-	    size_t old_size = nbuf;
-	    nbuf = old_size + 1;
-	    buf = realloc(buf, nbuf);
-	    buf[old_size] = 0;
-      } else {
-	    *cp++ = 0;
-	    nbuf = cp - buf;
-	    buf = realloc(buf, nbuf);
+      strcpy(cp, value);
+      cp += strlen(cp);
+
+    } else {
+      if (cp == (buf + nbuf)) {
+        size_t old_size = nbuf;
+        nbuf = old_size + 32;
+        buf = realloc(buf, nbuf);
+        cp = buf + old_size;
       }
 
-      return buf;
+      *cp++ = *str++;
+    }
+  }
+
+  /* Add the trailing nul to the string, and reallocate the
+     buffer to be a tight fit. */
+  if (cp == (buf + nbuf)) {
+    size_t old_size = nbuf;
+    nbuf = old_size + 1;
+    buf = realloc(buf, nbuf);
+    buf[old_size] = 0;
+  } else {
+    *cp++ = 0;
+    nbuf = cp - buf;
+    buf = realloc(buf, nbuf);
+  }
+
+  return buf;
 }

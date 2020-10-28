@@ -15,35 +15,37 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  <acc_user.h>
-# include  <vpi_user.h>
-# include  "priv.h"
-# include  <assert.h>
-# include  <string.h>
+#include <acc_user.h>
+#include <assert.h>
+#include <string.h>
+#include <vpi_user.h>
+
+#include "priv.h"
 
 /*
  * acc_handle_by_name implemented using VPI interface
  */
-handle acc_handle_by_name(const char*obj_name, handle scope)
-{
-      vpiHandle res;
+handle acc_handle_by_name(const char* obj_name, handle scope) {
+  vpiHandle res;
 
-      /* if no scope provided, use tasks scope */
-      if (!scope) {
-	    vpiHandle sys_h = vpi_handle(vpiSysTfCall, 0 /* NULL */);
-	    scope = vpi_handle(vpiScope, sys_h);
-      }
+  /* if no scope provided, use tasks scope */
+  if (!scope) {
+    vpiHandle sys_h = vpi_handle(vpiSysTfCall, 0 /* NULL */);
+    scope = vpi_handle(vpiScope, sys_h);
+  }
 
-      res = vpi_handle_by_name(obj_name, scope);
+  res = vpi_handle_by_name(obj_name, scope);
 
-      if (pli_trace) {
-	    fprintf(pli_trace, "acc_handle_by_name(\"%s\", scope=%s) "
-		    " --> %p\n", obj_name,
-		    vpi_get_str(vpiFullName, scope), res);
-      }
+  if (pli_trace) {
+    fprintf(pli_trace,
+            "acc_handle_by_name(\"%s\", scope=%s) "
+            " --> %p\n",
+            obj_name, vpi_get_str(vpiFullName, scope), res);
+  }
 
-      return res;
+  return res;
 }

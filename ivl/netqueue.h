@@ -17,11 +17,12 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "netdarray.h"
-# include  "ivl_target.h"
+#include "ivl_target.h"
+#include "netdarray.h"
 
 /*
  * A queue type is actually a dynamic array with a few extra
@@ -29,23 +30,22 @@
  * run-time, but for the most part this applies during elaboration.
  */
 class netqueue_t : public netdarray_t {
+ public:
+  explicit netqueue_t(ivl_type_t vec);
+  ~netqueue_t();
 
-    public:
-      explicit netqueue_t(ivl_type_t vec);
-      ~netqueue_t();
+  // This is the "base_type()" virtual method of the
+  // nettype_base_t. The ivl_target api expects this to return
+  // IVL_VT_QUEUE for queues.
+  ivl_variable_type_t base_type() const;
 
-	// This is the "base_type()" virtual method of the
-	// nettype_base_t. The ivl_target api expects this to return
-	// IVL_VT_QUEUE for queues.
-      ivl_variable_type_t base_type() const;
+  // A queue may have a type that is signed.
+  inline bool get_signed() const { return element_type()->get_signed(); }
 
-	// A queue may have a type that is signed.
-      inline bool get_signed() const { return element_type()->get_signed(); }
+  std::ostream& debug_dump(std::ostream&) const;
 
-      std::ostream& debug_dump(std::ostream&) const;
-
-    private:
-      bool test_compatibility(ivl_type_t that) const;
+ private:
+  bool test_compatibility(ivl_type_t that) const;
 };
 
 #endif

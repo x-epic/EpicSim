@@ -15,37 +15,34 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-#include  <assert.h>
-#include  <vpi_user.h>
-#include  <veriuser.h>
-#include  "priv.h"
+#include <assert.h>
+#include <veriuser.h>
+#include <vpi_user.h>
 
-char* tf_spname(void)
-{
-      char*rtn;
+#include "priv.h"
 
-      vpiHandle sys = vpi_handle(vpiSysTfCall, 0);
-      vpiHandle scope = vpi_handle(vpiScope, sys);
+char *tf_spname(void) {
+  char *rtn;
 
-      rtn = __acc_newstring(vpi_get_str(vpiFullName, scope));
+  vpiHandle sys = vpi_handle(vpiSysTfCall, 0);
+  vpiHandle scope = vpi_handle(vpiScope, sys);
 
-      if (pli_trace) {
-	    fprintf(pli_trace, "%s: tf_spname() --> %s\n",
-		    vpi_get_str(vpiName,sys), rtn);
-      }
+  rtn = __acc_newstring(vpi_get_str(vpiFullName, scope));
 
-      return rtn;
+  if (pli_trace) {
+    fprintf(pli_trace, "%s: tf_spname() --> %s\n", vpi_get_str(vpiName, sys),
+            rtn);
+  }
+
+  return rtn;
 }
 
-char *tf_imipname(void *obj)
-{
-      return vpi_get_str(vpiFullName, vpi_handle(vpiScope, (vpiHandle)obj));
+char *tf_imipname(void *obj) {
+  return vpi_get_str(vpiFullName, vpi_handle(vpiScope, (vpiHandle)obj));
 }
 
-char *tf_mipname(void)
-{
-      return tf_imipname(vpi_handle(vpiSysTfCall,0));
-}
+char *tf_mipname(void) { return tf_imipname(vpi_handle(vpiSysTfCall, 0)); }

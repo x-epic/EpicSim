@@ -15,16 +15,16 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-#include  <veriuser.h>
-#include  <vpi_user.h>
+#include <veriuser.h>
+#include <vpi_user.h>
 
 /*
  * tf_getinstance implemented using VPI interface
  */
-PLI_BYTE8* tf_getinstance(void)
-{
-      return (PLI_BYTE8 *)vpi_handle(vpiSysTfCall, 0 /* NULL */);
+PLI_BYTE8* tf_getinstance(void) {
+  return (PLI_BYTE8*)vpi_handle(vpiSysTfCall, 0 /* NULL */);
 }

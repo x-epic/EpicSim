@@ -15,41 +15,37 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "priv.h"
-# include  <string.h>
-# include  <assert.h>
+#include "priv.h"
+
+#include <assert.h>
+#include <string.h>
 
 FILE* pli_trace = 0;
 
 static char string_buffer[8192];
 static unsigned string_fill = 0;
 
-static void buffer_reset(void)
-{
-      string_fill = 0;
-}
+static void buffer_reset(void) { string_fill = 0; }
 
-char* __acc_newstring(const char*txt)
-{
-      char*res;
-      unsigned len;
+char* __acc_newstring(const char* txt) {
+  char* res;
+  unsigned len;
 
-      if (txt == 0)
-	    return 0;
+  if (txt == 0) return 0;
 
-      len = strlen(txt);
-      assert(len < sizeof string_buffer);
+  len = strlen(txt);
+  assert(len < sizeof string_buffer);
 
-      if ((string_fill + len + 1) >= sizeof string_buffer)
-	    buffer_reset();
+  if ((string_fill + len + 1) >= sizeof string_buffer) buffer_reset();
 
-      res = string_buffer + string_fill;
-      strcpy(string_buffer + string_fill, txt);
+  res = string_buffer + string_fill;
+  strcpy(string_buffer + string_fill, txt);
 
-      string_fill += len + 1;
+  string_fill += len + 1;
 
-      return res;
+  return res;
 }

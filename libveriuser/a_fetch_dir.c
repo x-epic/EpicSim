@@ -15,29 +15,30 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  <assert.h>
-# include  <ctype.h>
-# include  <acc_user.h>
-# include  <vpi_user.h>
-# include  "priv.h"
+#include <acc_user.h>
+#include <assert.h>
+#include <ctype.h>
+#include <vpi_user.h>
 
-PLI_INT32 acc_fetch_direction(handle obj)
-{
-      (void)obj; /* Parameter is not used. */
-      if (pli_trace) {
-	    fprintf(pli_trace, "acc_fetch_direction: enter.\n");
-	    fflush(pli_trace);
-      }
+#include "priv.h"
 
-      fprintf(stderr, "acc_fetch_direction: XXXX not implemented. XXXX\n");
+PLI_INT32 acc_fetch_direction(handle obj) {
+  (void)obj; /* Parameter is not used. */
+  if (pli_trace) {
+    fprintf(pli_trace, "acc_fetch_direction: enter.\n");
+    fflush(pli_trace);
+  }
 
-      if (pli_trace) {
-	    fprintf(pli_trace, "acc_fetch_direction: return.\n");
-	    fflush(pli_trace);
-      }
+  fprintf(stderr, "acc_fetch_direction: XXXX not implemented. XXXX\n");
 
-      return accInout;
+  if (pli_trace) {
+    fprintf(pli_trace, "acc_fetch_direction: return.\n");
+    fflush(pli_trace);
+  }
+
+  return accInout;
 }

@@ -17,13 +17,14 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "config.h"
-# include  "vvp_net.h"
-# include  "array.h"
-# include  "vthread.h"
+#include "array.h"
+#include "config.h"
+#include "vthread.h"
+#include "vvp_net.h"
 
 typedef bool (*vvp_code_fun)(vthread_t thr, vvp_code_t code);
 
@@ -270,24 +271,24 @@ extern bool of_CHUNK_LINK(vthread_t thr, vvp_code_t code);
  * This is the format of a machine code instruction.
  */
 struct vvp_code_s {
-      vvp_code_fun opcode;
+  vvp_code_fun opcode;
 
-      union {
-	    unsigned long number;
-	    vvp_net_t    *net;
-	    vvp_code_t   cptr;
-	    vvp_array_t array;
-	    class __vpiHandle*handle;
-	    __vpiScope*scope;
-	    const char*text;
-      };
+  union {
+    unsigned long number;
+    vvp_net_t *net;
+    vvp_code_t cptr;
+    vvp_array_t array;
+    class __vpiHandle *handle;
+    __vpiScope *scope;
+    const char *text;
+  };
 
-      union {
-	    uint32_t    bit_idx[2];
-	    vvp_net_t   *net2;
-	    vvp_code_t   cptr2;
-	    class ufunc_core*ufunc_core_ptr;
-      };
+  union {
+    uint32_t bit_idx[2];
+    vvp_net_t *net2;
+    vvp_code_t cptr2;
+    class ufunc_core *ufunc_core_ptr;
+  };
 };
 
 /*
@@ -295,7 +296,6 @@ struct vvp_code_s {
  * needs to be done exactly once before any instructions are created.
  */
 extern void codespace_init(void);
-
 
 /*
  * This function returns a pointer to the next free instruction in the

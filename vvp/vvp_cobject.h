@@ -17,40 +17,42 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  <string>
-# include  <stdint.h>
-# include  "vvp_object.h"
-# include  "class_type.h"
+#include <stdint.h>
+
+#include <string>
+
+#include "class_type.h"
+#include "vvp_object.h"
 
 class vvp_vector4_t;
 
 class vvp_cobject : public vvp_object {
+ public:
+  explicit vvp_cobject(const class_type* defn);
+  ~vvp_cobject();
 
-    public:
-      explicit vvp_cobject(const class_type*defn);
-      ~vvp_cobject();
+  void set_vec4(size_t pid, const vvp_vector4_t& val);
+  void get_vec4(size_t pid, vvp_vector4_t& val);
 
-      void set_vec4(size_t pid, const vvp_vector4_t&val);
-      void get_vec4(size_t pid, vvp_vector4_t&val);
+  void set_real(size_t pid, double val);
+  double get_real(size_t pid);
 
-      void set_real(size_t pid, double val);
-      double get_real(size_t pid);
+  void set_string(size_t pid, const std::string& val);
+  std::string get_string(size_t pid);
 
-      void set_string(size_t pid, const std::string&val);
-      std::string get_string(size_t pid);
+  void set_object(size_t pid, const vvp_object_t& val, size_t idx);
+  void get_object(size_t pid, vvp_object_t& val, size_t idx);
 
-      void set_object(size_t pid, const vvp_object_t&val, size_t idx);
-      void get_object(size_t pid, vvp_object_t&val, size_t idx);
+  void shallow_copy(const vvp_object* that);
 
-      void shallow_copy(const vvp_object*that);
-
-    private:
-      const class_type* defn_;
-	// For now, only support 32bit bool signed properties.
-      class_type::inst_t properties_;
+ private:
+  const class_type* defn_;
+  // For now, only support 32bit bool signed properties.
+  class_type::inst_t properties_;
 };
 
 #endif /* IVL_vvp_cobject_H */

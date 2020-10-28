@@ -16,56 +16,58 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "pform.h"
-# include  "PPackage.h"
-# include  "parse_misc.h"
-# include  "parse_api.h"
-# include  <map>
-# include  <sstream>
-# include  "ivl_assert.h"
+#include <map>
+#include <sstream>
+
+#include "PPackage.h"
+#include "ivl_assert.h"
+#include "parse_api.h"
+#include "parse_misc.h"
+#include "pform.h"
 
 using namespace std;
 
 /*
  * This is a map of packages that have been defined.
  */
-map<perm_string,PPackage*> pform_packages;
+map<perm_string, PPackage*> pform_packages;
 
-static PPackage*pform_cur_package = 0;
+static PPackage* pform_cur_package = 0;
 
-void pform_start_package_declaration(const struct vlltype&loc, const char*name,
-				     LexicalScope::lifetime_t lifetime)
-{
-      ivl_assert(loc, pform_cur_package == 0);
+void pform_start_package_declaration(const struct vlltype& loc,
+                                     const char* name,
+                                     LexicalScope::lifetime_t lifetime) {
+  ivl_assert(loc, pform_cur_package == 0);
 
-      perm_string use_name = lex_strings.make(name);
-      PPackage*pkg_scope = pform_push_package_scope(loc, use_name, lifetime);
-      FILE_NAME(pkg_scope, loc);
-      pform_cur_package = pkg_scope;
+  perm_string use_name = lex_strings.make(name);
+  PPackage* pkg_scope = pform_push_package_scope(loc, use_name, lifetime);
+  FILE_NAME(pkg_scope, loc);
+  pform_cur_package = pkg_scope;
 }
 
-void pform_end_package_declaration(const struct vlltype&loc)
-{
-      ivl_assert(loc, pform_cur_package);
-      perm_string use_name = pform_cur_package->pscope_name();
+void pform_end_package_declaration(const struct vlltype& loc) {
+  ivl_assert(loc, pform_cur_package);
+  perm_string use_name = pform_cur_package->pscope_name();
 
-      map<perm_string,PPackage*>::const_iterator test = pform_packages.find(use_name);
-      if (test != pform_packages.end()) {
-	    ostringstream msg;
-	    msg << "Package " << use_name << " was already declared here: "
-		<< test->second->get_fileline() << ends;
-	    VLerror(msg.str().c_str());
-      } else {
-	    pform_packages[use_name] = pform_cur_package;
-      }
+  map<perm_string, PPackage*>::const_iterator test =
+      pform_packages.find(use_name);
+  if (test != pform_packages.end()) {
+    ostringstream msg;
+    msg << "Package " << use_name
+        << " was already declared here: " << test->second->get_fileline()
+        << ends;
+    VLerror(msg.str().c_str());
+  } else {
+    pform_packages[use_name] = pform_cur_package;
+  }
 
-
-      pform_packages[use_name] = pform_cur_package;
-      pform_cur_package = 0;
-      pform_pop_scope();
+  pform_packages[use_name] = pform_cur_package;
+  pform_cur_package = 0;
+  pform_pop_scope();
 }
 
 /*
@@ -73,78 +75,85 @@ void pform_end_package_declaration(const struct vlltype&loc)
  * package is declared in pform ahead of time (it is) and that we can
  * simply transfer definitions to the current scope (we can).
  */
-void pform_package_import(const struct vlltype&loc, PPackage*pkg, const char*ident)
-{
-      LexicalScope*scope = pform_peek_scope();
+void pform_package_import(const struct vlltype& loc, PPackage* pkg,
+                          const char* ident) {
+  LexicalScope* scope = pform_peek_scope();
 
-      if (ident) {
-	    perm_string use_ident = lex_strings.make(ident);
+  if (ident) {
+    perm_string use_ident = lex_strings.make(ident);
 
-	      // Check that the requested symbol is available.
-	    map<perm_string,PNamedItem*>::const_iterator cur_sym
-		  = pkg->local_symbols.find(use_ident);
-	    if (cur_sym == pkg->local_symbols.end()) {
-		  cerr << loc.get_fileline() << ": error: "
-			  "'" << use_ident << "' is not exported by '"
-		       << pkg->pscope_name() << "'." << endl;
-		  error_count += 1;
-		  return;
-	    }
+    // Check that the requested symbol is available.
+    map<perm_string, PNamedItem*>::const_iterator cur_sym =
+        pkg->local_symbols.find(use_ident);
+    if (cur_sym == pkg->local_symbols.end()) {
+      cerr << loc.get_fileline()
+           << ": error: "
+              "'"
+           << use_ident << "' is not exported by '" << pkg->pscope_name()
+           << "'." << endl;
+      error_count += 1;
+      return;
+    }
 
-	      // Check for conflict with local symbol.
-	    cur_sym = scope->local_symbols.find(use_ident);
-	    if (cur_sym != scope->local_symbols.end()) {
-		  cerr << loc.get_fileline() << ": error: "
-			  "'" << use_ident << "' has already been declared "
-			  "in this scope." << endl;
-		  cerr << cur_sym->second->get_fileline() << ":      : "
-			  "It was declared here as "
-		       << cur_sym->second->symbol_type() << "." << endl;
-		  error_count += 1;
-		  return;
-	    }
+    // Check for conflict with local symbol.
+    cur_sym = scope->local_symbols.find(use_ident);
+    if (cur_sym != scope->local_symbols.end()) {
+      cerr << loc.get_fileline()
+           << ": error: "
+              "'"
+           << use_ident
+           << "' has already been declared "
+              "in this scope."
+           << endl;
+      cerr << cur_sym->second->get_fileline()
+           << ":      : "
+              "It was declared here as "
+           << cur_sym->second->symbol_type() << "." << endl;
+      error_count += 1;
+      return;
+    }
 
-	      // Check for conflict with previous import.
-	    map<perm_string,PPackage*>::const_iterator cur_pkg
-		  = scope->explicit_imports.find(use_ident);
-	    if (cur_pkg != scope->explicit_imports.end()) {
-		  if (cur_pkg->second != pkg) {
-			cerr << loc.get_fileline() << ": error: "
-				"'" << use_ident << "' has already been "
-				"imported into this scope from package '"
-			     << cur_pkg->second->pscope_name() << "'." << endl;
-			error_count += 1;
-		  }
-		  return;
-	    }
-
-	    scope->explicit_imports[use_ident] = pkg;
-
-      } else {
-	    set<PPackage*>::const_iterator cur_pkg
-		  = scope->potential_imports.find(pkg);
-	    if (cur_pkg == scope->potential_imports.end())
-		  scope->potential_imports.insert(pkg);
+    // Check for conflict with previous import.
+    map<perm_string, PPackage*>::const_iterator cur_pkg =
+        scope->explicit_imports.find(use_ident);
+    if (cur_pkg != scope->explicit_imports.end()) {
+      if (cur_pkg->second != pkg) {
+        cerr << loc.get_fileline()
+             << ": error: "
+                "'"
+             << use_ident
+             << "' has already been "
+                "imported into this scope from package '"
+             << cur_pkg->second->pscope_name() << "'." << endl;
+        error_count += 1;
       }
+      return;
+    }
+
+    scope->explicit_imports[use_ident] = pkg;
+
+  } else {
+    set<PPackage*>::const_iterator cur_pkg = scope->potential_imports.find(pkg);
+    if (cur_pkg == scope->potential_imports.end())
+      scope->potential_imports.insert(pkg);
+  }
 }
 
-PExpr* pform_package_ident(const struct vlltype&loc,
-			   PPackage*pkg, pform_name_t*ident_name)
-{
-      assert(ident_name);
-      PEIdent*tmp = new PEIdent(pkg, *ident_name);
-      FILE_NAME(tmp, loc);
-      return tmp;
+PExpr* pform_package_ident(const struct vlltype& loc, PPackage* pkg,
+                           pform_name_t* ident_name) {
+  assert(ident_name);
+  PEIdent* tmp = new PEIdent(pkg, *ident_name);
+  FILE_NAME(tmp, loc);
+  return tmp;
 }
 
-data_type_t* pform_test_type_identifier(PPackage*pkg, const char*txt)
-{
-      perm_string use_name = lex_strings.make(txt);
-      map<perm_string,data_type_t*>::const_iterator cur = pkg->typedefs.find(use_name);
-      if (cur != pkg->typedefs.end())
-	    return cur->second;
+data_type_t* pform_test_type_identifier(PPackage* pkg, const char* txt) {
+  perm_string use_name = lex_strings.make(txt);
+  map<perm_string, data_type_t*>::const_iterator cur =
+      pkg->typedefs.find(use_name);
+  if (cur != pkg->typedefs.end()) return cur->second;
 
-      return 0;
+  return 0;
 }
 
 /*
@@ -152,13 +161,12 @@ data_type_t* pform_test_type_identifier(PPackage*pkg, const char*txt)
  * package. It will call this a PACKAGE_IDENTIFIER token in that case,
  * instead of a generic IDENTIFIER.
  */
-PPackage* pform_test_package_identifier(const char*pkg_name)
-{
-      perm_string use_name = lex_strings.make(pkg_name);
-      map<perm_string,PPackage*>::const_iterator pcur = pform_packages.find(use_name);
-      if (pcur == pform_packages.end())
-	    return 0;
+PPackage* pform_test_package_identifier(const char* pkg_name) {
+  perm_string use_name = lex_strings.make(pkg_name);
+  map<perm_string, PPackage*>::const_iterator pcur =
+      pform_packages.find(use_name);
+  if (pcur == pform_packages.end()) return 0;
 
-      assert(pcur->second);
-      return pcur->second;
+  assert(pcur->second);
+  return pcur->second;
 }

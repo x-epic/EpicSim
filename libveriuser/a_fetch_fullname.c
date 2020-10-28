@@ -15,27 +15,26 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-#include  <vpi_user.h>
-#include  <acc_user.h>
-#include  "priv.h"
+#include <acc_user.h>
+#include <vpi_user.h>
+
+#include "priv.h"
 
 /*
  * acc_fetch_fullname implemented using VPI interface
  */
-char *acc_fetch_fullname(handle object)
-{
-      return __acc_newstring(vpi_get_str(vpiFullName, object));
+char* acc_fetch_fullname(handle object) {
+  return __acc_newstring(vpi_get_str(vpiFullName, object));
 }
 
-char* acc_fetch_name(handle object)
-{
-      return __acc_newstring(vpi_get_str(vpiName, object));
+char* acc_fetch_name(handle object) {
+  return __acc_newstring(vpi_get_str(vpiName, object));
 }
 
-char* acc_fetch_defname(handle object)
-{
-      return __acc_newstring(vpi_get_str(vpiDefName, object));
+char* acc_fetch_defname(handle object) {
+  return __acc_newstring(vpi_get_str(vpiDefName, object));
 }

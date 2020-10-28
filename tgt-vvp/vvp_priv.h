@@ -17,12 +17,14 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "vvp_config.h"
-# include  "ivl_target.h"
-# include  <stdio.h>
+#include <stdio.h>
+
+#include "ivl_target.h"
+#include "vvp_config.h"
 
 extern int debug_draw;
 
@@ -46,24 +48,24 @@ extern unsigned transient_id;
 extern unsigned show_file_line;
 
 struct vector_info {
-      unsigned base;
-      unsigned wid;
+  unsigned base;
+  unsigned wid;
 };
 
 /*
  * Convenient constants...
  */
-  /* Width limit for typical immediate arguments. */
-# define IMM_WID 32
+/* Width limit for typical immediate arguments. */
+#define IMM_WID 32
 
-  /* The number of words available in a thread. */
-# define WORD_COUNT 16
+/* The number of words available in a thread. */
+#define WORD_COUNT 16
 
 /*
  * Mangle all non-symbol characters in an identifier, quotes in names
  */
-extern const char *vvp_mangle_id(const char *);
-extern const char *vvp_mangle_name(const char *);
+extern const char* vvp_mangle_id(const char*);
+extern const char* vvp_mangle_name(const char*);
 
 extern char* draw_Cr_to_string(double value);
 
@@ -93,7 +95,7 @@ extern int can_elide_bufz(ivl_net_logic_t net, ivl_nexus_ptr_t nptr);
  * file. It normally returns 0, but returns !0 of there is some sort
  * of error.
  */
-extern int draw_process(ivl_process_t net, void*x);
+extern int draw_process(ivl_process_t net, void* x);
 
 extern int draw_task_definition(ivl_scope_t scope);
 extern int draw_func_definition(ivl_scope_t scope);
@@ -108,7 +110,7 @@ extern void draw_ufunc_real(ivl_expr_t expr);
 extern void draw_ufunc_string(ivl_expr_t expr);
 extern void draw_ufunc_object(ivl_expr_t expr);
 
-extern char* process_octal_codes(const char*txt, unsigned wid);
+extern char* process_octal_codes(const char* txt, unsigned wid);
 
 /*
  * modpath.c symbols.
@@ -121,7 +123,7 @@ extern char* process_octal_codes(const char*txt, unsigned wid);
  * Note: draw_modpath drive_label must be malloc'ed by the
  * caller. This function will free the string sometime in the future.
  */
-extern void draw_modpath(ivl_signal_t path_sig, char*drive_label);
+extern void draw_modpath(ivl_signal_t path_sig, char* drive_label);
 extern void cleanup_modpath(void);
 
 /*
@@ -150,20 +152,19 @@ extern void draw_switch_in_scope(ivl_switch_t sw);
 
 /* Draw_net_input and friends uses this. */
 struct vvp_nexus_data {
-	/* draw_net_input uses this */
-      const char*net_input;
-	/* draw_isnald_net_input uses these */
-      const char*island_input;
-      ivl_island_t island;
-	/* */
-      unsigned drivers_count;
-      int flags;
-	/* draw_net_in_scope uses these to identify the controlling word. */
-      ivl_signal_t net;
-      unsigned net_word;
+  /* draw_net_input uses this */
+  const char* net_input;
+  /* draw_isnald_net_input uses these */
+  const char* island_input;
+  ivl_island_t island;
+  /* */
+  unsigned drivers_count;
+  int flags;
+  /* draw_net_in_scope uses these to identify the controlling word. */
+  ivl_signal_t net;
+  unsigned net_word;
 };
 #define VVP_NEXUS_DATA_STR 0x0001
-
 
 /*
  * Given a nexus, draw a string that represents the functor output
@@ -194,7 +195,7 @@ extern const char* draw_island_net_input(ivl_island_t island, ivl_nexus_t nex);
  * and will in those cases resort to the net input, or a non-local
  * signal if one exists for the nexus.
  */
-extern const char*draw_input_from_net(ivl_nexus_t nex);
+extern const char* draw_input_from_net(ivl_nexus_t nex);
 
 /*
  * This evaluates an expression and leaves the result in the numbered
@@ -216,7 +217,8 @@ extern int draw_eval_condition(ivl_expr_t expr);
 extern int signal_is_return_value(ivl_signal_t sig);
 
 extern int number_is_unknown(ivl_expr_t ex);
-extern int number_is_immediate(ivl_expr_t ex, unsigned lim_wid, int negative_is_ok);
+extern int number_is_immediate(ivl_expr_t ex, unsigned lim_wid,
+                               int negative_is_ok);
 extern long get_number_immediate(ivl_expr_t ex);
 extern uint64_t get_number_immediate64(ivl_expr_t ex);
 
@@ -255,19 +257,19 @@ extern void draw_eval_string(ivl_expr_t ex);
 extern int draw_eval_object(ivl_expr_t ex);
 
 extern int show_stmt_assign(ivl_statement_t net);
-extern void show_stmt_file_line(ivl_statement_t net, const char*desc);
+extern void show_stmt_file_line(ivl_statement_t net, const char* desc);
 
 /*
  */
 extern int test_immediate_vec4_ok(ivl_expr_t expr);
-extern void draw_immediate_vec4(ivl_expr_t expr, const char*opcode);
+extern void draw_immediate_vec4(ivl_expr_t expr, const char* opcode);
 
 /*
  * Draw a delay statement.
  */
-extern void draw_delay(void*ptr, unsigned wid, const char*input,
-		       ivl_expr_t rise_exp, ivl_expr_t fall_exp,
-		       ivl_expr_t decay_exp);
+extern void draw_delay(void* ptr, unsigned wid, const char* input,
+                       ivl_expr_t rise_exp, ivl_expr_t fall_exp,
+                       ivl_expr_t decay_exp);
 
 /*
  * These functions manage word register allocation.

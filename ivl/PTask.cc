@@ -15,67 +15,55 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include "config.h"
-# include  "PTask.h"
-# include  <cassert>
+#include "PTask.h"
 
-PTaskFunc::PTaskFunc(perm_string n, LexicalScope*p)
-: PScope(n,p), this_type_(0), ports_(0)
-{
+#include <cassert>
+
+#include "config.h"
+
+PTaskFunc::PTaskFunc(perm_string n, LexicalScope* p)
+    : PScope(n, p), this_type_(0), ports_(0) {}
+
+PTaskFunc::~PTaskFunc() {}
+
+bool PTaskFunc::var_init_needs_explicit_lifetime() const {
+  return default_lifetime == STATIC;
 }
 
-PTaskFunc::~PTaskFunc()
-{
+void PTaskFunc::set_ports(vector<pform_tf_port_t>* p) {
+  assert(ports_ == 0);
+  ports_ = p;
 }
 
-bool PTaskFunc::var_init_needs_explicit_lifetime() const
-{
-      return default_lifetime == STATIC;
+void PTaskFunc::set_this(class_type_t* type, PWire* this_wire) {
+  assert(this_type_ == 0);
+  this_type_ = type;
+
+  // Push a synthesis argument that is the "this" value.
+  if (ports_ == 0) ports_ = new vector<pform_tf_port_t>;
+
+  size_t use_size = ports_->size();
+  ports_->resize(use_size + 1);
+  for (size_t idx = use_size; idx > 0; idx -= 1)
+    ports_->at(idx) = ports_->at(idx - 1);
+
+  ports_->at(0) = pform_tf_port_t(this_wire);
 }
 
-void PTaskFunc::set_ports(vector<pform_tf_port_t>*p)
-{
-      assert(ports_ == 0);
-      ports_ = p;
+PTask::PTask(perm_string name, LexicalScope* parent, bool is_auto__)
+    : PTaskFunc(name, parent), statement_(0) {
+  is_auto_ = is_auto__;
 }
 
-void PTaskFunc::set_this(class_type_t*type, PWire*this_wire)
-{
-      assert(this_type_ == 0);
-      this_type_ = type;
+PTask::~PTask() {}
 
-	// Push a synthesis argument that is the "this" value.
-      if (ports_==0)
-	    ports_ = new vector<pform_tf_port_t>;
-
-      size_t use_size = ports_->size();
-      ports_->resize(use_size + 1);
-      for (size_t idx = use_size ; idx > 0 ; idx -= 1)
-	    ports_->at(idx) = ports_->at(idx-1);
-
-      ports_->at(0) = pform_tf_port_t(this_wire);
+void PTask::set_statement(Statement* s) {
+  assert(statement_ == 0);
+  statement_ = s;
 }
 
-PTask::PTask(perm_string name, LexicalScope*parent, bool is_auto__)
-: PTaskFunc(name, parent), statement_(0)
-{
-      is_auto_ = is_auto__;
-}
-
-PTask::~PTask()
-{
-}
-
-void PTask::set_statement(Statement*s)
-{
-      assert(statement_ == 0);
-      statement_ = s;
-}
-
-PNamedItem::SymbolType PTask::symbol_type() const
-{
-      return TASK;
-}
+PNamedItem::SymbolType PTask::symbol_type() const { return TASK; }

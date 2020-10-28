@@ -18,7 +18,8 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
 /*
@@ -27,13 +28,13 @@
  * YYLTYPE compels the lexor to use this type and not something other.
  */
 struct cfltype {
-      unsigned first_line;
-      unsigned first_column;
-      unsigned last_line;
-      unsigned last_column;
-      const char*text;
+  unsigned first_line;
+  unsigned first_column;
+  unsigned last_line;
+  unsigned last_column;
+  const char *text;
 };
-# define YYLTYPE struct cfltype
+#define YYLTYPE struct cfltype
 
 int cflex(void);
 int cferror(const char *);

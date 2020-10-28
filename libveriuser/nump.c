@@ -15,33 +15,34 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-#include  <vpi_user.h>
-#include  <stdio.h>
+#include <stdio.h>
+#include <vpi_user.h>
+
 #include "veriuser.h"
 
 /*
  * tf_nump implemented using VPI interface
  */
 
-int tf_inump(void *obj)
-{
-      vpiHandle sys_h, sys_i;
-      int cnt;
+int tf_inump(void *obj) {
+  vpiHandle sys_h, sys_i;
+  int cnt;
 
-      sys_h = (vpiHandle)obj;
-      sys_i = vpi_iterate(vpiArgument, sys_h);
+  sys_h = (vpiHandle)obj;
+  sys_i = vpi_iterate(vpiArgument, sys_h);
 
-        /* count number of args */
-      for (cnt = 0; sys_i && vpi_scan(sys_i); cnt++);
+  /* count number of args */
+  for (cnt = 0; sys_i && vpi_scan(sys_i); cnt++)
+    ;
 
-      return cnt;
+  return cnt;
 }
 
-int tf_nump(void)
-{
-      vpiHandle sys_h = vpi_handle(vpiSysTfCall, 0 /* NULL */);
-      return tf_inump(sys_h);
+int tf_nump(void) {
+  vpiHandle sys_h = vpi_handle(vpiSysTfCall, 0 /* NULL */);
+  return tf_inump(sys_h);
 }

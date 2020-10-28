@@ -17,13 +17,15 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "PScope.h"
-# include  "PNamedItem.h"
-# include  "StringHeap.h"
-# include  <iostream>
+#include <iostream>
+
+#include "PNamedItem.h"
+#include "PScope.h"
+#include "StringHeap.h"
 
 class PChainConstructor;
 
@@ -34,17 +36,16 @@ class PChainConstructor;
  */
 
 class PClass : public PScopeExtra, public PNamedItem {
+ public:
+  explicit PClass(perm_string name, LexicalScope* parent);
+  ~PClass();
 
-    public:
-      explicit PClass (perm_string name, LexicalScope*parent);
-      ~PClass();
+  void dump(std::ostream& out, unsigned indent) const;
 
-      void dump(std::ostream&out, unsigned indent) const;
+  SymbolType symbol_type() const;
 
-      SymbolType symbol_type() const;
-
-    public:
-      class_type_t*type;
+ public:
+  class_type_t* type;
 };
 
 #endif /* IVL_PClass_H */

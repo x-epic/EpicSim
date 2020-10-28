@@ -15,10 +15,11 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include "vpi_user.h"
+#include "vpi_user.h"
 
 extern void v2009_array_register(void);
 extern void v2009_bitvec_register(void);
@@ -26,9 +27,5 @@ extern void v2009_enum_register(void);
 extern void v2009_string_register(void);
 
 void (*vlog_startup_routines[])(void) = {
-      v2009_array_register,
-      v2009_bitvec_register,
-      v2009_enum_register,
-      v2009_string_register,
-      0
-};
+    v2009_array_register, v2009_bitvec_register, v2009_enum_register,
+    v2009_string_register, 0};

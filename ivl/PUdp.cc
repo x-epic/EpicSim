@@ -15,24 +15,19 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "PUdp.h"
+#include "PUdp.h"
 
 PUdp::PUdp(perm_string n, unsigned nports)
-: ports(nports), sequential(false), initial(verinum::Vx), name_(n)
-{
+    : ports(nports), sequential(false), initial(verinum::Vx), name_(n) {}
+
+unsigned PUdp::find_port(const char* name) {
+  for (unsigned idx = 0; idx < ports.count(); idx += 1) {
+    if (ports[idx] == name) return idx;
+  }
+
+  return ports.count();
 }
-
-unsigned PUdp::find_port(const char*name)
-{
-      for (unsigned idx = 0 ;  idx < ports.count() ;  idx += 1) {
-
-	    if (ports[idx] == name)
-		  return idx;
-      }
-
-      return ports.count();
-}
-

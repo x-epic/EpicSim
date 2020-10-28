@@ -15,484 +15,411 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "config.h"
-# include  "compiler.h"
-# include  "netlist.h"
-# include  "ivl_assert.h"
+#include "compiler.h"
+#include "config.h"
+#include "ivl_assert.h"
+#include "netlist.h"
 
 /*
  * NOTE: The name_ is perm-allocated by the caller.
  */
-NetEvent::NetEvent(perm_string n)
-: name_(n)
-{
-      local_flag_ = false;
-      scope_ = 0;
-      snext_ = 0;
-      probes_ = 0;
-      lprobe_ = 0;
-      trig_ = 0;
-      waitref_ = 0;
-      exprref_ = 0;
-      wlist_ = 0;
-      markfordel_ = false;
+NetEvent::NetEvent(perm_string n) : name_(n) {
+  local_flag_ = false;
+  scope_ = 0;
+  snext_ = 0;
+  probes_ = 0;
+  lprobe_ = 0;
+  trig_ = 0;
+  waitref_ = 0;
+  exprref_ = 0;
+  wlist_ = 0;
+  markfordel_ = false;
 }
 
-NetEvent::~NetEvent()
-{
-      assert(waitref_ == 0);
-      if (scope_) scope_->rem_event(this);
-      while (probes_) {
-	    NetEvProbe*tmp = probes_->enext_;
-	    delete probes_;
-	    probes_ = tmp;
-      }
-	/* name_ is lex_strings. */
+NetEvent::~NetEvent() {
+  assert(waitref_ == 0);
+  if (scope_) scope_->rem_event(this);
+  while (probes_) {
+    NetEvProbe* tmp = probes_->enext_;
+    delete probes_;
+    probes_ = tmp;
+  }
+  /* name_ is lex_strings. */
 }
 
-perm_string NetEvent::name() const
-{
-      return name_;
+perm_string NetEvent::name() const { return name_; }
+
+NetScope* NetEvent::scope() {
+  assert(scope_);
+  return scope_;
 }
 
-NetScope* NetEvent::scope()
-{
-      assert(scope_);
-      return scope_;
+const NetScope* NetEvent::scope() const {
+  assert(scope_);
+  return scope_;
 }
 
-const NetScope* NetEvent::scope() const
-{
-      assert(scope_);
-      return scope_;
+unsigned NetEvent::nprobe() const {
+  unsigned cnt = 0;
+  NetEvProbe* cur = probes_;
+  while (cur) {
+    cnt += 1;
+    cur = cur->enext_;
+  }
+
+  return cnt;
 }
 
-unsigned NetEvent::nprobe() const
-{
-      unsigned cnt = 0;
-      NetEvProbe*cur = probes_;
-      while (cur) {
-	    cnt += 1;
-	    cur = cur->enext_;
-      }
-
-      return cnt;
+NetEvProbe* NetEvent::probe(unsigned idx) {
+  NetEvProbe* cur = probes_;
+  while (cur && idx) {
+    cur = cur->enext_;
+    idx -= 1;
+  }
+  return cur;
 }
 
-NetEvProbe* NetEvent::probe(unsigned idx)
-{
-      NetEvProbe*cur = probes_;
-      while (cur && idx) {
-	    cur = cur->enext_;
-	    idx -= 1;
-      }
-      return cur;
+const NetEvProbe* NetEvent::probe(unsigned idx) const {
+  NetEvProbe* cur = probes_;
+  while (cur && idx) {
+    cur = cur->enext_;
+    idx -= 1;
+  }
+  return cur;
 }
 
-const NetEvProbe* NetEvent::probe(unsigned idx) const
-{
-      NetEvProbe*cur = probes_;
-      while (cur && idx) {
-	    cur = cur->enext_;
-	    idx -= 1;
-      }
-      return cur;
+unsigned NetEvent::ntrig() const {
+  unsigned cnt = 0;
+  NetEvTrig* cur = trig_;
+  while (cur) {
+    cnt += 1;
+    cur = cur->enext_;
+  }
+
+  return cnt;
 }
 
-unsigned NetEvent::ntrig() const
-{
-      unsigned cnt = 0;
-      NetEvTrig*cur = trig_;
-      while (cur) {
-	    cnt += 1;
-	    cur = cur->enext_;
-      }
+unsigned NetEvent::nwait() const { return waitref_; }
 
-      return cnt;
-}
-
-unsigned NetEvent::nwait() const
-{
-      return waitref_;
-}
-
-unsigned NetEvent::nexpr() const
-{
-      return exprref_;
-}
+unsigned NetEvent::nexpr() const { return exprref_; }
 
 /*
  * A "similar" event is one that has an identical non-nil set of
  * probes.
  */
-void NetEvent::find_similar_event(list<NetEvent*>&event_list)
-{
-      if (probes_ == 0) return;
+void NetEvent::find_similar_event(list<NetEvent*>& event_list) {
+  if (probes_ == 0) return;
 
-      //To fix huge CT, add quickpath for seq logic and sensitive list <= 2.
-      int pcount = 0;
-      bool quickpath = true;
-      for (NetEvProbe* tmp = probes_; tmp; tmp = tmp->enext_) {
-          pcount += 1;
-          if (tmp->edge() == NetEvProbe::ANYEDGE)
-              quickpath = false;
-      }
-      if (pcount > 2) quickpath = false;
+  // To fix huge CT, add quickpath for seq logic and sensitive list <= 2.
+  int pcount = 0;
+  bool quickpath = true;
+  for (NetEvProbe* tmp = probes_; tmp; tmp = tmp->enext_) {
+    pcount += 1;
+    if (tmp->edge() == NetEvProbe::ANYEDGE) quickpath = false;
+  }
+  if (pcount > 2) quickpath = false;
 
+  set<NetEvent*> candidate_events;
 
-      set<NetEvent*> candidate_events;
+  /* First, get a list of all the NetEvProbes that are connected
+     to my first probe. Then use that to create a set of
+     candidate events. These candidate events are a superset of
+     the similar events, so I will be culling this list later. */
+  list<NetEvProbe*> first_probes;
+  probes_->find_similar_probes(first_probes, quickpath ? pcount : 0);
 
-	/* First, get a list of all the NetEvProbes that are connected
-	   to my first probe. Then use that to create a set of
-	   candidate events. These candidate events are a superset of
-	   the similar events, so I will be culling this list later. */
-      list<NetEvProbe*>first_probes;
-      probes_->find_similar_probes(first_probes, quickpath ? pcount : 0);
+  if (quickpath) {
+    for (list<NetEvProbe*>::iterator idx = first_probes.begin();
+         idx != first_probes.end(); ++idx) {
+      NetEvent* tmp = (*idx)->event();
+      if (tmp == this) continue;
+      if (scope()->is_auto() && (tmp->scope() != scope())) continue;
+      event_list.push_back(tmp);
+    }
+    return;
+  }
 
-      if (quickpath) {
-          for (list<NetEvProbe*>::iterator idx = first_probes.begin();
-                  idx != first_probes.end() ; ++ idx ) {
-              NetEvent*tmp = (*idx)->event();
-              if (tmp == this)
-                  continue;
-              if (scope()->is_auto() && (tmp->scope() != scope()))
-                  continue;
-              event_list .push_back(tmp);
-          }
-        return;
-      }
+  for (list<NetEvProbe*>::iterator idx = first_probes.begin();
+       idx != first_probes.end(); ++idx) {
+    candidate_events.insert((*idx)->event());
+  }
 
-      for (list<NetEvProbe*>::iterator idx = first_probes.begin()
-		 ; idx != first_probes.end() ; ++ idx ) {
+  if (candidate_events.empty()) return;
 
-	    candidate_events.insert( (*idx)->event() );
-      }
+  /* Now scan the remaining probes, in each case checking that
+     the probe event is a candidate event. After each iteration,
+     events that don't have a similar probe will be removed from
+     the candidate_events set. If the candidate_events set
+     becomes empty, then give up. */
+  unsigned probe_count = 1;
+  for (NetEvProbe* cur = probes_->enext_; cur; cur = cur->enext_) {
+    list<NetEvProbe*> similar_probes;
+    cur->find_similar_probes(similar_probes, 0);
 
-      if (candidate_events.empty())
-	    return;
+    set<NetEvent*> candidate_tmp;
+    for (list<NetEvProbe*>::iterator idx = similar_probes.begin();
+         idx != similar_probes.end(); ++idx) {
+      NetEvent* tmp = (*idx)->event();
+      if (candidate_events.find(tmp) != candidate_events.end())
+        candidate_tmp.insert(tmp);
+    }
 
-	/* Now scan the remaining probes, in each case checking that
-	   the probe event is a candidate event. After each iteration,
-	   events that don't have a similar probe will be removed from
-	   the candidate_events set. If the candidate_events set
-	   becomes empty, then give up. */
-      unsigned probe_count = 1;
-      for (NetEvProbe*cur = probes_->enext_ ; cur;  cur = cur->enext_) {
-	    list<NetEvProbe*>similar_probes;
-	    cur->find_similar_probes(similar_probes, 0);
+    // None of the candidate events match this probe? Give up!
+    if (candidate_tmp.empty()) return;
 
-	    set<NetEvent*> candidate_tmp;
-	    for (list<NetEvProbe*>::iterator idx = similar_probes.begin()
-		       ; idx != similar_probes.end() ; ++ idx ) {
+    candidate_events = candidate_tmp;
+    probe_count += 1;
+  }
 
-		  NetEvent*tmp = (*idx)->event();
-		  if (candidate_events.find(tmp) != candidate_events.end())
-			candidate_tmp .insert(tmp);
-	    }
+  /* Scan the surviving candidate events. We know that they all
+     have probes that match the current event's probes. Check
+     for remaining compatibility details and save the survivors
+     in the event_list that the caller passed. */
+  for (set<NetEvent*>::iterator idx = candidate_events.begin();
+       idx != candidate_events.end(); ++idx) {
+    NetEvent* tmp = *idx;
 
-	      // None of the candidate events match this probe? Give up!
-	    if (candidate_tmp.empty())
-		  return;
+    // This shouldn't be possible?
+    if (tmp == this) continue;
 
-	    candidate_events = candidate_tmp;
-	    probe_count += 1;
-      }
+    /* For automatic tasks, the VVP runtime holds state for events
+       in the automatically allocated context. This means we can't
+       merge similar events in different automatic tasks. */
+    if (scope()->is_auto() && (tmp->scope() != scope())) continue;
 
-        /* Scan the surviving candidate events. We know that they all
-	   have probes that match the current event's probes. Check
-	   for remaining compatibility details and save the survivors
-	   in the event_list that the caller passed. */
-      for (set<NetEvent*>::iterator idx = candidate_events.begin()
-		 ; idx != candidate_events.end() ; ++ idx ) {
+    unsigned tcnt = 0;
+    for (NetEvProbe* cur = tmp->probes_; cur; cur = cur->enext_) tcnt += 1;
 
-	    NetEvent*tmp = *idx;
-
-	      // This shouldn't be possible?
-	    if (tmp == this)
-		  continue;
-
-              /* For automatic tasks, the VVP runtime holds state for events
-                 in the automatically allocated context. This means we can't
-                 merge similar events in different automatic tasks. */
-            if (scope()->is_auto() && (tmp->scope() != scope()))
-                  continue;
-
-	    unsigned tcnt = 0;
-	    for (NetEvProbe*cur = tmp->probes_ ; cur ; cur = cur->enext_)
-		  tcnt += 1;
-
-	    if (tcnt == probe_count)
-		  event_list .push_back(tmp);
-      }
-
+    if (tcnt == probe_count) event_list.push_back(tmp);
+  }
 }
 
-
-void NetEvent::replace_event(NetEvent*that)
-{
-      while (wlist_) {
-	    wlist_->obj->replace_event(this, that);
-      }
+void NetEvent::replace_event(NetEvent* that) {
+  while (wlist_) {
+    wlist_->obj->replace_event(this, that);
+  }
 }
 
-NexusSet* NetEvent::nex_async_()
-{
-	/* If there are behavioral trigger statements attached to me,
-	   then this is not an asynchronous event. */
-      if (trig_ != 0)
-	    return 0;
+NexusSet* NetEvent::nex_async_() {
+  /* If there are behavioral trigger statements attached to me,
+     then this is not an asynchronous event. */
+  if (trig_ != 0) return 0;
 
+  NexusSet* tmp = new NexusSet;
+  for (NetEvProbe* cur = probes_; cur != 0; cur = cur->enext_) {
+    if (cur->edge() != NetEvProbe::ANYEDGE) {
+      delete tmp;
+      return 0;
+    }
 
-      NexusSet*tmp = new NexusSet;
-      for (NetEvProbe*cur = probes_ ;  cur != 0 ;  cur = cur->enext_) {
-	    if (cur->edge() != NetEvProbe::ANYEDGE) {
-		  delete tmp;
-		  return 0;
-	    }
+    for (unsigned idx = 0; idx < cur->pin_count(); idx += 1) {
+      Nexus* nex = cur->pin(idx).nexus();
+      tmp->add(nex, 0, nex->vector_width());
+    }
+  }
 
-	    for (unsigned idx = 0 ;  idx < cur->pin_count() ;  idx += 1) {
-		  Nexus*nex = cur->pin(idx).nexus();
-		  tmp->add(nex, 0, nex->vector_width());
-	    }
-      }
-
-      return tmp;
+  return tmp;
 }
 
-NetEvTrig::NetEvTrig(NetEvent*ev)
-: event_(ev)
-{
-      enext_ = event_->trig_;
-      event_->trig_ = this;
+NetEvTrig::NetEvTrig(NetEvent* ev) : event_(ev) {
+  enext_ = event_->trig_;
+  event_->trig_ = this;
 }
 
-NetEvTrig::~NetEvTrig()
-{
-      if (event_->trig_ == this) {
-	    event_->trig_ = enext_;
+NetEvTrig::~NetEvTrig() {
+  if (event_->trig_ == this) {
+    event_->trig_ = enext_;
 
-      } else {
-	    NetEvTrig*cur = event_->trig_;
-	    while (cur->enext_ != this) {
-		  assert(cur->enext_);
-		  cur = cur->enext_;
-	    }
+  } else {
+    NetEvTrig* cur = event_->trig_;
+    while (cur->enext_ != this) {
+      assert(cur->enext_);
+      cur = cur->enext_;
+    }
 
-	    cur->enext_ = this->enext_;
-      }
+    cur->enext_ = this->enext_;
+  }
 }
 
-const NetEvent* NetEvTrig::event() const
-{
-      return event_;
+const NetEvent* NetEvTrig::event() const { return event_; }
+
+NetEvProbe::NetEvProbe(NetScope* s, perm_string n, NetEvent* tgt, edge_t t,
+                       unsigned p)
+    : NetNode(s, n, p), event_(tgt), edge_(t) {
+  for (unsigned idx = 0; idx < p; idx += 1) {
+    pin(idx).set_dir(Link::INPUT);
+  }
+
+  enext_ = NULL;
+  if (!event_->probes_) {
+    event_->probes_ = this;
+    event_->lprobe_ = this;
+  } else {
+    event_->lprobe_->enext_ = this;
+    event_->lprobe_ = this;
+  }
 }
 
-NetEvProbe::NetEvProbe(NetScope*s, perm_string n, NetEvent*tgt,
-		       edge_t t, unsigned p)
-: NetNode(s, n, p), event_(tgt), edge_(t)
-{
-      for (unsigned idx = 0 ;  idx < p ;  idx += 1) {
-	    pin(idx).set_dir(Link::INPUT);
-      }
+NetEvProbe::~NetEvProbe() {
+  if (event_->probes_ == this) {
+    event_->probes_ = enext_;
 
-      enext_ = NULL;
-      if (!event_->probes_) {
-          event_->probes_ = this;
-          event_->lprobe_ = this;
-      } else {
-          event_->lprobe_->enext_ = this;
-          event_->lprobe_ = this;
-      }
+  } else {
+    NetEvProbe* cur = event_->probes_;
+    while (cur->enext_ != this) {
+      assert(cur->enext_);
+      cur = cur->enext_;
+    }
+
+    cur->enext_ = this->enext_;
+  }
 }
 
-NetEvProbe::~NetEvProbe()
-{
-      if (event_->probes_ == this) {
-	    event_->probes_ = enext_;
+NetEvProbe::edge_t NetEvProbe::edge() const { return edge_; }
 
-      } else {
-	    NetEvProbe*cur = event_->probes_;
-	    while (cur->enext_ != this) {
-		  assert(cur->enext_);
-		  cur = cur->enext_;
-	    }
+NetEvent* NetEvProbe::event() { return event_; }
 
-	    cur->enext_ = this->enext_;
-      }
-}
-
-NetEvProbe::edge_t NetEvProbe::edge() const
-{
-      return edge_;
-}
-
-NetEvent* NetEvProbe::event()
-{
-      return event_;
-}
-
-const NetEvent* NetEvProbe::event() const
-{
-      return event_;
-}
+const NetEvent* NetEvProbe::event() const { return event_; }
 
 /*
  * A similar NetEvProbe is one that is connected to all the same nexa
  * that this probe is connected to, and also is the same edge
  * type. Don't count myself as a similar probe.
  */
-void NetEvProbe::find_similar_probes(list<NetEvProbe*>&plist, int isquick)
-{
-      Nexus*nex = pin(0).nexus();
+void NetEvProbe::find_similar_probes(list<NetEvProbe*>& plist, int isquick) {
+  Nexus* nex = pin(0).nexus();
 
-      for (Link*lcur = nex->first_nlink(); lcur; lcur = lcur->next_nlink()) {
-	    NetPins*obj = lcur->get_obj();
-	      // Skip NexusSet objects
-	    if (obj == 0)
-		  continue;
+  for (Link* lcur = nex->first_nlink(); lcur; lcur = lcur->next_nlink()) {
+    NetPins* obj = lcur->get_obj();
+    // Skip NexusSet objects
+    if (obj == 0) continue;
 
-	    if (!obj->isNetEvProbe()) continue;
+    if (!obj->isNetEvProbe()) continue;
 
-	    if (obj->pin_count() != pin_count())
-		  continue;
+    if (obj->pin_count() != pin_count()) continue;
 
-        NetEvProbe*tmp = static_cast<NetEvProbe*>(obj);
-	    if (tmp == 0)
-		  continue;
+    NetEvProbe* tmp = static_cast<NetEvProbe*>(obj);
+    if (tmp == 0) continue;
 
-	    if (tmp == this)
-		  continue;
+    if (tmp == this) continue;
 
-	    if (edge() != tmp->edge())
-		  continue;
+    if (edge() != tmp->edge()) continue;
 
-	    bool ok_flag = true;
-	    for (unsigned idx = 1 ;  ok_flag && idx < pin_count() ;  idx += 1)
-		  if (! pin(idx).is_linked(tmp->pin(idx)))
-			ok_flag = false;
+    bool ok_flag = true;
+    for (unsigned idx = 1; ok_flag && idx < pin_count(); idx += 1)
+      if (!pin(idx).is_linked(tmp->pin(idx))) ok_flag = false;
 
-        if (isquick) {
-            NetEvent* e = tmp->event();
-            NetEvProbe *p = e->probes_;
-            if (isquick == 1 && p->enext_) {
-                continue;
-            } else if (isquick == 2) {
-                if (p != tmp) continue;
-                if (!p->enext_) continue;
-                if (p->enext_->enext_) continue;
-                if (p->edge() != edge() || p->enext_->edge() != enext_->edge()) continue;
-                if (p->enext_->pin(0).find_nexus_post_elab() != enext_->pin(0).find_nexus_post_elab()) continue;
-            }
-        }
-
-	    if (ok_flag == true)
-		  plist .push_back(tmp);
+    if (isquick) {
+      NetEvent* e = tmp->event();
+      NetEvProbe* p = e->probes_;
+      if (isquick == 1 && p->enext_) {
+        continue;
+      } else if (isquick == 2) {
+        if (p != tmp) continue;
+        if (!p->enext_) continue;
+        if (p->enext_->enext_) continue;
+        if (p->edge() != edge() || p->enext_->edge() != enext_->edge())
+          continue;
+        if (p->enext_->pin(0).find_nexus_post_elab() !=
+            enext_->pin(0).find_nexus_post_elab())
+          continue;
       }
+    }
+
+    if (ok_flag == true) plist.push_back(tmp);
+  }
 }
 
-NetEvWait::NetEvWait(NetProc*pr)
-: statement_(pr), has_t0_trigger_(false)
-{
-}
+NetEvWait::NetEvWait(NetProc* pr) : statement_(pr), has_t0_trigger_(false) {}
 
-NetEvWait::~NetEvWait()
-{
-      if (! events_.empty()) {
-	    for (unsigned idx = 0 ;  idx < events_.size() ;  idx += 1) {
-		  NetEvent*tgt = events_[idx];
-		  tgt->waitref_ -= 1;
+NetEvWait::~NetEvWait() {
+  if (!events_.empty()) {
+    for (unsigned idx = 0; idx < events_.size(); idx += 1) {
+      NetEvent* tgt = events_[idx];
+      tgt->waitref_ -= 1;
 
-		  struct NetEvent::wcell_*tmp = tgt->wlist_;
-		  if (tmp->obj == this) {
-			tgt->wlist_ = tmp->next;
-			delete tmp;
-		  } else {
-			assert(tmp->next);
-			while (tmp->next->obj != this) {
-			      tmp = tmp->next;
-			      assert(tmp->next);
-			}
-			tmp->next = tmp->next->next;
-			delete tmp;
-		  }
-		  delete tgt;
-	    }
-	    events_.clear();
-      }
-      delete statement_;
-}
-
-void NetEvWait::add_event(NetEvent*tgt)
-{
-	/* A wait fork is an empty event. */
-      if (! tgt) {
-	    assert(events_.empty());
-	    events_.push_back(0);
-	    return;
-      }
-
-      events_.push_back(tgt);
-
-	// Remember to tell the NetEvent that there is someone
-	// pointing to it.
-      tgt->waitref_ += 1;
-
-      struct NetEvent::wcell_*tmp = new NetEvent::wcell_;
-      tmp->obj = this;
-      tmp->next = tgt->wlist_;
-      tgt->wlist_ = tmp;
-}
-
-void NetEvWait::replace_event(NetEvent*src, NetEvent*repl)
-{
-      unsigned idx;
-      for (idx = 0 ;  idx < events_.size() ;  idx += 1) {
-	    if (events_[idx] == src)
-		  break;
-      }
-
-      assert(idx < events_.size());
-
-	// First, remove me from the list held by the src NetEvent.
-      assert(src->waitref_ > 0);
-      src->waitref_ -= 1;
-      struct NetEvent::wcell_*tmp = src->wlist_;
+      struct NetEvent::wcell_* tmp = tgt->wlist_;
       if (tmp->obj == this) {
-	    src->wlist_ = tmp->next;
-	    delete tmp;
+        tgt->wlist_ = tmp->next;
+        delete tmp;
       } else {
-	    assert(tmp->next);
-	    while (tmp->next->obj != this) {
-		  tmp = tmp->next;
-		  assert(tmp->next);
-	    }
-	    tmp->next = tmp->next->next;
-	    delete tmp;
+        assert(tmp->next);
+        while (tmp->next->obj != this) {
+          tmp = tmp->next;
+          assert(tmp->next);
+        }
+        tmp->next = tmp->next->next;
+        delete tmp;
       }
-
-	// Replace the src pointer with the repl pointer.
-      events_[idx] = repl;
-
-	// Remember to tell the replacement NetEvent that there is
-	// someone pointing to it.
-      repl->waitref_ += 1;
-
-      tmp = new NetEvent::wcell_;
-      tmp->obj = this;
-      tmp->next = repl->wlist_;
-      repl->wlist_ = tmp;
-
+      delete tgt;
+    }
+    events_.clear();
+  }
+  delete statement_;
 }
 
-NetProc* NetEvWait::statement()
-{
-      return statement_;
+void NetEvWait::add_event(NetEvent* tgt) {
+  /* A wait fork is an empty event. */
+  if (!tgt) {
+    assert(events_.empty());
+    events_.push_back(0);
+    return;
+  }
+
+  events_.push_back(tgt);
+
+  // Remember to tell the NetEvent that there is someone
+  // pointing to it.
+  tgt->waitref_ += 1;
+
+  struct NetEvent::wcell_* tmp = new NetEvent::wcell_;
+  tmp->obj = this;
+  tmp->next = tgt->wlist_;
+  tgt->wlist_ = tmp;
 }
 
-const NetProc* NetEvWait::statement() const
-{
-      return statement_;
+void NetEvWait::replace_event(NetEvent* src, NetEvent* repl) {
+  unsigned idx;
+  for (idx = 0; idx < events_.size(); idx += 1) {
+    if (events_[idx] == src) break;
+  }
+
+  assert(idx < events_.size());
+
+  // First, remove me from the list held by the src NetEvent.
+  assert(src->waitref_ > 0);
+  src->waitref_ -= 1;
+  struct NetEvent::wcell_* tmp = src->wlist_;
+  if (tmp->obj == this) {
+    src->wlist_ = tmp->next;
+    delete tmp;
+  } else {
+    assert(tmp->next);
+    while (tmp->next->obj != this) {
+      tmp = tmp->next;
+      assert(tmp->next);
+    }
+    tmp->next = tmp->next->next;
+    delete tmp;
+  }
+
+  // Replace the src pointer with the repl pointer.
+  events_[idx] = repl;
+
+  // Remember to tell the replacement NetEvent that there is
+  // someone pointing to it.
+  repl->waitref_ += 1;
+
+  tmp = new NetEvent::wcell_;
+  tmp->obj = this;
+  tmp->next = repl->wlist_;
+  repl->wlist_ = tmp;
 }
+
+NetProc* NetEvWait::statement() { return statement_; }
+
+const NetProc* NetEvWait::statement() const { return statement_; }

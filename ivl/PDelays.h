@@ -17,13 +17,15 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "svector.h"
-# include  <string>
-# include  <list>
-# include  <iostream>
+#include <iostream>
+#include <list>
+#include <string>
+
+#include "svector.h"
 
 #ifdef __GNUC__
 #if __GNUC__ > 2
@@ -41,36 +43,33 @@ class PExpr;
  * fall and decay times. This class arranges to carry the triplet.
  */
 class PDelays {
+ public:
+  PDelays();
+  ~PDelays();
 
-    public:
-      PDelays();
-      ~PDelays();
+  /* Set the delay expressions. If the delete_flag is true, then
+     this object takes ownership of the expressions, and will
+     delete it in the destructor. */
+  void set_delay(PExpr*);
+  void set_delays(const list<PExpr*>* del, bool delete_flag = true);
 
-	/* Set the delay expressions. If the delete_flag is true, then
-	   this object takes ownership of the expressions, and will
-	   delete it in the destructor. */
-      void set_delay(PExpr*);
-      void set_delays(const list<PExpr*>*del, bool delete_flag=true);
+  unsigned delay_count() const;
 
-      unsigned delay_count() const;
+  void eval_delays(Design* des, NetScope* scope, NetExpr*& rise_time,
+                   NetExpr*& fall_time, NetExpr*& decay_time,
+                   bool as_nets_flag = false) const;
 
-      void eval_delays(Design*des, NetScope*scope,
-		       NetExpr*&rise_time,
-		       NetExpr*&fall_time,
-		       NetExpr*&decay_time,
-		       bool as_nets_flag =false) const;
+  void dump_delays(ostream& out) const;
 
-      void dump_delays(ostream&out) const;
+ private:
+  PExpr* delay_[3];
+  bool delete_flag_;
 
-    private:
-      PExpr* delay_[3];
-      bool delete_flag_;
-
-    private: // not implemented
-      PDelays(const PDelays&);
-      PDelays& operator= (const PDelays&);
+ private:  // not implemented
+  PDelays(const PDelays&);
+  PDelays& operator=(const PDelays&);
 };
 
-ostream& operator << (ostream&o, const PDelays&);
+ostream& operator<<(ostream& o, const PDelays&);
 
 #endif /* IVL_PDelays_H */

@@ -15,177 +15,155 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "netclass.h"
-# include  "netlist.h"
-# include  <iostream>
+#include "netclass.h"
+
+#include <iostream>
+
+#include "netlist.h"
 
 using namespace std;
 
-netclass_t::netclass_t(perm_string name, netclass_t*sup)
-: name_(name), super_(sup), class_scope_(0), definition_scope_(0)
-{
+netclass_t::netclass_t(perm_string name, netclass_t* sup)
+    : name_(name), super_(sup), class_scope_(0), definition_scope_(0) {}
+
+netclass_t::~netclass_t() {}
+
+bool netclass_t::set_property(perm_string pname, property_qualifier_t qual,
+                              ivl_type_s* ptype) {
+  map<perm_string, size_t>::const_iterator cur;
+  cur = properties_.find(pname);
+  if (cur != properties_.end()) return false;
+
+  prop_t tmp;
+  tmp.name = pname;
+  tmp.qual = qual;
+  tmp.type = ptype;
+  tmp.initialized_flag = false;
+  property_table_.push_back(tmp);
+
+  properties_[pname] = property_table_.size() - 1;
+  return true;
 }
 
-netclass_t::~netclass_t()
-{
+void netclass_t::set_class_scope(NetScope* class_scope__) {
+  assert(class_scope_ == 0);
+  class_scope_ = class_scope__;
 }
 
-bool netclass_t::set_property(perm_string pname, property_qualifier_t qual, ivl_type_s*ptype)
-{
-      map<perm_string,size_t>::const_iterator cur;
-      cur = properties_.find(pname);
-      if (cur != properties_.end())
-	    return false;
-
-      prop_t tmp;
-      tmp.name = pname;
-      tmp.qual = qual;
-      tmp.type = ptype;
-      tmp.initialized_flag = false;
-      property_table_.push_back(tmp);
-
-      properties_[pname] = property_table_.size()-1;
-      return true;
+void netclass_t::set_definition_scope(NetScope* use_definition_scope) {
+  assert(definition_scope_ == 0);
+  definition_scope_ = use_definition_scope;
 }
 
-void netclass_t::set_class_scope(NetScope*class_scope__)
-{
-      assert(class_scope_ == 0);
-      class_scope_ = class_scope__;
+ivl_variable_type_t netclass_t::base_type() const { return IVL_VT_CLASS; }
+
+size_t netclass_t::get_properties(void) const {
+  size_t res = properties_.size();
+  if (super_) res += super_->get_properties();
+  return res;
 }
 
-void netclass_t::set_definition_scope(NetScope*use_definition_scope)
-{
-      assert(definition_scope_ == 0);
-      definition_scope_ = use_definition_scope;
+int netclass_t::property_idx_from_name(perm_string pname) const {
+  map<perm_string, size_t>::const_iterator cur;
+  cur = properties_.find(pname);
+  if (cur == properties_.end()) {
+    if (super_)
+      return super_->property_idx_from_name(pname);
+    else
+      return -1;
+  }
+
+  int pidx = cur->second;
+  if (super_) pidx += super_->get_properties();
+  return pidx;
 }
 
-ivl_variable_type_t netclass_t::base_type() const
-{
-      return IVL_VT_CLASS;
+const char* netclass_t::get_prop_name(size_t idx) const {
+  size_t super_size = 0;
+  if (super_) super_size = super_->get_properties();
+
+  assert(idx < (super_size + property_table_.size()));
+  if (idx < super_size)
+    return super_->get_prop_name(idx);
+  else
+    return property_table_[idx - super_size].name;
 }
 
-size_t netclass_t::get_properties(void) const
-{
-      size_t res = properties_.size();
-      if (super_) res += super_->get_properties();
-      return res;
+property_qualifier_t netclass_t::get_prop_qual(size_t idx) const {
+  size_t super_size = 0;
+  if (super_) super_size = super_->get_properties();
+
+  assert(idx < (super_size + property_table_.size()));
+  if (idx < super_size)
+    return super_->get_prop_qual(idx);
+  else
+    return property_table_[idx - super_size].qual;
 }
 
-int netclass_t::property_idx_from_name(perm_string pname) const
-{
-      map<perm_string,size_t>::const_iterator cur;
-      cur = properties_.find(pname);
-      if (cur == properties_.end()) {
-	    if (super_)
-		  return super_->property_idx_from_name(pname);
-	    else
-		  return -1;
-      }
+ivl_type_t netclass_t::get_prop_type(size_t idx) const {
+  size_t super_size = 0;
+  if (super_) super_size = super_->get_properties();
 
-      int pidx = cur->second;
-      if (super_) pidx += super_->get_properties();
-      return pidx;
+  assert(idx < (super_size + property_table_.size()));
+  if (idx < super_size)
+    return super_->get_prop_type(idx);
+  else
+    return property_table_[idx - super_size].type;
 }
 
-const char*netclass_t::get_prop_name(size_t idx) const
-{
-      size_t super_size = 0;
-      if (super_) super_size = super_->get_properties();
+bool netclass_t::get_prop_initialized(size_t idx) const {
+  size_t super_size = 0;
+  if (super_) super_size = super_->get_properties();
 
-      assert(idx < (super_size + property_table_.size()));
-      if (idx < super_size)
-	    return super_->get_prop_name(idx);
-      else
-	    return property_table_[idx-super_size].name;
+  assert(idx < (super_size + property_table_.size()));
+  if (idx < super_size)
+    return super_->get_prop_initialized(idx);
+  else
+    return property_table_[idx].initialized_flag;
 }
 
-property_qualifier_t netclass_t::get_prop_qual(size_t idx) const
-{
-      size_t super_size = 0;
-      if (super_) super_size = super_->get_properties();
+void netclass_t::set_prop_initialized(size_t idx) const {
+  size_t super_size = 0;
+  if (super_) super_size = super_->get_properties();
 
-      assert(idx < (super_size+property_table_.size()));
-      if (idx < super_size)
-	    return super_->get_prop_qual(idx);
-      else
-	    return property_table_[idx-super_size].qual;
+  assert(idx >= super_size && idx < (super_size + property_table_.size()));
+  idx -= super_size;
+
+  assert(!property_table_[idx].initialized_flag);
+  property_table_[idx].initialized_flag = true;
 }
 
-ivl_type_t netclass_t::get_prop_type(size_t idx) const
-{
-      size_t super_size = 0;
-      if (super_) super_size = super_->get_properties();
+bool netclass_t::test_for_missing_initializers() const {
+  for (size_t idx = 0; idx < property_table_.size(); idx += 1) {
+    if (property_table_[idx].initialized_flag) continue;
+    if (property_table_[idx].qual.test_const()) return true;
+  }
 
-      assert(idx < (super_size+property_table_.size()));
-      if (idx < super_size)
-	    return super_->get_prop_type(idx);
-      else
-	    return property_table_[idx-super_size].type;
+  return false;
 }
 
-bool netclass_t::get_prop_initialized(size_t idx) const
-{
-      size_t super_size = 0;
-      if (super_) super_size = super_->get_properties();
-
-      assert(idx < (super_size+property_table_.size()));
-      if (idx < super_size)
-	    return super_->get_prop_initialized(idx);
-      else
-	    return property_table_[idx].initialized_flag;
+NetScope* netclass_t::method_from_name(perm_string name) const {
+  NetScope* task = class_scope_->child(hname_t(name));
+  if ((task == 0) && super_) task = super_->method_from_name(name);
+  return task;
 }
 
-void netclass_t::set_prop_initialized(size_t idx) const
-{
-      size_t super_size = 0;
-      if (super_) super_size = super_->get_properties();
-
-      assert(idx >= super_size && idx < (super_size+property_table_.size()));
-      idx -= super_size;
-
-      assert(! property_table_[idx].initialized_flag);
-      property_table_[idx].initialized_flag = true;
+NetNet* netclass_t::find_static_property(perm_string name) const {
+  NetNet* tmp = class_scope_->find_signal(name);
+  return tmp;
 }
 
-bool netclass_t::test_for_missing_initializers() const
-{
-      for (size_t idx = 0 ; idx < property_table_.size() ; idx += 1) {
-	    if (property_table_[idx].initialized_flag)
-		  continue;
-	    if (property_table_[idx].qual.test_const())
-		  return true;
-      }
+bool netclass_t::test_scope_is_method(const NetScope* scope) const {
+  while (scope && scope != class_scope_) {
+    scope = scope->parent();
+  }
 
-      return false;
-}
-
-NetScope*netclass_t::method_from_name(perm_string name) const
-{
-      NetScope*task = class_scope_->child( hname_t(name) );
-      if ((task == 0) && super_)
-	    task = super_->method_from_name(name);
-      return task;
-
-}
-
-NetNet* netclass_t::find_static_property(perm_string name) const
-{
-      NetNet*tmp = class_scope_->find_signal(name);
-      return tmp;
-}
-
-bool netclass_t::test_scope_is_method(const NetScope*scope) const
-{
-      while (scope && scope != class_scope_) {
-	    scope = scope->parent();
-      }
-
-      if (scope == 0)
-	    return false;
-      else
-	    return true;
+  if (scope == 0)
+    return false;
+  else
+    return true;
 }

@@ -15,33 +15,34 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
 /* The sys_priv.h include must be before the lxt2_write.h include! */
-# include "sys_priv.h"
-# include "lxt2_write.h"
-# include "vcd_priv.h"
+#include "lxt2_write.h"
+#include "sys_priv.h"
+#include "vcd_priv.h"
 
 /*
  * This file contains the implementations of the LXT2 related functions.
  */
 
-# include  <stdio.h>
-# include  <stdlib.h>
-# include  <string.h>
-# include  <time.h>
-# include  "stringheap.h"
-# include  <assert.h>
-# include  "ivl_alloc.h"
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
+#include "ivl_alloc.h"
+#include "stringheap.h"
 
 static char *dump_path = NULL;
 static struct lxt2_wr_trace *dump_file = NULL;
 
-static void* lxt2_thread(void*arg);
+static void *lxt2_thread(void *arg);
 
-static struct t_vpi_time zero_delay = { vpiSimTime, 0, 0, 0.0 };
+static struct t_vpi_time zero_delay = {vpiSimTime, 0, 0, 0.0};
 
 /*
  * Manage a table of all the dump-enabled vcd item. The cells of this
@@ -49,54 +50,51 @@ static struct t_vpi_time zero_delay = { vpiSimTime, 0, 0, 0.0 };
  * we can allocate the items in chunks.
  */
 struct vcd_info {
-      vpiHandle item;
-      vpiHandle cb;
-      struct lxt2_wr_symbol *sym;
-      struct vcd_info *dmp_next;
+  vpiHandle item;
+  vpiHandle cb;
+  struct lxt2_wr_symbol *sym;
+  struct vcd_info *dmp_next;
 };
 
 struct vcd_info_chunk {
-      struct vcd_info_chunk*chunk_next;
-      uint16_t chunk_fill;
-      struct vcd_info data[0x10000];
+  struct vcd_info_chunk *chunk_next;
+  uint16_t chunk_fill;
+  struct vcd_info data[0x10000];
 };
 
-struct vcd_info_chunk*info_chunk_list = 0;
+struct vcd_info_chunk *info_chunk_list = 0;
 
-struct vcd_info*new_vcd_info(void)
-{
-      struct vcd_info_chunk*cur_chunk = info_chunk_list;
-      if (cur_chunk == 0 || cur_chunk->chunk_fill == 0xffff) {
-	    struct vcd_info_chunk*tmp = calloc(1, sizeof(struct vcd_info_chunk));
-	    tmp->chunk_fill = 0;
-	    tmp->chunk_next = cur_chunk;
-	    info_chunk_list = cur_chunk = tmp;
-	    return info_chunk_list->data + 0;
-      }
+struct vcd_info *new_vcd_info(void) {
+  struct vcd_info_chunk *cur_chunk = info_chunk_list;
+  if (cur_chunk == 0 || cur_chunk->chunk_fill == 0xffff) {
+    struct vcd_info_chunk *tmp = calloc(1, sizeof(struct vcd_info_chunk));
+    tmp->chunk_fill = 0;
+    tmp->chunk_next = cur_chunk;
+    info_chunk_list = cur_chunk = tmp;
+    return info_chunk_list->data + 0;
+  }
 
-      cur_chunk->chunk_fill += 1;
-      struct vcd_info*ptr = cur_chunk->data + cur_chunk->chunk_fill;
-      return ptr;
+  cur_chunk->chunk_fill += 1;
+  struct vcd_info *ptr = cur_chunk->data + cur_chunk->chunk_fill;
+  return ptr;
 }
 
-void functor_all_vcd_info( void (*fun) (struct vcd_info*info) )
-{
-      struct vcd_info_chunk*cur;
-      for (cur = info_chunk_list ; cur ; cur = cur->chunk_next) {
-	    int idx;
-	    struct vcd_info*ptr;
-	    for (idx=0, ptr=cur->data ; idx <= cur->chunk_fill ; idx += 1, ptr += 1)
-		  fun (ptr);
-      }
+void functor_all_vcd_info(void (*fun)(struct vcd_info *info)) {
+  struct vcd_info_chunk *cur;
+  for (cur = info_chunk_list; cur; cur = cur->chunk_next) {
+    int idx;
+    struct vcd_info *ptr;
+    for (idx = 0, ptr = cur->data; idx <= cur->chunk_fill; idx += 1, ptr += 1)
+      fun(ptr);
+  }
 }
 
-void delete_all_vcd_info(void)
-{
-      while (info_chunk_list) {
-	    struct vcd_info_chunk*tmp = info_chunk_list->chunk_next;
-	    free(info_chunk_list);
-	    info_chunk_list = tmp;
-      }
+void delete_all_vcd_info(void) {
+  while (info_chunk_list) {
+    struct vcd_info_chunk *tmp = info_chunk_list->chunk_next;
+    free(info_chunk_list);
+    info_chunk_list = tmp;
+  }
 }
 
 /*
@@ -106,7 +104,7 @@ void delete_all_vcd_info(void)
  * if they are in the list already, even if they are at the end of the
  * list.
  */
-# define VCD_INFO_ENDP ((struct vcd_info*)1)
+#define VCD_INFO_ENDP ((struct vcd_info *)1)
 static struct vcd_info *vcd_dmp_list = VCD_INFO_ENDP;
 
 static PLI_UINT64 vcd_cur_time = 0;
@@ -115,11 +113,10 @@ static long dump_limit = 0;
 static int dump_is_full = 0;
 static int finish_status = 0;
 
-
 static enum lxm_optimum_mode_e {
-      LXM_NONE  = 0,
-      LXM_SPACE = 1,
-      LXM_SPEED = 2
+  LXM_NONE = 0,
+  LXM_SPACE = 1,
+  LXM_SPEED = 2
 } lxm_optimum_mode = LXM_SPEED;
 
 static off_t lxt2_file_size_limit = 0x40000000UL;
@@ -131,47 +128,43 @@ static off_t lxt2_file_size_limit = 0x40000000UL;
  * lxt_scope_current points to the last (top) item in the stack. The
  * push_scope and pop_scope methods manipulate the stack.
  */
-struct lxt_scope
-{
-      struct lxt_scope *next, *prev;
-      char *name;
-      int len;
+struct lxt_scope {
+  struct lxt_scope *next, *prev;
+  char *name;
+  int len;
 };
 
-static struct lxt_scope *lxt_scope_head=NULL,  *lxt_scope_current=NULL;
+static struct lxt_scope *lxt_scope_head = NULL, *lxt_scope_current = NULL;
 
-static void push_scope(const char *name)
-{
-      struct lxt_scope *t = (struct lxt_scope *)
-	    calloc(1, sizeof(struct lxt_scope));
+static void push_scope(const char *name) {
+  struct lxt_scope *t = (struct lxt_scope *)calloc(1, sizeof(struct lxt_scope));
 
-      t->name = strdup(name);
-      t->len = strlen(name);
+  t->name = strdup(name);
+  t->len = strlen(name);
 
-      if(!lxt_scope_head) {
-	    lxt_scope_head = lxt_scope_current = t;
-      } else {
-	    lxt_scope_current->next = t;
-	    t->prev = lxt_scope_current;
-	    lxt_scope_current = t;
-      }
+  if (!lxt_scope_head) {
+    lxt_scope_head = lxt_scope_current = t;
+  } else {
+    lxt_scope_current->next = t;
+    t->prev = lxt_scope_current;
+    lxt_scope_current = t;
+  }
 }
 
-static void pop_scope(void)
-{
-      struct lxt_scope *t;
+static void pop_scope(void) {
+  struct lxt_scope *t;
 
-      assert(lxt_scope_current);
+  assert(lxt_scope_current);
 
-      t=lxt_scope_current->prev;
-      free(lxt_scope_current->name);
-      free(lxt_scope_current);
-      lxt_scope_current = t;
-      if (lxt_scope_current) {
-	    lxt_scope_current->next = 0;
-      } else {
-	    lxt_scope_head = 0;
-      }
+  t = lxt_scope_current->prev;
+  free(lxt_scope_current->name);
+  free(lxt_scope_current);
+  lxt_scope_current = t;
+  if (lxt_scope_current) {
+    lxt_scope_current->next = 0;
+  } else {
+    lxt_scope_head = 0;
+  }
 }
 
 /*
@@ -179,384 +172,360 @@ static void pop_scope(void)
  * name. Scan the scope stack from the bottom up to construct the
  * name.
  */
-static char *create_full_name(const char *name)
-{
-      char *n, *n2;
-      int len = 0;
-      int is_esc_id = is_escaped_id(name);
-      struct lxt_scope *t = lxt_scope_head;
+static char *create_full_name(const char *name) {
+  char *n, *n2;
+  int len = 0;
+  int is_esc_id = is_escaped_id(name);
+  struct lxt_scope *t = lxt_scope_head;
 
-	/* Figure out how long the combined string will be. */
-      while(t) {
-	    len+=t->len+1;
-	    t=t->next;
-      }
+  /* Figure out how long the combined string will be. */
+  while (t) {
+    len += t->len + 1;
+    t = t->next;
+  }
 
-      len += strlen(name) + 1;
-      if (is_esc_id) len += 1;
+  len += strlen(name) + 1;
+  if (is_esc_id) len += 1;
 
-	/* Allocate a string buffer. */
-      n = n2 = malloc(len);
+  /* Allocate a string buffer. */
+  n = n2 = malloc(len);
 
-      t = lxt_scope_head;
-      while(t) {
-	    strcpy(n2, t->name);
-	    n2 += t->len;
-	    *n2 = '.';
-	    n2++;
-	    t=t->next;
-      }
+  t = lxt_scope_head;
+  while (t) {
+    strcpy(n2, t->name);
+    n2 += t->len;
+    *n2 = '.';
+    n2++;
+    t = t->next;
+  }
 
-      if (is_esc_id) {
-	    *n2 = '\\';
-	    n2++;
-      }
-      strcpy(n2, name);
-      n2 += strlen(n2);
-      assert( (n2 - n + 1) == len );
+  if (is_esc_id) {
+    *n2 = '\\';
+    n2++;
+  }
+  strcpy(n2, name);
+  n2 += strlen(n2);
+  assert((n2 - n + 1) == len);
 
-      return n;
+  return n;
 }
 
-static void show_this_item(struct vcd_info*info)
-{
-      s_vpi_value value;
+static void show_this_item(struct vcd_info *info) {
+  s_vpi_value value;
 
-      if (vpi_get(vpiType, info->item) == vpiRealVar) {
-	    value.format = vpiRealVal;
-	    vpi_get_value(info->item, &value);
-	    vcd_work_emit_double(info->sym, value.value.real);
+  if (vpi_get(vpiType, info->item) == vpiRealVar) {
+    value.format = vpiRealVal;
+    vpi_get_value(info->item, &value);
+    vcd_work_emit_double(info->sym, value.value.real);
 
-      } else {
-	    value.format = vpiBinStrVal;
-	    vpi_get_value(info->item, &value);
-	    vcd_work_emit_bits(info->sym, value.value.str);
-      }
+  } else {
+    value.format = vpiBinStrVal;
+    vpi_get_value(info->item, &value);
+    vcd_work_emit_bits(info->sym, value.value.str);
+  }
 }
 
-
-static void show_this_item_x(struct vcd_info*info)
-{
-      if (vpi_get(vpiType,info->item) == vpiRealVar) {
-	      /* Should write a NaN here? */
-      } else {
-	    vcd_work_emit_bits(info->sym, "x");
-      }
+static void show_this_item_x(struct vcd_info *info) {
+  if (vpi_get(vpiType, info->item) == vpiRealVar) {
+    /* Should write a NaN here? */
+  } else {
+    vcd_work_emit_bits(info->sym, "x");
+  }
 }
-
 
 static int dumpvars_status = 0; /* 0:fresh 1:cb installed, 2:callback done */
 static PLI_UINT64 dumpvars_time;
-__inline__ static int dump_header_pending(void)
-{
-      return dumpvars_status != 2;
-}
+__inline__ static int dump_header_pending(void) { return dumpvars_status != 2; }
 
 /*
  * This function writes out all the traced variables, whether they
  * changed or not.
  */
-static void vcd_checkpoint(void)
-{
-      functor_all_vcd_info( show_this_item );
+static void vcd_checkpoint(void) { functor_all_vcd_info(show_this_item); }
+
+static void vcd_checkpoint_x(void) { functor_all_vcd_info(show_this_item_x); }
+
+static PLI_INT32 variable_cb_2(p_cb_data cause) {
+  assert(cause->time->type == vpiSimTime);
+  PLI_UINT64 now = timerec_to_time64(cause->time);
+
+  if (now != vcd_cur_time) {
+    vcd_work_set_time(now);
+    vcd_cur_time = now;
+  }
+
+  while (vcd_dmp_list != VCD_INFO_ENDP) {
+    struct vcd_info *info = vcd_dmp_list;
+    show_this_item(info);
+    vcd_dmp_list = info->dmp_next;
+    info->dmp_next = 0;
+  }
+
+  return 0;
 }
 
-static void vcd_checkpoint_x(void)
-{
-      functor_all_vcd_info( show_this_item_x );
+static PLI_INT32 variable_cb_1(p_cb_data cause) {
+  struct t_cb_data cb;
+  struct vcd_info *info = (struct vcd_info *)cause->user_data;
+
+  if (dump_is_full) return 0;
+  if (dump_is_off) return 0;
+  if (dump_header_pending()) return 0;
+  if (info->dmp_next) return 0;
+
+  if ((dump_limit > 0) && (ftell(dump_file->handle) > dump_limit)) {
+    dump_is_full = 1;
+    vpi_printf(
+        "WARNING: Dump file limit (%ld bytes) "
+        "exceeded.\n",
+        dump_limit);
+    return 0;
+  }
+
+  if (vcd_dmp_list == VCD_INFO_ENDP) {
+    cb = *cause;
+    cb.time = &zero_delay;
+    cb.reason = cbReadOnlySynch;
+    cb.cb_rtn = variable_cb_2;
+    vpi_register_cb(&cb);
+  }
+
+  info->dmp_next = vcd_dmp_list;
+  vcd_dmp_list = info;
+
+  return 0;
 }
 
-static PLI_INT32 variable_cb_2(p_cb_data cause)
-{
-      assert(cause->time->type == vpiSimTime);
-      PLI_UINT64 now = timerec_to_time64(cause->time);
+static PLI_INT32 dumpvars_cb(p_cb_data cause) {
+  if (dumpvars_status != 1) return 0;
 
-      if (now != vcd_cur_time) {
-	    vcd_work_set_time(now);
-	    vcd_cur_time = now;
-      }
+  dumpvars_status = 2;
 
-      while (vcd_dmp_list != VCD_INFO_ENDP) {
-	    struct vcd_info* info = vcd_dmp_list;
-	    show_this_item(info);
-	    vcd_dmp_list = info->dmp_next;
-	    info->dmp_next = 0;
-      }
+  dumpvars_time = timerec_to_time64(cause->time);
+  vcd_cur_time = dumpvars_time;
 
-      return 0;
+  if (!dump_is_off) {
+    vcd_work_set_time(dumpvars_time);
+    vcd_checkpoint();
+  }
+
+  return 0;
 }
 
-static PLI_INT32 variable_cb_1(p_cb_data cause)
-{
-      struct t_cb_data cb;
-      struct vcd_info*info = (struct vcd_info*)cause->user_data;
+static PLI_INT32 finish_cb(p_cb_data cause) {
+  if (finish_status != 0) return 0;
 
-      if (dump_is_full) return 0;
-      if (dump_is_off) return 0;
-      if (dump_header_pending()) return 0;
-      if (info->dmp_next) return 0;
+  finish_status = 1;
 
-      if ((dump_limit > 0) && (ftell(dump_file->handle) > dump_limit)) {
-            dump_is_full = 1;
-            vpi_printf("WARNING: Dump file limit (%ld bytes) "
-                       "exceeded.\n", dump_limit);
-            return 0;
-      }
+  dumpvars_time = timerec_to_time64(cause->time);
+  if (!dump_is_off && !dump_is_full && dumpvars_time != vcd_cur_time) {
+    vcd_work_set_time(dumpvars_time);
+  }
 
-      if (vcd_dmp_list == VCD_INFO_ENDP) {
-          cb = *cause;
-	  cb.time = &zero_delay;
-          cb.reason = cbReadOnlySynch;
-          cb.cb_rtn = variable_cb_2;
-          vpi_register_cb(&cb);
-      }
+  vcd_work_terminate();
+  delete_all_vcd_info();
 
-      info->dmp_next  = vcd_dmp_list;
-      vcd_dmp_list    = info;
+  vcd_scope_names_delete();
+  nexus_ident_delete();
+  free(dump_path);
+  dump_path = 0;
 
-      return 0;
+  return 0;
 }
 
-static PLI_INT32 dumpvars_cb(p_cb_data cause)
-{
-      if (dumpvars_status != 1) return 0;
+__inline__ static int install_dumpvars_callback(void) {
+  struct t_cb_data cb;
 
-      dumpvars_status = 2;
+  if (dumpvars_status == 1) return 0;
 
-      dumpvars_time = timerec_to_time64(cause->time);
-      vcd_cur_time = dumpvars_time;
+  if (dumpvars_status == 2) {
+    vpi_printf(
+        "LXT2 warning: $dumpvars ignored, previously"
+        " called at simtime %" PLI_UINT64_FMT "\n",
+        dumpvars_time);
+    return 1;
+  }
 
-      if (!dump_is_off) {
-	    vcd_work_set_time(dumpvars_time);
-	    vcd_checkpoint();
-      }
+  cb.time = &zero_delay;
+  cb.reason = cbReadOnlySynch;
+  cb.cb_rtn = dumpvars_cb;
+  cb.user_data = 0x0;
+  cb.obj = 0x0;
 
-      return 0;
+  vpi_register_cb(&cb);
+
+  cb.reason = cbEndOfSimulation;
+  cb.cb_rtn = finish_cb;
+
+  vpi_register_cb(&cb);
+
+  dumpvars_status = 1;
+  return 0;
 }
 
-static PLI_INT32 finish_cb(p_cb_data cause)
-{
-      if (finish_status != 0) return 0;
+static PLI_INT32 sys_dumpoff_calltf(ICARUS_VPI_CONST PLI_BYTE8 *name) {
+  s_vpi_time now;
+  PLI_UINT64 now64;
 
-      finish_status = 1;
+  (void)name; /* Parameter is not used. */
 
-      dumpvars_time = timerec_to_time64(cause->time);
-      if (!dump_is_off && !dump_is_full && dumpvars_time != vcd_cur_time) {
-	    vcd_work_set_time(dumpvars_time);
-      }
+  if (dump_is_off) return 0;
 
-      vcd_work_terminate();
-      delete_all_vcd_info();
+  dump_is_off = 1;
 
-      vcd_scope_names_delete();
-      nexus_ident_delete();
-      free(dump_path);
-      dump_path = 0;
+  if (dump_file == 0) return 0;
+  if (dump_header_pending()) return 0;
 
-      return 0;
+  now.type = vpiSimTime;
+  vpi_get_time(0, &now);
+  now64 = timerec_to_time64(&now);
+
+  if (now64 > vcd_cur_time) {
+    vcd_work_set_time(now64);
+    vcd_cur_time = now64;
+  }
+
+  vcd_work_dumpoff();
+  vcd_checkpoint_x();
+
+  return 0;
 }
 
-__inline__ static int install_dumpvars_callback(void)
-{
-      struct t_cb_data cb;
+static PLI_INT32 sys_dumpon_calltf(ICARUS_VPI_CONST PLI_BYTE8 *name) {
+  s_vpi_time now;
+  PLI_UINT64 now64;
 
-      if (dumpvars_status == 1) return 0;
+  (void)name; /* Parameter is not used. */
 
-      if (dumpvars_status == 2) {
-	    vpi_printf("LXT2 warning: $dumpvars ignored, previously"
-	               " called at simtime %" PLI_UINT64_FMT "\n",
-	               dumpvars_time);
-	    return 1;
-      }
+  if (!dump_is_off) return 0;
 
-      cb.time = &zero_delay;
-      cb.reason = cbReadOnlySynch;
-      cb.cb_rtn = dumpvars_cb;
-      cb.user_data = 0x0;
-      cb.obj = 0x0;
+  dump_is_off = 0;
 
-      vpi_register_cb(&cb);
+  if (dump_file == 0) return 0;
+  if (dump_header_pending()) return 0;
 
-      cb.reason = cbEndOfSimulation;
-      cb.cb_rtn = finish_cb;
+  now.type = vpiSimTime;
+  vpi_get_time(0, &now);
+  now64 = timerec_to_time64(&now);
 
-      vpi_register_cb(&cb);
+  if (now64 > vcd_cur_time) {
+    vcd_work_set_time(now64);
+    vcd_cur_time = now64;
+  }
 
-      dumpvars_status = 1;
-      return 0;
+  vcd_work_dumpon();
+  vcd_checkpoint();
+
+  return 0;
 }
 
-static PLI_INT32 sys_dumpoff_calltf(ICARUS_VPI_CONST PLI_BYTE8*name)
-{
-      s_vpi_time now;
-      PLI_UINT64 now64;
+static PLI_INT32 sys_dumpall_calltf(ICARUS_VPI_CONST PLI_BYTE8 *name) {
+  s_vpi_time now;
+  PLI_UINT64 now64;
 
-      (void)name; /* Parameter is not used. */
+  (void)name; /* Parameter is not used. */
 
-      if (dump_is_off) return 0;
+  if (dump_is_off) return 0;
+  if (dump_file == 0) return 0;
+  if (dump_header_pending()) return 0;
 
-      dump_is_off = 1;
+  now.type = vpiSimTime;
+  vpi_get_time(0, &now);
+  now64 = timerec_to_time64(&now);
 
-      if (dump_file == 0) return 0;
-      if (dump_header_pending()) return 0;
+  if (now64 > vcd_cur_time) {
+    vcd_work_set_time(now64);
+    vcd_cur_time = now64;
+  }
 
-      now.type = vpiSimTime;
-      vpi_get_time(0, &now);
-      now64 = timerec_to_time64(&now);
+  vcd_checkpoint();
 
-      if (now64 > vcd_cur_time) {
-	    vcd_work_set_time(now64);
-	    vcd_cur_time = now64;
-      }
-
-      vcd_work_dumpoff();
-      vcd_checkpoint_x();
-
-      return 0;
+  return 0;
 }
 
-static PLI_INT32 sys_dumpon_calltf(ICARUS_VPI_CONST PLI_BYTE8*name)
-{
-      s_vpi_time now;
-      PLI_UINT64 now64;
-
-      (void)name; /* Parameter is not used. */
-
-      if (!dump_is_off) return 0;
-
-      dump_is_off = 0;
-
-      if (dump_file == 0) return 0;
-      if (dump_header_pending()) return 0;
-
-      now.type = vpiSimTime;
-      vpi_get_time(0, &now);
-      now64 = timerec_to_time64(&now);
-
-      if (now64 > vcd_cur_time) {
-	    vcd_work_set_time(now64);
-	    vcd_cur_time = now64;
-      }
-
-      vcd_work_dumpon();
-      vcd_checkpoint();
-
-      return 0;
+static void *close_dumpfile(void) {
+  vcd_work_terminate();
+  lxt2_wr_close(dump_file);
+  dump_file = NULL;
+  return NULL;
 }
 
-static PLI_INT32 sys_dumpall_calltf(ICARUS_VPI_CONST PLI_BYTE8*name)
-{
-      s_vpi_time now;
-      PLI_UINT64 now64;
+static void open_dumpfile(vpiHandle callh) {
+  off_t use_file_size_limit = lxt2_file_size_limit;
+  if (dump_path == 0) dump_path = strdup("dump.lx2");
 
-      (void)name; /* Parameter is not used. */
+  dump_file = lxt2_wr_init(dump_path);
 
-      if (dump_is_off) return 0;
-      if (dump_file == 0) return 0;
-      if (dump_header_pending()) return 0;
+  if (getenv("LXT_FILE_SIZE_LIMIT")) {
+    const char *limit_string = getenv("LXT_FILE_SIZE_LIMIT");
+    char *ep;
+    use_file_size_limit = strtoul(limit_string, &ep, 0);
+    if (use_file_size_limit == 0 || ep[0] != 0) {
+      vpi_printf("LXT2 Warning: %s:%d: LXT_FILE_SIZE_LIMIT is invalid: %s\n",
+                 vpi_get_str(vpiFile, callh), (int)vpi_get(vpiLineNo, callh),
+                 limit_string);
+      use_file_size_limit = lxt2_file_size_limit;
+    }
+  }
 
-      now.type = vpiSimTime;
-      vpi_get_time(0, &now);
-      now64 = timerec_to_time64(&now);
+  if (dump_file == 0) {
+    vpi_printf("LXT2 Error: %s:%d: ", vpi_get_str(vpiFile, callh),
+               (int)vpi_get(vpiLineNo, callh));
+    vpi_printf("Unable to open %s for output.\n", dump_path);
+    vpi_control(vpiFinish, 1);
+    free(dump_path);
+    dump_path = 0;
+    return;
+  } else {
+    int prec = vpi_get(vpiTimePrecision, 0);
 
-      if (now64 > vcd_cur_time) {
-	    vcd_work_set_time(now64);
-	    vcd_cur_time = now64;
-      }
+    vpi_printf("LXT2 info: dumpfile %s opened for output.\n", dump_path);
 
-      vcd_checkpoint();
+    assert(prec >= -15);
+    lxt2_wr_set_timescale(dump_file, prec);
 
-      return 0;
+    lxt2_wr_set_initial_value(dump_file, 'x');
+    lxt2_wr_set_compression_depth(dump_file, 4);
+    lxt2_wr_set_partial_on(dump_file, 1);
+    lxt2_wr_set_break_size(dump_file, use_file_size_limit);
+
+    vcd_work_start(lxt2_thread, 0);
+    atexit((void (*)(void))close_dumpfile);
+  }
 }
 
-static void *close_dumpfile(void)
-{
-      vcd_work_terminate();
-      lxt2_wr_close(dump_file);
-      dump_file = NULL;
-      return NULL;
-}
+static PLI_INT32 sys_dumpfile_calltf(ICARUS_VPI_CONST PLI_BYTE8 *name) {
+  vpiHandle callh = vpi_handle(vpiSysTfCall, 0);
+  vpiHandle argv = vpi_iterate(vpiArgument, callh);
+  char *path;
 
-static void open_dumpfile(vpiHandle callh)
-{
-      off_t use_file_size_limit = lxt2_file_size_limit;
-      if (dump_path == 0) dump_path = strdup("dump.lx2");
+  /* $dumpfile must be called before $dumpvars starts! */
+  if (dumpvars_status != 0) {
+    char msg[64];
+    snprintf(msg, sizeof(msg),
+             "LXT2 warning: %s:%d:", vpi_get_str(vpiFile, callh),
+             (int)vpi_get(vpiLineNo, callh));
+    msg[sizeof(msg) - 1] = 0;
+    vpi_printf("%s %s called after $dumpvars started,\n", msg, name);
+    vpi_printf("%*s using existing file (%s).\n", (int)strlen(msg), " ",
+               dump_path);
+    vpi_free_object(argv);
+    return 0;
+  }
 
-      dump_file = lxt2_wr_init(dump_path);
+  path = get_filename_with_suffix(callh, name, vpi_scan(argv), "lx2");
+  vpi_free_object(argv);
+  if (!path) return 0;
 
-      if (getenv("LXT_FILE_SIZE_LIMIT")) {
-	    const char*limit_string = getenv("LXT_FILE_SIZE_LIMIT");
-	    char*ep;
-	    use_file_size_limit = strtoul(limit_string,&ep,0);
-	    if (use_file_size_limit == 0 || ep[0] != 0) {
-		  vpi_printf("LXT2 Warning: %s:%d: LXT_FILE_SIZE_LIMIT is invalid: %s\n",
-			     vpi_get_str(vpiFile, callh),
-			     (int)vpi_get(vpiLineNo, callh),
-			     limit_string);
-		  use_file_size_limit = lxt2_file_size_limit;
-	    }
-      }
+  if (dump_path) {
+    vpi_printf("LXT2 warning: %s:%d: ", vpi_get_str(vpiFile, callh),
+               (int)vpi_get(vpiLineNo, callh));
+    vpi_printf("Overriding dump file %s with %s.\n", dump_path, path);
+    free(dump_path);
+  }
+  dump_path = path;
 
-      if (dump_file == 0) {
-	    vpi_printf("LXT2 Error: %s:%d: ", vpi_get_str(vpiFile, callh),
-	               (int)vpi_get(vpiLineNo, callh));
-	    vpi_printf("Unable to open %s for output.\n", dump_path);
-	    vpi_control(vpiFinish, 1);
-	    free(dump_path);
-	    dump_path = 0;
-	    return;
-      } else {
-	    int prec = vpi_get(vpiTimePrecision, 0);
-
-	    vpi_printf("LXT2 info: dumpfile %s opened for output.\n",
-	               dump_path);
-
-	    assert(prec >= -15);
-	    lxt2_wr_set_timescale(dump_file, prec);
-
-	    lxt2_wr_set_initial_value(dump_file, 'x');
-	    lxt2_wr_set_compression_depth(dump_file, 4);
-	    lxt2_wr_set_partial_on(dump_file, 1);
-	    lxt2_wr_set_break_size(dump_file, use_file_size_limit);
-
-	    vcd_work_start(lxt2_thread, 0);
-            atexit((void(*)(void))close_dumpfile);
-      }
-}
-
-static PLI_INT32 sys_dumpfile_calltf(ICARUS_VPI_CONST PLI_BYTE8*name)
-{
-      vpiHandle callh = vpi_handle(vpiSysTfCall, 0);
-      vpiHandle argv = vpi_iterate(vpiArgument, callh);
-      char *path;
-
-        /* $dumpfile must be called before $dumpvars starts! */
-      if (dumpvars_status != 0) {
-	    char msg[64];
-	    snprintf(msg, sizeof(msg), "LXT2 warning: %s:%d:",
-	             vpi_get_str(vpiFile, callh),
-	             (int)vpi_get(vpiLineNo, callh));
-	    msg[sizeof(msg)-1] = 0;
-	    vpi_printf("%s %s called after $dumpvars started,\n", msg, name);
-	    vpi_printf("%*s using existing file (%s).\n",
-	               (int) strlen(msg), " ", dump_path);
-	    vpi_free_object(argv);
-	    return 0;
-      }
-
-      path = get_filename_with_suffix(callh, name, vpi_scan(argv), "lx2");
-      vpi_free_object(argv);
-      if (! path) return 0;
-
-      if (dump_path) {
-	    vpi_printf("LXT2 warning: %s:%d: ", vpi_get_str(vpiFile, callh),
-	               (int)vpi_get(vpiLineNo, callh));
-	    vpi_printf("Overriding dump file %s with %s.\n", dump_path, path);
-	    free(dump_path);
-      }
-      dump_path = path;
-
-      return 0;
+  return 0;
 }
 
 /*
@@ -566,418 +535,402 @@ static PLI_INT32 sys_dumpfile_calltf(ICARUS_VPI_CONST PLI_BYTE8*name)
  * writes checkpoints out, but this makes it happen at a specific
  * time.
  */
-static PLI_INT32 sys_dumpflush_calltf(ICARUS_VPI_CONST PLI_BYTE8*name)
-{
-      (void)name; /* Parameter is not used. */
-      if (dump_file) vcd_work_flush();
+static PLI_INT32 sys_dumpflush_calltf(ICARUS_VPI_CONST PLI_BYTE8 *name) {
+  (void)name; /* Parameter is not used. */
+  if (dump_file) vcd_work_flush();
 
-      return 0;
+  return 0;
 }
 
-static PLI_INT32 sys_dumplimit_calltf(ICARUS_VPI_CONST PLI_BYTE8 *name)
-{
-      vpiHandle callh = vpi_handle(vpiSysTfCall, 0);
-      vpiHandle argv = vpi_iterate(vpiArgument, callh);
-      s_vpi_value val;
+static PLI_INT32 sys_dumplimit_calltf(ICARUS_VPI_CONST PLI_BYTE8 *name) {
+  vpiHandle callh = vpi_handle(vpiSysTfCall, 0);
+  vpiHandle argv = vpi_iterate(vpiArgument, callh);
+  s_vpi_value val;
 
-      (void)name; /* Parameter is not used. */
+  (void)name; /* Parameter is not used. */
 
-      /* Get the value and set the dump limit. */
-      assert(argv);
-      val.format = vpiIntVal;
-      vpi_get_value(vpi_scan(argv), &val);
-      dump_limit = val.value.integer;
+  /* Get the value and set the dump limit. */
+  assert(argv);
+  val.format = vpiIntVal;
+  vpi_get_value(vpi_scan(argv), &val);
+  dump_limit = val.value.integer;
 
-      vpi_free_object(argv);
-      return 0;
+  vpi_free_object(argv);
+  return 0;
 }
 
-static void scan_item(unsigned depth, vpiHandle item, int skip)
-{
-      struct t_cb_data cb;
-      struct vcd_info* info;
+static void scan_item(unsigned depth, vpiHandle item, int skip) {
+  struct t_cb_data cb;
+  struct vcd_info *info;
 
-      const char* name;
-      const char* ident;
-      int nexus_id;
+  const char *name;
+  const char *ident;
+  int nexus_id;
 
-      switch (vpi_get(vpiType, item)) {
+  switch (vpi_get(vpiType, item)) {
+    case vpiMemoryWord:
+      if (vpi_get(vpiConstantSelect, item) == 0) {
+        /* Turn a non-constant array word select into a
+         * constant word select. */
+        vpiHandle array = vpi_handle(vpiParent, item);
+        PLI_INT32 idx = vpi_get(vpiIndex, item);
+        item = vpi_handle_by_index(array, idx);
+      }
+      // fallthrough
+    case vpiIntegerVar:
+    case vpiBitVar:
+    case vpiByteVar:
+    case vpiShortIntVar:
+    case vpiIntVar:
+    case vpiLongIntVar:
+    case vpiTimeVar:
+    case vpiReg:
+    case vpiNet:
 
-	  case vpiMemoryWord:
-	    if (vpi_get(vpiConstantSelect, item) == 0) {
-		    /* Turn a non-constant array word select into a
-		     * constant word select. */
-		  vpiHandle array = vpi_handle(vpiParent, item);
-		  PLI_INT32 idx = vpi_get(vpiIndex, item);
-		  item = vpi_handle_by_index(array, idx);
-	    }
-	    // fallthrough
-	  case vpiIntegerVar:
-	  case vpiBitVar:
-	  case vpiByteVar:
-	  case vpiShortIntVar:
-	  case vpiIntVar:
-	  case vpiLongIntVar:
-	  case vpiTimeVar:
-	  case vpiReg:
-	  case vpiNet:
+      /* An array word is implicitly escaped so look for an
+       * escaped identifier that this could conflict with. */
+      if (vpi_get(vpiType, item) == vpiMemoryWord &&
+          vpi_handle_by_name(vpi_get_str(vpiFullName, item), 0)) {
+        vpi_printf(
+            "LXT2 warning: dumping array word %s will "
+            "conflict with an escaped identifier.\n",
+            vpi_get_str(vpiFullName, item));
+      }
 
-	      /* An array word is implicitly escaped so look for an
-	       * escaped identifier that this could conflict with. */
-            if (vpi_get(vpiType, item) == vpiMemoryWord &&
-                vpi_handle_by_name(vpi_get_str(vpiFullName, item), 0)) {
-		  vpi_printf("LXT2 warning: dumping array word %s will "
-		             "conflict with an escaped identifier.\n",
-		             vpi_get_str(vpiFullName, item));
-            }
+      if (skip || vpi_get(vpiAutomatic, item)) break;
 
-            if (skip || vpi_get(vpiAutomatic, item)) break;
+      name = vpi_get_str(vpiName, item);
+      nexus_id = vpi_get(_vpiNexusId, item);
+      if (nexus_id) {
+        ident = find_nexus_ident(nexus_id);
+      } else {
+        ident = 0;
+      }
 
-	    name = vpi_get_str(vpiName, item);
-	    nexus_id = vpi_get(_vpiNexusId, item);
-	    if (nexus_id) {
-		  ident = find_nexus_ident(nexus_id);
-	    } else {
-		  ident = 0;
-	    }
+      if (!ident) {
+        char *tmp = create_full_name(name);
+        ident = strdup_sh(&name_heap, tmp);
+        free(tmp);
 
-	    if (!ident) {
-		  char*tmp = create_full_name(name);
-		  ident = strdup_sh(&name_heap, tmp);
-		  free(tmp);
+        if (nexus_id) set_nexus_ident(nexus_id, ident);
 
-		  if (nexus_id) set_nexus_ident(nexus_id, ident);
+        info = new_vcd_info();
 
-		  info = new_vcd_info();
+        info->item = item;
+        info->sym = lxt2_wr_symbol_add(
+            dump_file, ident, 0 /* array rows */, vpi_get(vpiLeftRange, item),
+            vpi_get(vpiRightRange, item), LXT2_WR_SYM_F_BITS);
+        info->dmp_next = 0;
 
-		  info->item  = item;
-		  info->sym   = lxt2_wr_symbol_add(dump_file, ident,
-		                                   0 /* array rows */,
-		                                   vpi_get(vpiLeftRange, item),
-		                                   vpi_get(vpiRightRange, item),
-		                                   LXT2_WR_SYM_F_BITS);
-		  info->dmp_next = 0;
+        cb.time = 0;
+        cb.user_data = (char *)info;
+        cb.value = NULL;
+        cb.obj = item;
+        cb.reason = cbValueChange;
+        cb.cb_rtn = variable_cb_1;
 
-		  cb.time      = 0;
-		  cb.user_data = (char*)info;
-		  cb.value     = NULL;
-		  cb.obj       = item;
-		  cb.reason    = cbValueChange;
-		  cb.cb_rtn    = variable_cb_1;
+        info->cb = vpi_register_cb(&cb);
 
-		  info->cb    = vpi_register_cb(&cb);
+      } else {
+        char *n = create_full_name(name);
+        lxt2_wr_symbol_alias(dump_file, ident, n, vpi_get(vpiSize, item) - 1,
+                             0);
+        free(n);
+      }
 
-	    } else {
-		  char *n = create_full_name(name);
-		  lxt2_wr_symbol_alias(dump_file, ident, n,
-				       vpi_get(vpiSize, item)-1, 0);
-		  free(n);
-            }
+      break;
 
-	    break;
+    case vpiRealVar:
 
-	  case vpiRealVar:
+      if (skip || vpi_get(vpiAutomatic, item)) break;
 
-            if (skip || vpi_get(vpiAutomatic, item)) break;
+      name = vpi_get_str(vpiName, item);
+      {
+        char *tmp = create_full_name(name);
+        ident = strdup_sh(&name_heap, tmp);
+        free(tmp);
+      }
+      info = new_vcd_info();
 
-	    name = vpi_get_str(vpiName, item);
-	    { char*tmp = create_full_name(name);
-	      ident = strdup_sh(&name_heap, tmp);
-	      free(tmp);
-	    }
-	    info = new_vcd_info();
+      info->item = item;
+      info->sym = lxt2_wr_symbol_add(dump_file, ident, 0 /* array rows */,
+                                     vpi_get(vpiSize, item) - 1, 0,
+                                     LXT2_WR_SYM_F_DOUBLE);
+      info->dmp_next = 0;
 
-	    info->item = item;
-	    info->sym  = lxt2_wr_symbol_add(dump_file, ident,
-	                                    0 /* array rows */,
-	                                    vpi_get(vpiSize, item)-1,
-	                                    0, LXT2_WR_SYM_F_DOUBLE);
-	    info->dmp_next = 0;
+      cb.time = 0;
+      cb.user_data = (char *)info;
+      cb.value = NULL;
+      cb.obj = item;
+      cb.reason = cbValueChange;
+      cb.cb_rtn = variable_cb_1;
 
-	    cb.time      = 0;
-	    cb.user_data = (char*)info;
-	    cb.value     = NULL;
-	    cb.obj       = item;
-	    cb.reason    = cbValueChange;
-	    cb.cb_rtn    = variable_cb_1;
+      info->cb = vpi_register_cb(&cb);
 
-	    info->cb    = vpi_register_cb(&cb);
+      break;
 
-	    break;
+    case vpiModule:
+    case vpiGenScope:
+    case vpiFunction:
+    case vpiTask:
+    case vpiNamedBegin:
+    case vpiNamedFork:
 
-	  case vpiModule:
-	  case vpiGenScope:
-	  case vpiFunction:
-	  case vpiTask:
-	  case vpiNamedBegin:
-	  case vpiNamedFork:
-
-	    if (depth > 0) {
-		  const char* fullname = vpi_get_str(vpiFullName, item);
-		  /* list of types to iterate upon */
-		  static int types[] = {
-			/* Value */
-			/* vpiNamedEvent, */
-			vpiNet,
-			/* vpiParameter, */
-			vpiReg,
-			vpiVariables,
-			/* Scope */
-			vpiFunction,
-			vpiGenScope,
-			vpiModule,
-			vpiNamedBegin,
-			vpiNamedFork,
-			vpiTask,
-			-1
-		  };
-		  int i;
-		  int nskip = vcd_scope_names_test(fullname);
+      if (depth > 0) {
+        const char *fullname = vpi_get_str(vpiFullName, item);
+        /* list of types to iterate upon */
+        static int types[] = {/* Value */
+                              /* vpiNamedEvent, */
+                              vpiNet,
+                              /* vpiParameter, */
+                              vpiReg, vpiVariables,
+                              /* Scope */
+                              vpiFunction, vpiGenScope, vpiModule,
+                              vpiNamedBegin, vpiNamedFork, vpiTask, -1};
+        int i;
+        int nskip = vcd_scope_names_test(fullname);
 
 #if 0
 		  vpi_printf("LXT2 info: scanning scope %s, %u levels\n",
 		             fullname, depth);
 #endif
 
-		  if (nskip) {
-			vpi_printf("LXT2 warning: ignoring signals in "
-			           "previously scanned scope %s\n", fullname);
-		  } else {
-			vcd_scope_names_add(fullname);
-		  }
+        if (nskip) {
+          vpi_printf(
+              "LXT2 warning: ignoring signals in "
+              "previously scanned scope %s\n",
+              fullname);
+        } else {
+          vcd_scope_names_add(fullname);
+        }
 
-		  name = vpi_get_str(vpiName, item);
+        name = vpi_get_str(vpiName, item);
 
-                  push_scope(name);
+        push_scope(name);
 
-		  for (i=0; types[i]>0; i++) {
-			vpiHandle hand;
-			vpiHandle argv = vpi_iterate(types[i], item);
-			while (argv && (hand = vpi_scan(argv))) {
-			      scan_item(depth-1, hand, nskip);
-			}
-		  }
+        for (i = 0; types[i] > 0; i++) {
+          vpiHandle hand;
+          vpiHandle argv = vpi_iterate(types[i], item);
+          while (argv && (hand = vpi_scan(argv))) {
+            scan_item(depth - 1, hand, nskip);
+          }
+        }
 
-                  pop_scope();
-	    }
-	    break;
-
-	  default:
-	    vpi_printf("LXT2 warning: $dumpvars: Unsupported parameter "
-	               "type (%s)\n", vpi_get_str(vpiType, item));
+        pop_scope();
       }
+      break;
 
+    default:
+      vpi_printf(
+          "LXT2 warning: $dumpvars: Unsupported parameter "
+          "type (%s)\n",
+          vpi_get_str(vpiType, item));
+  }
 }
 
-static int draw_scope(vpiHandle item)
-{
-      int depth;
-      const char *name;
+static int draw_scope(vpiHandle item) {
+  int depth;
+  const char *name;
 
-      vpiHandle scope = vpi_handle(vpiScope, item);
-      if (!scope) return 0;
+  vpiHandle scope = vpi_handle(vpiScope, item);
+  if (!scope) return 0;
 
-      depth = 1 + draw_scope(scope);
-      name = vpi_get_str(vpiName, scope);
+  depth = 1 + draw_scope(scope);
+  name = vpi_get_str(vpiName, scope);
 
-      push_scope(name);
+  push_scope(name);
 
-      return depth;
+  return depth;
 }
 
-static PLI_INT32 sys_dumpvars_calltf(ICARUS_VPI_CONST PLI_BYTE8*name)
-{
-      vpiHandle callh = vpi_handle(vpiSysTfCall, 0);
-      vpiHandle argv = vpi_iterate(vpiArgument, callh);
-      vpiHandle item;
-      s_vpi_value value;
-      unsigned depth = 0;
+static PLI_INT32 sys_dumpvars_calltf(ICARUS_VPI_CONST PLI_BYTE8 *name) {
+  vpiHandle callh = vpi_handle(vpiSysTfCall, 0);
+  vpiHandle argv = vpi_iterate(vpiArgument, callh);
+  vpiHandle item;
+  s_vpi_value value;
+  unsigned depth = 0;
 
-      (void)name; /* Parameter is not used. */
+  (void)name; /* Parameter is not used. */
 
-      if (dump_file == 0) {
-	    open_dumpfile(callh);
-	    if (dump_file == 0) {
-		  if (argv) vpi_free_object(argv);
-		  return 0;
-	    }
-      }
-
-      if (install_dumpvars_callback()) {
-	    if (argv) vpi_free_object(argv);
-	    return 0;
-      }
-
-        /* Get the depth if it exists. */
-      if (argv) {
-	    value.format = vpiIntVal;
-	    vpi_get_value(vpi_scan(argv), &value);
-	    depth = value.value.integer;
-      }
-      if (!depth) depth = 10000;
-
-        /* This dumps all the modules in the design if none are given. */
-      if (!argv || !(item = vpi_scan(argv))) {
-	    argv = vpi_iterate(vpiModule, 0x0);
-	    assert(argv);  /* There must be at least one top level module. */
-	    item = vpi_scan(argv);
-      }
-
-      for ( ; item; item = vpi_scan(argv)) {
-
-	    int dep = draw_scope(item);
-
-	    scan_item(depth, item, 0);
-
-	    while (dep--) pop_scope();
-      }
-
-	/* Most effective compression. */
-      if (lxm_optimum_mode == LXM_SPACE) {
-	    lxt2_wr_set_compression_depth(dump_file, 9);
-	    lxt2_wr_set_partial_off(dump_file);
-      }
-
+  if (dump_file == 0) {
+    open_dumpfile(callh);
+    if (dump_file == 0) {
+      if (argv) vpi_free_object(argv);
       return 0;
+    }
+  }
+
+  if (install_dumpvars_callback()) {
+    if (argv) vpi_free_object(argv);
+    return 0;
+  }
+
+  /* Get the depth if it exists. */
+  if (argv) {
+    value.format = vpiIntVal;
+    vpi_get_value(vpi_scan(argv), &value);
+    depth = value.value.integer;
+  }
+  if (!depth) depth = 10000;
+
+  /* This dumps all the modules in the design if none are given. */
+  if (!argv || !(item = vpi_scan(argv))) {
+    argv = vpi_iterate(vpiModule, 0x0);
+    assert(argv); /* There must be at least one top level module. */
+    item = vpi_scan(argv);
+  }
+
+  for (; item; item = vpi_scan(argv)) {
+    int dep = draw_scope(item);
+
+    scan_item(depth, item, 0);
+
+    while (dep--) pop_scope();
+  }
+
+  /* Most effective compression. */
+  if (lxm_optimum_mode == LXM_SPACE) {
+    lxt2_wr_set_compression_depth(dump_file, 9);
+    lxt2_wr_set_partial_off(dump_file);
+  }
+
+  return 0;
 }
 
-static void* lxt2_thread(void*arg)
-{
-	/* Keep track of the current time, and only call the set_time
-	   function when the time changes. */
-      uint64_t cur_time = 0;
-      int run_flag = 1;
+static void *lxt2_thread(void *arg) {
+  /* Keep track of the current time, and only call the set_time
+     function when the time changes. */
+  uint64_t cur_time = 0;
+  int run_flag = 1;
 
-      (void)arg; /* Parameter is not used. */
+  (void)arg; /* Parameter is not used. */
 
-      while (run_flag) {
-	    struct vcd_work_item_s*cell = vcd_work_thread_peek();
+  while (run_flag) {
+    struct vcd_work_item_s *cell = vcd_work_thread_peek();
 
-	    if (cell->time != cur_time) {
-		  cur_time = cell->time;
-		  lxt2_wr_set_time64(dump_file, cur_time);
-	    }
+    if (cell->time != cur_time) {
+      cur_time = cell->time;
+      lxt2_wr_set_time64(dump_file, cur_time);
+    }
 
-	    switch (cell->type) {
-		case WT_NONE:
-		  break;
-		case WT_FLUSH:
-		  lxt2_wr_flush(dump_file);
-		  break;
-		case WT_DUMPON:
-		  lxt2_wr_set_dumpon(dump_file);
-		  break;
-		case WT_DUMPOFF:
-		  lxt2_wr_set_dumpoff(dump_file);
-		  break;
-		case WT_EMIT_DOUBLE:
-		  lxt2_wr_emit_value_double(dump_file, cell->sym_.lxt2,
-					    0, cell->op_.val_double);
-		  break;
-		case WT_EMIT_BITS:
-		  lxt2_wr_emit_value_bit_string(dump_file, cell->sym_.lxt2,
-						0, cell->op_.val_char);
-		  break;
-		case WT_TERMINATE:
-		  run_flag = 0;
-		  break;
-	    }
+    switch (cell->type) {
+      case WT_NONE:
+        break;
+      case WT_FLUSH:
+        lxt2_wr_flush(dump_file);
+        break;
+      case WT_DUMPON:
+        lxt2_wr_set_dumpon(dump_file);
+        break;
+      case WT_DUMPOFF:
+        lxt2_wr_set_dumpoff(dump_file);
+        break;
+      case WT_EMIT_DOUBLE:
+        lxt2_wr_emit_value_double(dump_file, cell->sym_.lxt2, 0,
+                                  cell->op_.val_double);
+        break;
+      case WT_EMIT_BITS:
+        lxt2_wr_emit_value_bit_string(dump_file, cell->sym_.lxt2, 0,
+                                      cell->op_.val_char);
+        break;
+      case WT_TERMINATE:
+        run_flag = 0;
+        break;
+    }
 
-	    vcd_work_thread_pop();
-      }
+    vcd_work_thread_pop();
+  }
 
-      return 0;
+  return 0;
 }
 
-void sys_lxt2_register(void)
-{
-      int idx;
-      struct t_vpi_vlog_info vlog_info;
-      s_vpi_systf_data tf_data;
-      vpiHandle res;
+void sys_lxt2_register(void) {
+  int idx;
+  struct t_vpi_vlog_info vlog_info;
+  s_vpi_systf_data tf_data;
+  vpiHandle res;
 
-	/* Scan the extended arguments, looking for lxt2 optimization flags. */
-      vpi_get_vlog_info(&vlog_info);
+  /* Scan the extended arguments, looking for lxt2 optimization flags. */
+  vpi_get_vlog_info(&vlog_info);
 
-	/* The "speed" option is not used in this dumper. */
-      for (idx = 0 ;  idx < vlog_info.argc ;  idx += 1) {
-	    if (strcmp(vlog_info.argv[idx],"-lxt2-space") == 0) {
-		  lxm_optimum_mode = LXM_SPACE;
+  /* The "speed" option is not used in this dumper. */
+  for (idx = 0; idx < vlog_info.argc; idx += 1) {
+    if (strcmp(vlog_info.argv[idx], "-lxt2-space") == 0) {
+      lxm_optimum_mode = LXM_SPACE;
 
-	    } else if (strcmp(vlog_info.argv[idx],"-lxt2-speed") == 0) {
-		  lxm_optimum_mode = LXM_SPEED;
+    } else if (strcmp(vlog_info.argv[idx], "-lxt2-speed") == 0) {
+      lxm_optimum_mode = LXM_SPEED;
 
-	    } else if (strcmp(vlog_info.argv[idx],"-lx2-space") == 0) {
-		  lxm_optimum_mode = LXM_SPACE;
+    } else if (strcmp(vlog_info.argv[idx], "-lx2-space") == 0) {
+      lxm_optimum_mode = LXM_SPACE;
 
-	    } else if (strcmp(vlog_info.argv[idx],"-lx2-speed") == 0) {
-		  lxm_optimum_mode = LXM_SPEED;
+    } else if (strcmp(vlog_info.argv[idx], "-lx2-speed") == 0) {
+      lxm_optimum_mode = LXM_SPEED;
+    }
+  }
 
-	    }
-      }
+  /* All the compiletf routines are located in vcd_priv.c. */
 
-      /* All the compiletf routines are located in vcd_priv.c. */
+  tf_data.type = vpiSysTask;
+  tf_data.tfname = "$dumpall";
+  tf_data.calltf = sys_dumpall_calltf;
+  tf_data.compiletf = sys_no_arg_compiletf;
+  tf_data.sizetf = 0;
+  tf_data.user_data = "$dumpall";
+  res = vpi_register_systf(&tf_data);
+  vpip_make_systf_system_defined(res);
 
-      tf_data.type      = vpiSysTask;
-      tf_data.tfname    = "$dumpall";
-      tf_data.calltf    = sys_dumpall_calltf;
-      tf_data.compiletf = sys_no_arg_compiletf;
-      tf_data.sizetf    = 0;
-      tf_data.user_data = "$dumpall";
-      res = vpi_register_systf(&tf_data);
-      vpip_make_systf_system_defined(res);
+  tf_data.type = vpiSysTask;
+  tf_data.tfname = "$dumpfile";
+  tf_data.calltf = sys_dumpfile_calltf;
+  tf_data.compiletf = sys_one_string_arg_compiletf;
+  tf_data.sizetf = 0;
+  tf_data.user_data = "$dumpfile";
+  res = vpi_register_systf(&tf_data);
+  vpip_make_systf_system_defined(res);
 
-      tf_data.type      = vpiSysTask;
-      tf_data.tfname    = "$dumpfile";
-      tf_data.calltf    = sys_dumpfile_calltf;
-      tf_data.compiletf = sys_one_string_arg_compiletf;
-      tf_data.sizetf    = 0;
-      tf_data.user_data = "$dumpfile";
-      res = vpi_register_systf(&tf_data);
-      vpip_make_systf_system_defined(res);
+  tf_data.type = vpiSysTask;
+  tf_data.tfname = "$dumpflush";
+  tf_data.calltf = sys_dumpflush_calltf;
+  tf_data.compiletf = sys_no_arg_compiletf;
+  tf_data.sizetf = 0;
+  tf_data.user_data = "$dumpflush";
+  res = vpi_register_systf(&tf_data);
+  vpip_make_systf_system_defined(res);
 
-      tf_data.type      = vpiSysTask;
-      tf_data.tfname    = "$dumpflush";
-      tf_data.calltf    = sys_dumpflush_calltf;
-      tf_data.compiletf = sys_no_arg_compiletf;
-      tf_data.sizetf    = 0;
-      tf_data.user_data = "$dumpflush";
-      res = vpi_register_systf(&tf_data);
-      vpip_make_systf_system_defined(res);
+  tf_data.type = vpiSysTask;
+  tf_data.tfname = "$dumplimit";
+  tf_data.calltf = sys_dumplimit_calltf;
+  tf_data.compiletf = sys_one_numeric_arg_compiletf;
+  tf_data.sizetf = 0;
+  tf_data.user_data = "$dumplimit";
+  res = vpi_register_systf(&tf_data);
+  vpip_make_systf_system_defined(res);
 
-      tf_data.type      = vpiSysTask;
-      tf_data.tfname    = "$dumplimit";
-      tf_data.calltf    = sys_dumplimit_calltf;
-      tf_data.compiletf = sys_one_numeric_arg_compiletf;
-      tf_data.sizetf    = 0;
-      tf_data.user_data = "$dumplimit";
-      res = vpi_register_systf(&tf_data);
-      vpip_make_systf_system_defined(res);
+  tf_data.type = vpiSysTask;
+  tf_data.tfname = "$dumpoff";
+  tf_data.calltf = sys_dumpoff_calltf;
+  tf_data.compiletf = sys_no_arg_compiletf;
+  tf_data.sizetf = 0;
+  tf_data.user_data = "$dumpoff";
+  res = vpi_register_systf(&tf_data);
+  vpip_make_systf_system_defined(res);
 
-      tf_data.type      = vpiSysTask;
-      tf_data.tfname    = "$dumpoff";
-      tf_data.calltf    = sys_dumpoff_calltf;
-      tf_data.compiletf = sys_no_arg_compiletf;
-      tf_data.sizetf    = 0;
-      tf_data.user_data = "$dumpoff";
-      res = vpi_register_systf(&tf_data);
-      vpip_make_systf_system_defined(res);
+  tf_data.type = vpiSysTask;
+  tf_data.tfname = "$dumpon";
+  tf_data.calltf = sys_dumpon_calltf;
+  tf_data.compiletf = sys_no_arg_compiletf;
+  tf_data.sizetf = 0;
+  tf_data.user_data = "$dumpon";
+  res = vpi_register_systf(&tf_data);
+  vpip_make_systf_system_defined(res);
 
-      tf_data.type      = vpiSysTask;
-      tf_data.tfname    = "$dumpon";
-      tf_data.calltf    = sys_dumpon_calltf;
-      tf_data.compiletf = sys_no_arg_compiletf;
-      tf_data.sizetf    = 0;
-      tf_data.user_data = "$dumpon";
-      res = vpi_register_systf(&tf_data);
-      vpip_make_systf_system_defined(res);
-
-      tf_data.type      = vpiSysTask;
-      tf_data.tfname    = "$dumpvars";
-      tf_data.calltf    = sys_dumpvars_calltf;
-      tf_data.compiletf = sys_dumpvars_compiletf;
-      tf_data.sizetf    = 0;
-      tf_data.user_data = "$dumpvars";
-      res = vpi_register_systf(&tf_data);
-      vpip_make_systf_system_defined(res);
+  tf_data.type = vpiSysTask;
+  tf_data.tfname = "$dumpvars";
+  tf_data.calltf = sys_dumpvars_calltf;
+  tf_data.compiletf = sys_dumpvars_compiletf;
+  tf_data.sizetf = 0;
+  tf_data.user_data = "$dumpvars";
+  res = vpi_register_systf(&tf_data);
+  vpip_make_systf_system_defined(res);
 }

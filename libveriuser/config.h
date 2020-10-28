@@ -17,25 +17,26 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# define SIZEOF_UNSIGNED_LONG_LONG 8
-# define SIZEOF_UNSIGNED_LONG 8
-# define SIZEOF_UNSIGNED 4
+#define SIZEOF_UNSIGNED_LONG_LONG 8
+#define SIZEOF_UNSIGNED_LONG 8
+#define SIZEOF_UNSIGNED 4
 
 #if SIZEOF_UNSIGNED >= 8
 typedef unsigned ivl_u64_t;
 #else
-# if SIZEOF_UNSIGNED_LONG >= 8
+#if SIZEOF_UNSIGNED_LONG >= 8
 typedef unsigned long ivl_u64_t;
-# else
-#  if SIZEOF_UNSIGNED_LONG_LONG > SIZEOF_UNSIGNED_LONG
+#else
+#if SIZEOF_UNSIGNED_LONG_LONG > SIZEOF_UNSIGNED_LONG
 typedef unsigned long long ivl_u64_t;
-#  else
+#else
 typedef unsigned long ivl_u64_t;
-#  endif
-# endif
+#endif
+#endif
 #endif
 
 #endif /* IVL_config_H */

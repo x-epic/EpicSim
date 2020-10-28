@@ -17,11 +17,12 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "config.h"
-# include  "vpi_user.h"
+#include "config.h"
+#include "vpi_user.h"
 
 class value_callback;
 
@@ -34,32 +35,30 @@ class value_callback;
  * includes some members that arrays use.
  */
 class vvp_vpi_callback {
+ public:
+  vvp_vpi_callback();
+  virtual ~vvp_vpi_callback();
 
-    public:
-      vvp_vpi_callback();
-      virtual ~vvp_vpi_callback();
+  void attach_as_word(struct __vpiArray* arr, unsigned long addr);
 
-      void attach_as_word(struct __vpiArray* arr, unsigned long addr);
-
-      void add_vpi_callback(value_callback*);
+  void add_vpi_callback(value_callback*);
 #ifdef CHECK_WITH_VALGRIND
-	/* This has only been tested at EOS. */
-      void clear_all_callbacks(void);
+  /* This has only been tested at EOS. */
+  void clear_all_callbacks(void);
 #endif
 
-	// Derived classes implement this method to provide a way for
-	// vpi to get at the vvp value of the object.
-      virtual void get_value(struct t_vpi_value*value) =0;
+  // Derived classes implement this method to provide a way for
+  // vpi to get at the vvp value of the object.
+  virtual void get_value(struct t_vpi_value* value) = 0;
 
-    protected:
-	// Derived classes call this method to indicate that it is
-	// time to call the callback.
-      void run_vpi_callbacks();
+ protected:
+  // Derived classes call this method to indicate that it is
+  // time to call the callback.
+  void run_vpi_callbacks();
 
-    private:
-      value_callback*vpi_callbacks_;
-      struct __vpi_array_word*array_words_;
+ private:
+  value_callback* vpi_callbacks_;
+  struct __vpi_array_word* array_words_;
 };
-
 
 #endif /* IVL_vvp_vpi_callback_H */

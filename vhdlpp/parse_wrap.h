@@ -17,7 +17,8 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
 /*
@@ -26,17 +27,18 @@
  * are needed by the parse type, etc.
  */
 
-# include  <list>
-# include "vhdlint.h"
-# include "vhdlreal.h"
-# include  "architec.h"
-# include  "expression.h"
-# include  "sequential.h"
-# include  "subprogram.h"
-# include  "parse_types.h"
+#include <list>
+
+#include "architec.h"
+#include "expression.h"
+#include "parse_types.h"
+#include "sequential.h"
+#include "subprogram.h"
+#include "vhdlint.h"
+#include "vhdlreal.h"
 
 class VType;
 
-# include  "parse.h"
+#include "parse.h"
 
 #endif /* IVL_parse_wrap_H */

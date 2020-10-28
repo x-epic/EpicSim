@@ -17,12 +17,13 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "config.h"
+#include "config.h"
 #ifdef HAVE_IOSFWD
-# include  <iosfwd>
+#include <iosfwd>
 #else
 class ostream;
 #endif
@@ -39,48 +40,47 @@ class verinum;
  */
 
 class verireal {
+  friend ostream& operator<<(ostream&, const verireal&);
+  friend verireal operator+(const verireal&, const verireal&);
+  friend verireal operator-(const verireal&, const verireal&);
+  friend verireal operator*(const verireal&, const verireal&);
+  friend verireal operator/(const verireal&, const verireal&);
+  friend verireal operator/(const verireal&, const verinum&);
+  friend verireal operator%(const verireal&, const verireal&);
+  friend verireal operator%(const verireal&, const verinum&);
+  friend verireal pow(const verireal&, const verireal&);
 
-      friend ostream& operator<< (ostream&, const verireal&);
-      friend verireal operator+ (const verireal&, const verireal&);
-      friend verireal operator- (const verireal&, const verireal&);
-      friend verireal operator* (const verireal&, const verireal&);
-      friend verireal operator/ (const verireal&, const verireal&);
-      friend verireal operator/ (const verireal&, const verinum&);
-      friend verireal operator% (const verireal&, const verireal&);
-      friend verireal operator% (const verireal&, const verinum&);
-      friend verireal pow(const verireal&, const verireal&);
+  // Unary minus.
+  friend verireal operator-(const verireal&);
 
-	// Unary minus.
-      friend verireal operator- (const verireal&);
+ public:
+  explicit verireal();
+  explicit verireal(const char* text);
+  explicit verireal(long val);
+  explicit verireal(double val);
+  ~verireal();
 
-    public:
-      explicit verireal();
-      explicit verireal(const char*text);
-      explicit verireal(long val);
-      explicit verireal(double val);
-      ~verireal();
+  /* Return the value of the floating point number as an
+     integer, rounded as needed. The shift is the power of 10 to
+     multiply the value before calculating the result. So for
+     example if the value is 2.5 and shift == 1, the result
+     is 25. */
+  long as_long(int shift = 0) const;
+  int64_t as_long64(int shift = 0) const;
 
-	/* Return the value of the floating point number as an
-	   integer, rounded as needed. The shift is the power of 10 to
-	   multiply the value before calculating the result. So for
-	   example if the value is 2.5 and shift == 1, the result
-	   is 25. */
-      long as_long(int shift =0) const;
-      int64_t as_long64(int shift =0) const;
+  double as_double() const;
 
-      double as_double() const;
-
-    private:
-      double value_;
+ private:
+  double value_;
 };
 
-extern ostream& operator<< (ostream&, const verireal&);
-extern verireal operator* (const verireal&, const verireal&);
-extern verireal operator/ (const verireal&, const verireal&);
-extern verireal operator/ (const verireal&, const verinum&);
-extern verireal operator% (const verireal&, const verireal&);
-extern verireal operator% (const verireal&, const verinum&);
+extern ostream& operator<<(ostream&, const verireal&);
+extern verireal operator*(const verireal&, const verireal&);
+extern verireal operator/(const verireal&, const verireal&);
+extern verireal operator/(const verireal&, const verinum&);
+extern verireal operator%(const verireal&, const verireal&);
+extern verireal operator%(const verireal&, const verinum&);
 extern verireal pow(const verireal&, const verireal&);
-extern verireal operator- (const verireal&);
+extern verireal operator-(const verireal&);
 
 #endif /* IVL_verireal_H */

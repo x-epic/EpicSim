@@ -17,42 +17,40 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-#include <iostream>
 #include <cmath>
+#include <iostream>
 
 /*
-* This class holds a floating point decimal number. The number is
-* stored as double. All based numbers are converted by an external
-* function to a double and then stored as class instance.
-*/
-class vhdlreal
-{
-    public:
-      friend std::ostream& operator<< (std::ostream&, const vhdlreal&);
-      friend vhdlreal operator+ (const vhdlreal&, const vhdlreal&);
-      friend vhdlreal operator- (const vhdlreal&, const vhdlreal&);
-      friend vhdlreal operator* (const vhdlreal&, const vhdlreal&);
-      friend vhdlreal operator/ (const vhdlreal&, const vhdlreal&);
-      friend vhdlreal operator% (const vhdlreal&, const vhdlreal&);
-      friend vhdlreal pow(const vhdlreal&, const vhdlreal&);
-	// Unary minus.
-      friend vhdlreal operator- (const vhdlreal&);
+ * This class holds a floating point decimal number. The number is
+ * stored as double. All based numbers are converted by an external
+ * function to a double and then stored as class instance.
+ */
+class vhdlreal {
+ public:
+  friend std::ostream& operator<<(std::ostream&, const vhdlreal&);
+  friend vhdlreal operator+(const vhdlreal&, const vhdlreal&);
+  friend vhdlreal operator-(const vhdlreal&, const vhdlreal&);
+  friend vhdlreal operator*(const vhdlreal&, const vhdlreal&);
+  friend vhdlreal operator/(const vhdlreal&, const vhdlreal&);
+  friend vhdlreal operator%(const vhdlreal&, const vhdlreal&);
+  friend vhdlreal pow(const vhdlreal&, const vhdlreal&);
+  // Unary minus.
+  friend vhdlreal operator-(const vhdlreal&);
 
-      explicit vhdlreal();
-      explicit vhdlreal(const char*text);
-      explicit vhdlreal(const double& val);
-      vhdlreal(const vhdlreal& val);
-      virtual ~vhdlreal() {};
+  explicit vhdlreal();
+  explicit vhdlreal(const char* text);
+  explicit vhdlreal(const double& val);
+  vhdlreal(const vhdlreal& val);
+  virtual ~vhdlreal(){};
 
-      double as_double() const
-      {
-	    return value_;
-      }
-    private:
-      double value_;
+  double as_double() const { return value_; }
+
+ private:
+  double value_;
 };
 
 #endif /* IVL_vhdlreal_h */

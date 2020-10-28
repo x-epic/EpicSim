@@ -1,7 +1,7 @@
 /* Copyright (c) 2020 XEPIC Corporation Limited */
 
 const char COPYRIGHT[] =
-    	"Copyright (c) 2020 by XEPIC Co., Ltd.\nALL RIGHTS RESERVED\n\n";
+    "Copyright (c) 2020 by XEPIC Co., Ltd.\nALL RIGHTS RESERVED\n\n";
 /*
  *    This source code is free software; you can redistribute it
  *    and/or modify it in source code form under the terms of the GNU
@@ -16,11 +16,12 @@ const char COPYRIGHT[] =
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
-# include  "vhdlpp_config.h"
-# include  "version_base.h"
-# include  "version_tag.h"
+#include "version_base.h"
+#include "version_tag.h"
+#include "vhdlpp_config.h"
 
 /*
  * Usage:  vhdlpp [flags] sourcefile...
@@ -59,188 +60,194 @@ const char COPYRIGHT[] =
  */
 
 const char NOTICE[] =
-"  This program is proprietary and confidential information of XEPIC Co., Ltd.\n"
-"  and may be used and disclosed only as authorized in a license agreement\n"
-"  controlling such use and disclosure.\n";
+    "  This program is proprietary and confidential information of XEPIC Co., "
+    "Ltd.\n"
+    "  and may be used and disclosed only as authorized in a license "
+    "agreement\n"
+    "  controlling such use and disclosure.\n";
 
-# include  "compiler.h"
-# include  "library.h"
-# include  "std_funcs.h"
-# include  "std_types.h"
-# include  "parse_api.h"
-# include  "vtype.h"
-# include  <fstream>
-# include  <cstdio>
-# include  <cstdlib>
-# include  <cstring>
-# include  <cerrno>
-# include  <limits>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
+#include <limits>
+
+#include "compiler.h"
+#include "library.h"
+#include "parse_api.h"
+#include "std_funcs.h"
+#include "std_types.h"
+#include "vtype.h"
 #if defined(HAVE_GETOPT_H)
-# include  <getopt.h>
+#include <getopt.h>
 #endif
-# include  <sys/stat.h>
-
+#include <sys/stat.h>
 
 bool verbose_flag = false;
-  // Where to dump design entities
-const char*dump_design_entities_path = 0;
-const char*dump_libraries_path = 0;
-const char*debug_log_path = 0;
+// Where to dump design entities
+const char* dump_design_entities_path = 0;
+const char* dump_libraries_path = 0;
+const char* debug_log_path = 0;
 
 bool debug_elaboration = false;
 ofstream debug_log_file;
 
-extern void dump_libraries(ostream&file);
+extern void dump_libraries(ostream& file);
 extern void parser_cleanup();
 
-static void process_debug_token(const char*word)
-{
-      if (strcmp(word, "yydebug") == 0) {
-	    yydebug = 1;
-      } else if (strcmp(word, "no-yydebug") == 0) {
-	    yydebug = 0;
-      } else if (strncmp(word, "entities=", 9) == 0) {
-	    dump_design_entities_path = strdup(word+9);
-      } else if (strncmp(word, "libraries=", 10) == 0) {
-	    dump_libraries_path = strdup(word+10);
-      } else if (strncmp(word, "log=", 4) == 0) {
-	    debug_log_path = strdup(word+4);
-      } else if (strcmp(word, "elaboration") == 0) {
-	    debug_elaboration = true;
-      }
+static void process_debug_token(const char* word) {
+  if (strcmp(word, "yydebug") == 0) {
+    yydebug = 1;
+  } else if (strcmp(word, "no-yydebug") == 0) {
+    yydebug = 0;
+  } else if (strncmp(word, "entities=", 9) == 0) {
+    dump_design_entities_path = strdup(word + 9);
+  } else if (strncmp(word, "libraries=", 10) == 0) {
+    dump_libraries_path = strdup(word + 10);
+  } else if (strncmp(word, "log=", 4) == 0) {
+    debug_log_path = strdup(word + 4);
+  } else if (strcmp(word, "elaboration") == 0) {
+    debug_elaboration = true;
+  }
 }
 
-int main(int argc, char*argv[])
-{
-      int opt;
-      int rc;
-      const char*work_path = "ivl_vhdl_work";
+int main(int argc, char* argv[]) {
+  int opt;
+  int rc;
+  const char* work_path = "ivl_vhdl_work";
 
-      while ( (opt=getopt(argc, argv, "D:L:vVw:")) != EOF) switch (opt) {
+  while ((opt = getopt(argc, argv, "D:L:vVw:")) != EOF) switch (opt) {
+      case 'D':
+        process_debug_token(optarg);
+        break;
 
-	  case 'D':
-	    process_debug_token(optarg);
-	    break;
+      case 'L':
+        library_add_directory(optarg);
+        break;
 
-	  case 'L':
-	    library_add_directory(optarg);
-	    break;
+      case 'v':
+        fprintf(stderr,
+                "EpicSim VHDL Parse version " VERSION " (" VERSION_TAG ")\n\n");
+        fprintf(stderr, "%s\n\n", COPYRIGHT);
+        fputs(NOTICE, stderr);
+        verbose_flag = true;
+        break;
 
-	  case 'v':
-	    fprintf(stderr, "EpicSim VHDL Parse version "
-		    VERSION " (" VERSION_TAG ")\n\n");
-	    fprintf(stderr, "%s\n\n", COPYRIGHT);
-	    fputs(NOTICE, stderr);
-	    verbose_flag = true;
-	    break;
+      case 'V':
+        fprintf(stdout,
+                "EpicSim VHDL Parse version " VERSION " (" VERSION_TAG ")\n\n");
+        fprintf(stdout, "%s\n\n", COPYRIGHT);
+        fputs(NOTICE, stdout);
+        break;
 
-	  case 'V':
-	    fprintf(stdout, "EpicSim VHDL Parse version "
-		    VERSION " (" VERSION_TAG ")\n\n");
-	    fprintf(stdout, "%s\n\n", COPYRIGHT);
-	    fputs(NOTICE, stdout);
-	    break;
+      case 'w':
+        work_path = optarg;
+        break;
+    }
 
-	  case 'w':
-	    work_path = optarg;
-	    break;
-      }
+  if (debug_log_path) {
+    debug_log_file.open(debug_log_path);
+  }
 
-      if (debug_log_path) {
-	    debug_log_file.open(debug_log_path);
-      }
+  if ((rc = mkdir(work_path, 0777)) < 0) {
+    if (errno != EEXIST) {
+      fprintf(stderr,
+              "EpicSim VHDL unable to create work directory %s, errno=%d\n",
+              work_path, errno);
+      return -1;
+    }
+    struct stat stat_buf;
+    rc = stat(work_path, &stat_buf);
 
-      if ( (rc = mkdir(work_path, 0777)) < 0 ) {
-	    if (errno != EEXIST) {
-		  fprintf(stderr, "EpicSim VHDL unable to create work directory %s, errno=%d\n", work_path, errno);
-		  return -1;
-	    }
-	    struct stat stat_buf;
-	    rc = stat(work_path, &stat_buf);
+    if (!S_ISDIR(stat_buf.st_mode)) {
+      fprintf(stderr, "EpicSim VHDL work path `%s' is not a directory.\n",
+              work_path);
+      return -1;
+    }
+  }
 
-	    if (!S_ISDIR(stat_buf.st_mode)) {
-		  fprintf(stderr, "EpicSim VHDL work path `%s' is not a directory.\n", work_path);
-		  return -1;
-	    }
-      }
+  std::cout.precision(std::numeric_limits<double>::digits10);
+  library_set_work_path(work_path);
 
-      std::cout.precision(std::numeric_limits<double>::digits10);
-      library_set_work_path(work_path);
+  preload_global_types();
+  preload_std_funcs();
 
-      preload_global_types();
-      preload_std_funcs();
+  int errors = 0;
 
-      int errors = 0;
+  for (int idx = optind; idx < argc; idx += 1) {
+    parse_errors = 0;
+    parse_sorrys = 0;
+    rc = parse_source_file(argv[idx], perm_string());
+    if (rc < 0) return 1;
 
-      for (int idx = optind ; idx < argc ; idx += 1) {
-	    parse_errors = 0;
-	    parse_sorrys = 0;
-	    rc = parse_source_file(argv[idx], perm_string());
-	    if (rc < 0)
-		  return 1;
+    if (verbose_flag)
+      fprintf(
+          stderr,
+          "parse_source_file() returns %d, parse_errors=%d, parse_sorrys=%d\n",
+          rc, parse_errors, parse_sorrys);
 
-	    if (verbose_flag)
-		  fprintf(stderr, "parse_source_file() returns %d, parse_errors=%d, parse_sorrys=%d\n", rc, parse_errors, parse_sorrys);
+    if (parse_errors > 0) {
+      fprintf(stderr, "Encountered %d errors parsing %s\n", parse_errors,
+              argv[idx]);
+    }
+    if (parse_sorrys > 0) {
+      fprintf(stderr, "Encountered %d unsupported constructs parsing %s\n",
+              parse_sorrys, argv[idx]);
+    }
 
-	    if (parse_errors > 0) {
-		  fprintf(stderr, "Encountered %d errors parsing %s\n", parse_errors, argv[idx]);
-	    }
-	    if (parse_sorrys > 0) {
-		  fprintf(stderr, "Encountered %d unsupported constructs parsing %s\n", parse_sorrys, argv[idx]);
-	    }
+    if (parse_errors || parse_sorrys) {
+      errors += parse_errors;
+      errors += parse_sorrys;
+      break;
+    }
+  }
 
-	    if (parse_errors || parse_sorrys) {
-		  errors += parse_errors;
-		  errors += parse_sorrys;
-		  break;
-	    }
-      }
+  if (dump_libraries_path) {
+    ofstream file(dump_libraries_path);
+    dump_libraries(file);
+  }
 
-      if (dump_libraries_path) {
-	    ofstream file(dump_libraries_path);
-	    dump_libraries(file);
-      }
+  if (dump_design_entities_path) {
+    ofstream file(dump_design_entities_path);
+    dump_design_entities(file);
+  }
 
-      if (dump_design_entities_path) {
-	    ofstream file(dump_design_entities_path);
-	    dump_design_entities(file);
-      }
+  if (errors > 0) {
+    parser_cleanup();
+    return 2;
+  }
 
-      if (errors > 0) {
-	    parser_cleanup();
-	    return 2;
-      }
+  errors = elaborate_entities();
+  if (errors > 0) {
+    fprintf(stderr, "%d errors elaborating design.\n", errors);
+    parser_cleanup();
+    return 3;
+  }
 
-      errors = elaborate_entities();
-      if (errors > 0) {
-	    fprintf(stderr, "%d errors elaborating design.\n", errors);
-	    parser_cleanup();
-	    return 3;
-      }
+  errors = elaborate_libraries();
+  if (errors > 0) {
+    fprintf(stderr, "%d errors elaborating libraries.\n", errors);
+    parser_cleanup();
+    return 4;
+  }
 
-      errors = elaborate_libraries();
-      if (errors > 0) {
-	    fprintf(stderr, "%d errors elaborating libraries.\n", errors);
-	    parser_cleanup();
-	    return 4;
-      }
+  emit_std_types(cout);
 
-      emit_std_types(cout);
+  errors = emit_packages();
+  if (errors > 0) {
+    fprintf(stderr, "%d errors emitting packages.\n", errors);
+    parser_cleanup();
+    return 5;
+  }
 
-      errors = emit_packages();
-      if (errors > 0) {
-	    fprintf(stderr, "%d errors emitting packages.\n", errors);
-	    parser_cleanup();
-	    return 5;
-      }
+  errors = emit_entities();
+  if (errors > 0) {
+    fprintf(stderr, "%d errors emitting design.\n", errors);
+    parser_cleanup();
+    return 6;
+  }
 
-      errors = emit_entities();
-      if (errors > 0) {
-	    fprintf(stderr, "%d errors emitting design.\n", errors);
-	    parser_cleanup();
-	    return 6;
-      }
-
-      parser_cleanup();
-      return 0;
+  parser_cleanup();
+  return 0;
 }

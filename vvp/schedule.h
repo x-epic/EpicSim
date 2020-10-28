@@ -17,12 +17,13 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "vthread.h"
-# include  "vvp_net.h"
-# include  "array.h"
+#include "array.h"
+#include "vthread.h"
+#include "vvp_net.h"
 
 /*
  * This causes a thread to be scheduled for execution. The schedule
@@ -34,7 +35,7 @@
  * execution ahead of non-blocking assignments.
  */
 extern void schedule_vthread(vthread_t thr, vvp_time64_t delay,
-			     bool push_flag =false);
+                             bool push_flag = false);
 
 extern void schedule_inactive(vthread_t thr);
 
@@ -48,36 +49,28 @@ extern void schedule_final_vthread(vthread_t thr);
  * like a non-blocking assignment. This is in fact mostly used to
  * implement the non-blocking assignment.
  */
-extern void schedule_assign_vector(vvp_net_ptr_t ptr,
-				   unsigned base, unsigned vwid,
-				   const vvp_vector4_t&val,
-				   vvp_time64_t  delay);
+extern void schedule_assign_vector(vvp_net_ptr_t ptr, unsigned base,
+                                   unsigned vwid, const vvp_vector4_t &val,
+                                   vvp_time64_t delay);
 
-extern void schedule_assign_array_word(vvp_array_t mem,
-				       unsigned word_address,
-				       unsigned off,
-				       vvp_vector4_t val,
-				       vvp_time64_t delay);
+extern void schedule_assign_array_word(vvp_array_t mem, unsigned word_address,
+                                       unsigned off, vvp_vector4_t val,
+                                       vvp_time64_t delay);
 
-extern void schedule_assign_array_word(vvp_array_t mem,
-				       unsigned word_address,
-				       double val,
-				       vvp_time64_t delay);
+extern void schedule_assign_array_word(vvp_array_t mem, unsigned word_address,
+                                       double val, vvp_time64_t delay);
 
 /*
  * Create an event to force the output of a net.
  */
-extern void schedule_force_vector(vvp_net_t*net,
-				  unsigned base, unsigned vwid,
-				  const vvp_vector4_t&val,
-				  vvp_time64_t delay);
+extern void schedule_force_vector(vvp_net_t *net, unsigned base, unsigned vwid,
+                                  const vvp_vector4_t &val, vvp_time64_t delay);
 
 /*
  * Create an event to propagate the output of a net.
  */
-extern void schedule_propagate_vector(vvp_net_t*ptr,
-				      vvp_time64_t  delay,
-				      const vvp_vector4_t&val);
+extern void schedule_propagate_vector(vvp_net_t *ptr, vvp_time64_t delay,
+                                      const vvp_vector4_t &val);
 
 /*
  * This is very similar to schedule_assign_vector, but generates an
@@ -85,7 +78,7 @@ extern void schedule_propagate_vector(vvp_net_t*ptr,
  * constant value (i.e. C4<...>) to the input of a functor. This
  * creates an event in the active queue.
  */
-extern void schedule_set_vector(vvp_net_ptr_t ptr, const vvp_vector4_t&val);
+extern void schedule_set_vector(vvp_net_ptr_t ptr, const vvp_vector4_t &val);
 extern void schedule_set_vector(vvp_net_ptr_t ptr, vvp_vector8_t val);
 extern void schedule_set_vector(vvp_net_ptr_t ptr, double val);
 
@@ -113,8 +106,8 @@ extern void schedule_init_vector(vvp_net_ptr_t ptr, double val);
  * propagates an initial value from a net output (i.e. without passing
  * through the net functor).
  */
-extern void schedule_init_propagate(vvp_net_t*net, vvp_vector4_t val);
-extern void schedule_init_propagate(vvp_net_t*net, double val);
+extern void schedule_init_propagate(vvp_net_t *net, vvp_vector4_t val);
+extern void schedule_init_propagate(vvp_net_t *net, double val);
 
 /*
  * Create a generic event. This supports scheduled events that are not
@@ -136,8 +129,8 @@ extern void schedule_init_propagate(vvp_net_t*net, double val);
 typedef struct vvp_gen_event_s *vvp_gen_event_t;
 
 extern void schedule_generic(vvp_gen_event_t obj, vvp_time64_t delay,
-			     bool sync_flag, bool ro_flag =true,
-			     bool delete_obj_when_done =false);
+                             bool sync_flag, bool ro_flag = true,
+                             bool delete_obj_when_done = false);
 
 /* Create a functor output event. This is placed in the pre-simulation
  * event queue if the scheduler is still processing pre-simulation
@@ -145,20 +138,20 @@ extern void schedule_generic(vvp_gen_event_t obj, vvp_time64_t delay,
  * ACTIVE event with a delay of 0. It is up to the user to allocate/free
  * the vvp_get_event_s object. The object is never referenced by the
  * scheduler after the run method is called.
-*/
+ */
 extern void schedule_functor(vvp_gen_event_t obj);
 
-extern void schedule_at_start_of_simtime(vvp_gen_event_t obj, vvp_time64_t delay);
+extern void schedule_at_start_of_simtime(vvp_gen_event_t obj,
+                                         vvp_time64_t delay);
 extern void schedule_at_end_of_simtime(vvp_gen_event_t obj, vvp_time64_t delay);
 
 /* Use this is schedule thread deletion (after rosync). */
 extern void schedule_del_thr(vthread_t thr);
 
-struct vvp_gen_event_s
-{
-      virtual ~vvp_gen_event_s() =0;
-      virtual void run_run() =0;
-      virtual void single_step_display(void);
+struct vvp_gen_event_s {
+  virtual ~vvp_gen_event_s() = 0;
+  virtual void run_run() = 0;
+  virtual void single_step_display(void);
 };
 
 /*

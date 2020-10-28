@@ -15,24 +15,23 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  <vpi_user.h>
-# include  <veriuser.h>
-# include  <acc_user.h>
+#include <acc_user.h>
+#include <veriuser.h>
+#include <vpi_user.h>
 
 /*
  * acc_fetch_argv implemented using VPI interface
  */
-char **acc_fetch_argv(void)
-{
-      s_vpi_vlog_info vpi_vlog_info;
+char **acc_fetch_argv(void) {
+  s_vpi_vlog_info vpi_vlog_info;
 
-      /* get command line info */
-      if (! vpi_get_vlog_info(&vpi_vlog_info))
-	    return (char **)0;
+  /* get command line info */
+  if (!vpi_get_vlog_info(&vpi_vlog_info)) return (char **)0;
 
-      /* return argc */
-      return vpi_vlog_info.argv;
+  /* return argc */
+  return vpi_vlog_info.argv;
 }

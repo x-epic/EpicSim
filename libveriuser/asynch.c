@@ -15,10 +15,11 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  <veriuser.h>
+#include <veriuser.h>
 
 /* Enables async misctf callbacks */
 int async_misctf_enable = 0;
@@ -26,14 +27,12 @@ int async_misctf_enable = 0;
 /*
  * Implement misctf async enable
  */
-int tf_asynchon(void)
-{
-      async_misctf_enable = 1;
-      return 0;
+int tf_asynchon(void) {
+  async_misctf_enable = 1;
+  return 0;
 }
 
-int tf_asynchoff(void)
-{
-      async_misctf_enable = 0;
-      return 0;
+int tf_asynchoff(void) {
+  async_misctf_enable = 0;
+  return 0;
 }

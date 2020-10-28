@@ -17,10 +17,11 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "vvp_net.h"
+#include "vvp_net.h"
 
 /*
  * The vvp_fun_bufif functor implements the logic of bufif0/1 and
@@ -32,26 +33,22 @@
  * strengths to the buffered value, and sends H/L in response to
  * unknown enable bits.
  */
-class vvp_fun_bufif  : public vvp_net_fun_t {
+class vvp_fun_bufif : public vvp_net_fun_t {
+ public:
+  vvp_fun_bufif(bool en_invert, bool out_invert, unsigned str0, unsigned str1);
 
-    public:
-      vvp_fun_bufif(bool en_invert, bool out_invert,
-		    unsigned str0, unsigned str1);
+  void recv_vec4(vvp_net_ptr_t port, const vvp_vector4_t& bit, vvp_context_t);
 
-      void recv_vec4(vvp_net_ptr_t port, const vvp_vector4_t&bit,
-                     vvp_context_t);
+  void recv_vec4_pv(vvp_net_ptr_t ptr, const vvp_vector4_t& bit, unsigned base,
+                    unsigned wid, unsigned vwid, vvp_context_t ctx);
 
-      void recv_vec4_pv(vvp_net_ptr_t ptr, const vvp_vector4_t&bit,
-			unsigned base, unsigned wid, unsigned vwid,
-                        vvp_context_t ctx);
-
-    private:
-      vvp_vector4_t bit_;
-      vvp_vector4_t en_;
-      unsigned pol_ : 1;
-      unsigned inv_ : 1;
-      unsigned drive0_ : 8;
-      unsigned drive1_ : 8;
+ private:
+  vvp_vector4_t bit_;
+  vvp_vector4_t en_;
+  unsigned pol_ : 1;
+  unsigned inv_ : 1;
+  unsigned drive0_ : 8;
+  unsigned drive1_ : 8;
 };
 
 #endif /* IVL_bufif_H */

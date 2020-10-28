@@ -17,18 +17,19 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  <list>
-# include  <map>
-# include  "netlist.h"
-# include  "StringHeap.h"
+#include <list>
+#include <map>
+
+#include "StringHeap.h"
+#include "netlist.h"
 
 /*
  * This defines constants and defaults for the compiler in general.
  */
-
 
 /*
  * The integer_width is the width of integer variables. This is also
@@ -50,7 +51,7 @@ extern unsigned recursive_mod_limit;
 
 /* The TIME_WIDTH is the width of time variables. */
 #ifndef TIME_WIDTH
-# define TIME_WIDTH 64
+#define TIME_WIDTH 64
 #endif
 
 /*
@@ -70,7 +71,6 @@ extern unsigned recursive_mod_limit;
 #else
 #define TU ""
 #endif
-
 
 /*
  * These are flags to enable various sorts of warnings. By default all
@@ -145,25 +145,25 @@ extern bool disable_concatz_generation;
 extern unsigned long array_size_limit;
 
 /* Path to a directory useful for finding subcomponents. */
-extern const char*basedir;
+extern const char* basedir;
 
 /* This is an ordered list of library suffixes to search. */
-extern list<const char*>library_suff;
-extern int build_library_index(const char*path, bool key_case_sensitive);
+extern list<const char*> library_suff;
+extern int build_library_index(const char* path, bool key_case_sensitive);
 
 /* This is the generation of Verilog that the compiler is asked to
    support. Then there are also more detailed controls for more
    specific language features. Note that the compiler often assumes
    this is an ordered list. */
 enum generation_t {
-      GN_VER1995  = 1,
-      GN_VER2001_NOCONFIG  = 2,
-      GN_VER2001  = 3,
-      GN_VER2005  = 4,
-      GN_VER2005_SV  = 5,
-      GN_VER2009  = 6,
-      GN_VER2012  = 7,
-      GN_DEFAULT  = 4
+  GN_VER1995 = 1,
+  GN_VER2001_NOCONFIG = 2,
+  GN_VER2001 = 3,
+  GN_VER2005 = 4,
+  GN_VER2005_SV = 5,
+  GN_VER2009 = 6,
+  GN_VER2012 = 7,
+  GN_DEFAULT = 4
 };
 
 extern generation_t generation_flag;
@@ -206,53 +206,46 @@ extern bool gn_strict_expr_width_flag;
    loop. */
 extern bool gn_shared_loop_index_flag;
 
-static inline bool gn_system_verilog(void)
-{
-      if (generation_flag >= GN_VER2005_SV)
-	    return true;
-      return false;
+static inline bool gn_system_verilog(void) {
+  if (generation_flag >= GN_VER2005_SV) return true;
+  return false;
 }
 
 /* If variables can be converted to uwires by a continuous assignment
    (assuming no procedural assign), then return true. This will be true
    for SystemVerilog */
-static inline bool gn_var_can_be_uwire(void)
-{
-      return gn_system_verilog();
-}
+static inline bool gn_var_can_be_uwire(void) { return gn_system_verilog(); }
 
-static inline bool gn_modules_nest(void)
-{
-      return gn_system_verilog();
-}
+static inline bool gn_modules_nest(void) { return gn_system_verilog(); }
 
 /* The bits of these GN_KEYWORDS_* constants define non-intersecting
    sets of keywords. The compiler enables groups of keywords by setting
    lexor_keyword_mask with the OR of the bits for the keywords to be
    enabled. */
-enum { GN_KEYWORDS_1364_1995        = 0x0001,
-       GN_KEYWORDS_1364_2001        = 0x0002,
-       GN_KEYWORDS_1364_2001_CONFIG = 0x0004,
-       GN_KEYWORDS_1364_2005        = 0x0008,
-       GN_KEYWORDS_VAMS_2_3         = 0x0010,
-       GN_KEYWORDS_1800_2005        = 0x0020,
-       GN_KEYWORDS_1800_2009        = 0x0040,
-       GN_KEYWORDS_1800_2012        = 0x0080,
-       GN_KEYWORDS_ICARUS           = 0x8000
+enum {
+  GN_KEYWORDS_1364_1995 = 0x0001,
+  GN_KEYWORDS_1364_2001 = 0x0002,
+  GN_KEYWORDS_1364_2001_CONFIG = 0x0004,
+  GN_KEYWORDS_1364_2005 = 0x0008,
+  GN_KEYWORDS_VAMS_2_3 = 0x0010,
+  GN_KEYWORDS_1800_2005 = 0x0020,
+  GN_KEYWORDS_1800_2009 = 0x0040,
+  GN_KEYWORDS_1800_2012 = 0x0080,
+  GN_KEYWORDS_ICARUS = 0x8000
 };
 extern int lexor_keyword_mask;
 
-  /* This is the string to use to invoke the preprocessor. */
-extern char*ivlpp_string;
+/* This is the string to use to invoke the preprocessor. */
+extern char* ivlpp_string;
 
-extern map<perm_string,unsigned> missing_modules;
+extern map<perm_string, unsigned> missing_modules;
 
-  /* Files that are library files are in this map. The lexor compares
-     file names as it processes `line directives, and if the file name
-     matches an entry in this table, it will turn on the
-     library_active_flag so that modules know that they are in a
-     library. */
-extern map<perm_string,bool> library_file_map;
+/* Files that are library files are in this map. The lexor compares
+   file names as it processes `line directives, and if the file name
+   matches an entry in this table, it will turn on the
+   library_active_flag so that modules know that they are in a
+   library. */
+extern map<perm_string, bool> library_file_map;
 
 /*
  * the lex_strings are perm_strings made up of tokens from the source
@@ -274,7 +267,6 @@ extern StringHeapLex bits_strings;
  */
 extern StringHeapLex filename_strings;
 
-
 /*
  * system task/function listings.
  */
@@ -284,23 +276,23 @@ extern StringHeapLex filename_strings;
  * system function calls.
  */
 struct sfunc_return_type {
-      const char*   name;
-      ivl_variable_type_t type;
-      unsigned      wid;
-      bool          signed_flag;
-      bool          override_flag;
+  const char* name;
+  ivl_variable_type_t type;
+  unsigned wid;
+  bool signed_flag;
+  bool override_flag;
 };
 
-extern void add_sys_func(const struct sfunc_return_type&ret_type);
-extern const struct sfunc_return_type* lookup_sys_func(const char*name);
-extern int load_sys_func_table(const char*path);
+extern void add_sys_func(const struct sfunc_return_type& ret_type);
+extern const struct sfunc_return_type* lookup_sys_func(const char* name);
+extern int load_sys_func_table(const char* path);
 extern void cleanup_sys_func_table();
 /*
  * This temporarily loads a VPI module, to determine the return values
  * of system functions provided by that module, and adds the return values
  * to the system function table.
  */
-extern bool load_vpi_module(const char*path);
+extern bool load_vpi_module(const char* path);
 
 /*
  * In system Verilog it is allowed with a warning to call a function

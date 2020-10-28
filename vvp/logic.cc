@@ -15,570 +15,494 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "logic.h"
-# include  "compile.h"
-# include  "bufif.h"
-# include  "npmos.h"
-# include  "schedule.h"
-# include  "delay.h"
-# include  "statistics.h"
-# include  <iostream>
-# include  <cstring>
-# include  <cassert>
-# include  <cstdlib>
+#include "logic.h"
 
-vvp_fun_boolean_::vvp_fun_boolean_(unsigned wid)
-{
-      net_ = 0;
-      for (unsigned idx = 0 ;  idx < 4 ;  idx += 1)
-	    input_[idx] = vvp_vector4_t(wid, BIT4_Z);
+#include <cassert>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+
+#include "bufif.h"
+#include "compile.h"
+#include "delay.h"
+#include "npmos.h"
+#include "schedule.h"
+#include "statistics.h"
+
+vvp_fun_boolean_::vvp_fun_boolean_(unsigned wid) {
+  net_ = 0;
+  for (unsigned idx = 0; idx < 4; idx += 1)
+    input_[idx] = vvp_vector4_t(wid, BIT4_Z);
 }
 
-vvp_fun_boolean_::~vvp_fun_boolean_()
-{
+vvp_fun_boolean_::~vvp_fun_boolean_() {}
+
+void vvp_fun_boolean_::recv_vec4(vvp_net_ptr_t ptr, const vvp_vector4_t& bit,
+                                 vvp_context_t) {
+  unsigned port = ptr.port();
+  if (input_[port].eeq(bit)) return;
+
+  input_[port] = bit;
+  if (net_ == 0) {
+    net_ = ptr.ptr();
+    schedule_functor(this);
+  }
 }
 
-void vvp_fun_boolean_::recv_vec4(vvp_net_ptr_t ptr, const vvp_vector4_t&bit,
-                                 vvp_context_t)
-{
-      unsigned port = ptr.port();
-      if (input_[port] .eeq( bit ))
-	    return;
+void vvp_fun_boolean_::recv_vec4_pv(vvp_net_ptr_t ptr, const vvp_vector4_t& bit,
+                                    unsigned base, unsigned wid, unsigned vwid,
+                                    vvp_context_t) {
+  unsigned port = ptr.port();
 
-      input_[port] = bit;
-      if (net_ == 0) {
-	    net_ = ptr.ptr();
-	    schedule_functor(this);
-      }
-}
+  assert(bit.size() == wid);
+  assert(base + wid <= vwid);
 
-void vvp_fun_boolean_::recv_vec4_pv(vvp_net_ptr_t ptr, const vvp_vector4_t&bit,
-				    unsigned base, unsigned wid, unsigned vwid,
-                                    vvp_context_t)
-{
-      unsigned port = ptr.port();
+  // Set the part for the input. If nothing changes, then break.
+  bool flag = input_[port].set_vec(base, bit);
+  if (flag == false) return;
 
-      assert(bit.size() == wid);
-      assert(base + wid <= vwid);
-
-	// Set the part for the input. If nothing changes, then break.
-      bool flag = input_[port] .set_vec(base, bit);
-      if (flag == false)
-	    return;
-
-      if (net_ == 0) {
-	    net_ = ptr.ptr();
-	    schedule_functor(this);
-      }
+  if (net_ == 0) {
+    net_ = ptr.ptr();
+    schedule_functor(this);
+  }
 }
 
 vvp_fun_and::vvp_fun_and(unsigned wid, bool invert)
-: vvp_fun_boolean_(wid), invert_(invert)
-{
-      count_functors_logic += 1;
+    : vvp_fun_boolean_(wid), invert_(invert) {
+  count_functors_logic += 1;
 }
 
-vvp_fun_and::~vvp_fun_and()
-{
-}
+vvp_fun_and::~vvp_fun_and() {}
 
-void vvp_fun_and::run_run()
-{
-      vvp_net_t*ptr = net_;
-      net_ = 0;
+void vvp_fun_and::run_run() {
+  vvp_net_t* ptr = net_;
+  net_ = 0;
 
-      vvp_vector4_t result (input_[0]);
+  vvp_vector4_t result(input_[0]);
 
-      if (result.size() == input_[1].size()) {
-        result &= input_[1];
-        if (invert_)
-            result = ~result;
-      } else 
-      for (unsigned idx = 0 ;  idx < result.size() ;  idx += 1) {
-	    vvp_bit4_t bitbit = result.value(idx);
-	    for (unsigned pdx = 1 ;  pdx < 4 ;  pdx += 1) {
-		  if (input_[pdx].size() < idx) {
-			bitbit = BIT4_X;
-			break;
-		  }
+  if (result.size() == input_[1].size()) {
+    result &= input_[1];
+    if (invert_) result = ~result;
+  } else
+    for (unsigned idx = 0; idx < result.size(); idx += 1) {
+      vvp_bit4_t bitbit = result.value(idx);
+      for (unsigned pdx = 1; pdx < 4; pdx += 1) {
+        if (input_[pdx].size() < idx) {
+          bitbit = BIT4_X;
+          break;
+        }
 
-		  bitbit = bitbit & input_[pdx].value(idx);
-	    }
-
-	    if (invert_)
-		  bitbit = ~bitbit;
-	    result.set_bit(idx, bitbit);
+        bitbit = bitbit & input_[pdx].value(idx);
       }
 
-      ptr->send_vec4(result, 0);
+      if (invert_) bitbit = ~bitbit;
+      result.set_bit(idx, bitbit);
+    }
+
+  ptr->send_vec4(result, 0);
 }
 
-vvp_fun_buf::vvp_fun_buf(unsigned wid)
-: input_(wid, BIT4_Z)
-{
-      net_ = 0;
-      count_functors_logic += 1;
+vvp_fun_buf::vvp_fun_buf(unsigned wid) : input_(wid, BIT4_Z) {
+  net_ = 0;
+  count_functors_logic += 1;
 }
 
-vvp_fun_buf::~vvp_fun_buf()
-{
-}
+vvp_fun_buf::~vvp_fun_buf() {}
 
 /*
  * The buf functor is very simple--change the z bits to x bits in the
  * vector it passes, and propagate the result.
  */
-void vvp_fun_buf::recv_vec4(vvp_net_ptr_t ptr, const vvp_vector4_t&bit,
-                            vvp_context_t)
-{
-      if (ptr.port() != 0)
-	    return;
+void vvp_fun_buf::recv_vec4(vvp_net_ptr_t ptr, const vvp_vector4_t& bit,
+                            vvp_context_t) {
+  if (ptr.port() != 0) return;
 
-      if (input_ .eeq( bit ))
-	    return;
+  if (input_.eeq(bit)) return;
 
-      input_ = bit;
+  input_ = bit;
 
-      if (net_ == 0) {
-	    net_ = ptr.ptr();
-	    schedule_functor(this);
-      }
+  if (net_ == 0) {
+    net_ = ptr.ptr();
+    schedule_functor(this);
+  }
 }
 
-void vvp_fun_buf::recv_vec4_pv(vvp_net_ptr_t ptr, const vvp_vector4_t&bit,
+void vvp_fun_buf::recv_vec4_pv(vvp_net_ptr_t ptr, const vvp_vector4_t& bit,
                                unsigned base, unsigned wid, unsigned vwid,
-                               vvp_context_t)
-{
-      if (ptr.port() != 0)
-	    return;
+                               vvp_context_t) {
+  if (ptr.port() != 0) return;
 
-      assert(bit.size() == wid);
-      assert(base + wid <= vwid);
+  assert(bit.size() == wid);
+  assert(base + wid <= vwid);
 
-	// Set the input part. If nothing changes, then break.
-      bool flag = input_.set_vec(base, bit);
-      if (flag == false)
-	    return;
+  // Set the input part. If nothing changes, then break.
+  bool flag = input_.set_vec(base, bit);
+  if (flag == false) return;
 
-      if (net_ == 0) {
-	    net_ = ptr.ptr();
-	    schedule_functor(this);
-      }
+  if (net_ == 0) {
+    net_ = ptr.ptr();
+    schedule_functor(this);
+  }
 }
 
-void vvp_fun_buf::run_run()
-{
-      vvp_net_t*ptr = net_;
-      net_ = 0;
+void vvp_fun_buf::run_run() {
+  vvp_net_t* ptr = net_;
+  net_ = 0;
 
-      vvp_vector4_t tmp (input_);
-      tmp.change_z2x();
-      ptr->send_vec4(tmp, 0);
+  vvp_vector4_t tmp(input_);
+  tmp.change_z2x();
+  ptr->send_vec4(tmp, 0);
 }
 
-vvp_fun_bufz::vvp_fun_bufz()
-{
-      count_functors_logic += 1;
-}
+vvp_fun_bufz::vvp_fun_bufz() { count_functors_logic += 1; }
 
-vvp_fun_bufz::~vvp_fun_bufz()
-{
-}
+vvp_fun_bufz::~vvp_fun_bufz() {}
 
 /*
  * The bufz is similar to the buf device, except that it does not
  * bother translating z bits to x.
  */
-void vvp_fun_bufz::recv_vec4(vvp_net_ptr_t ptr, const vvp_vector4_t&bit,
-                             vvp_context_t)
-{
-      if (ptr.port() != 0)
-	    return;
+void vvp_fun_bufz::recv_vec4(vvp_net_ptr_t ptr, const vvp_vector4_t& bit,
+                             vvp_context_t) {
+  if (ptr.port() != 0) return;
 
-      ptr.ptr()->send_vec4(bit, 0);
+  ptr.ptr()->send_vec4(bit, 0);
 }
 
-void vvp_fun_bufz::recv_vec4_pv(vvp_net_ptr_t ptr, const vvp_vector4_t&bit,
+void vvp_fun_bufz::recv_vec4_pv(vvp_net_ptr_t ptr, const vvp_vector4_t& bit,
                                 unsigned base, unsigned wid, unsigned vwid,
-                                vvp_context_t)
-{
-      if (ptr.port() != 0)
-	    return;
+                                vvp_context_t) {
+  if (ptr.port() != 0) return;
 
-      ptr.ptr()->send_vec4_pv(bit, base, wid, vwid, 0);
+  ptr.ptr()->send_vec4_pv(bit, base, wid, vwid, 0);
 }
 
-void vvp_fun_bufz::recv_real(vvp_net_ptr_t ptr, double bit,
-                             vvp_context_t)
-{
-      if (ptr.port() != 0)
-	    return;
+void vvp_fun_bufz::recv_real(vvp_net_ptr_t ptr, double bit, vvp_context_t) {
+  if (ptr.port() != 0) return;
 
-      ptr.ptr()->send_real(bit, 0);
+  ptr.ptr()->send_real(bit, 0);
 }
 
-void vvp_fun_buft::recv_vec8(vvp_net_ptr_t ptr, const vvp_vector8_t&bit)
-{
-      if (ptr.port() != 0)
-	    return;
+void vvp_fun_buft::recv_vec8(vvp_net_ptr_t ptr, const vvp_vector8_t& bit) {
+  if (ptr.port() != 0) return;
 
-      ptr.ptr()->send_vec8(bit);
+  ptr.ptr()->send_vec8(bit);
 }
 
-vvp_fun_muxr::vvp_fun_muxr()
-: a_(0.0), b_(0.0)
-{
-      net_ = 0;
-      count_functors_logic += 1;
+vvp_fun_muxr::vvp_fun_muxr() : a_(0.0), b_(0.0) {
+  net_ = 0;
+  count_functors_logic += 1;
+  select_ = SEL_BOTH;
+}
+
+vvp_fun_muxr::~vvp_fun_muxr() {}
+
+void vvp_fun_muxr::recv_vec4(vvp_net_ptr_t ptr, const vvp_vector4_t& bit,
+                             vvp_context_t) {
+  /* The real valued mux can only take in the select as a
+     vector4_t. The muxed data is real. */
+  if (ptr.port() != 2) return;
+
+  assert(bit.size() == 1);
+
+  switch (bit.value(0)) {
+    case BIT4_0:
+      if (select_ == SEL_PORT0) return;
+      select_ = SEL_PORT0;
+      break;
+    case BIT4_1:
+      if (select_ == SEL_PORT1) return;
+      select_ = SEL_PORT1;
+      break;
+    default:
+      if (select_ == SEL_BOTH) return;
       select_ = SEL_BOTH;
+  }
+
+  if (net_ == 0) {
+    net_ = ptr.ptr();
+    schedule_functor(this);
+  }
 }
 
-vvp_fun_muxr::~vvp_fun_muxr()
-{
+void vvp_fun_muxr::recv_real(vvp_net_ptr_t ptr, double bit, vvp_context_t) {
+  switch (ptr.port()) {
+    case 0:
+      if (a_ == bit) return;
+      a_ = bit;
+      if (select_ == SEL_PORT1) return;  // The other port is selected.
+      break;
+
+    case 1:
+      if (b_ == bit) return;
+      b_ = bit;
+      if (select_ == SEL_PORT0) return;  // The other port is selected.
+      break;
+
+    default:
+      fprintf(stderr, "Unsupported port type %u.\n", ptr.port());
+      assert(0);
+  }
+
+  if (net_ == 0) {
+    net_ = ptr.ptr();
+    schedule_functor(this);
+  }
 }
 
-void vvp_fun_muxr::recv_vec4(vvp_net_ptr_t ptr, const vvp_vector4_t&bit,
-                             vvp_context_t)
-{
-	/* The real valued mux can only take in the select as a
-	   vector4_t. The muxed data is real. */
-      if (ptr.port() != 2)
-	    return;
+void vvp_fun_muxr::run_run() {
+  vvp_net_t* ptr = net_;
+  net_ = 0;
 
+  switch (select_) {
+    case SEL_PORT0:
+      ptr->send_real(a_, 0);
+      break;
+    case SEL_PORT1:
+      ptr->send_real(b_, 0);
+      break;
+    default:
+      if (a_ == b_) {
+        ptr->send_real(a_, 0);
+      } else {
+        ptr->send_real(0.0, 0);  // Should this be NaN?
+      }
+      break;
+  }
+}
+
+vvp_fun_muxz::vvp_fun_muxz(unsigned wid) : a_(wid, BIT4_Z), b_(wid, BIT4_Z) {
+  net_ = 0;
+  count_functors_logic += 1;
+  select_ = SEL_BOTH;
+  has_run_ = false;
+}
+
+vvp_fun_muxz::~vvp_fun_muxz() {}
+
+void vvp_fun_muxz::recv_vec4(vvp_net_ptr_t ptr, const vvp_vector4_t& bit,
+                             vvp_context_t) {
+  switch (ptr.port()) {
+    case 0:
+      if (a_.eeq(bit) && has_run_) return;
+      a_ = bit;
+      if (select_ == SEL_PORT1) return;  // The other port is selected.
+      break;
+    case 1:
+      if (b_.eeq(bit) && has_run_) return;
+      b_ = bit;
+      if (select_ == SEL_PORT0) return;  // The other port is selected.
+      break;
+    case 2:
       assert(bit.size() == 1);
-
       switch (bit.value(0)) {
-	  case BIT4_0:
-	    if (select_ == SEL_PORT0) return;
-	    select_ = SEL_PORT0;
-	    break;
-	  case BIT4_1:
-	    if (select_ == SEL_PORT1) return;
-	    select_ = SEL_PORT1;
-	    break;
-	  default:
-	    if (select_ == SEL_BOTH) return;
-	    select_ = SEL_BOTH;
+        case BIT4_0:
+          if (select_ == SEL_PORT0) return;
+          select_ = SEL_PORT0;
+          break;
+        case BIT4_1:
+          if (select_ == SEL_PORT1) return;
+          select_ = SEL_PORT1;
+          break;
+        default:
+          if (select_ == SEL_BOTH && has_run_) return;
+          select_ = SEL_BOTH;
       }
+      break;
+    default:
+      return;
+  }
 
-      if (net_ == 0) {
-	    net_ = ptr.ptr();
-	    schedule_functor(this);
-      }
+  if (net_ == 0) {
+    net_ = ptr.ptr();
+    schedule_functor(this);
+  }
 }
 
-void vvp_fun_muxr::recv_real(vvp_net_ptr_t ptr, double bit,
-                             vvp_context_t)
-{
-      switch (ptr.port()) {
-	  case 0:
-	    if (a_ == bit) return;
-	    a_ = bit;
-	    if (select_ == SEL_PORT1) return; // The other port is selected.
-	    break;
+void vvp_fun_muxz::recv_vec4_pv(vvp_net_ptr_t ptr, const vvp_vector4_t& bit,
+                                unsigned base, unsigned wid, unsigned vwid,
+                                vvp_context_t) {
+  assert(bit.size() == wid);
+  assert(base + wid <= vwid);
+  bool flag;
 
-	  case 1:
-	    if (b_ == bit) return;
-	    b_ = bit;
-	    if (select_ == SEL_PORT0) return; // The other port is selected.
-	    break;
+  switch (ptr.port()) {
+    case 0:
+      flag = a_.set_vec(base, bit);
+      if (flag == false && has_run_) return;
+      if (select_ == SEL_PORT1) return;  // The other port is selected.
+      break;
+    case 1:
+      flag = b_.set_vec(base, bit);
+      if (flag == false && has_run_) return;
+      if (select_ == SEL_PORT0) return;  // The other port is selected.
+      break;
+    case 2:
+      assert((base == 0) && (wid == 1));
+      recv_vec4(ptr, bit, 0);
+    default:
+      return;
+  }
+  if (net_ == 0) {
+    net_ = ptr.ptr();
+    schedule_functor(this);
+  }
+}
 
-	  default:
-	    fprintf(stderr, "Unsupported port type %u.\n", ptr.port());
-	    assert(0);
+void vvp_fun_muxz::run_run() {
+  has_run_ = true;
+  vvp_net_t* ptr = net_;
+  net_ = 0;
+
+  switch (select_) {
+    case SEL_PORT0:
+      ptr->send_vec4(a_, 0);
+      break;
+    case SEL_PORT1:
+      ptr->send_vec4(b_, 0);
+      break;
+    default: {
+      unsigned min_size = a_.size();
+      unsigned max_size = a_.size();
+      if (b_.size() < min_size) min_size = b_.size();
+      if (b_.size() > max_size) max_size = b_.size();
+
+      vvp_vector4_t res(max_size);
+      vvp_bit4_t v;
+      for (unsigned idx = 0; idx < min_size; idx += 1) {
+        v = a_.value(idx);
+        if (v == b_.value(idx) && v != BIT4_Z)
+          res.set_bit(idx, a_.value(idx));
+        else
+          res.set_bit(idx, BIT4_X);
       }
 
-      if (net_ == 0) {
-	    net_ = ptr.ptr();
-	    schedule_functor(this);
-      }
+      for (unsigned idx = min_size; idx < max_size; idx += 1)
+        res.set_bit(idx, BIT4_X);
+
+      ptr->send_vec4(res, 0);
+    } break;
+  }
 }
 
-void vvp_fun_muxr::run_run()
-{
-      vvp_net_t*ptr = net_;
-      net_ = 0;
-
-      switch (select_) {
-	  case SEL_PORT0:
-	    ptr->send_real(a_, 0);
-	    break;
-	  case SEL_PORT1:
-	    ptr->send_real(b_, 0);
-	    break;
-	  default:
-	    if (a_ == b_) {
-		  ptr->send_real(a_, 0);
-	    } else {
-		  ptr->send_real(0.0, 0); // Should this be NaN?
-	    }
-	    break;
-      }
+vvp_fun_not::vvp_fun_not(unsigned wid) : input_(wid, BIT4_Z) {
+  net_ = 0;
+  count_functors_logic += 1;
 }
 
-vvp_fun_muxz::vvp_fun_muxz(unsigned wid)
-: a_(wid, BIT4_Z), b_(wid, BIT4_Z)
-{
-      net_ = 0;
-      count_functors_logic += 1;
-      select_ = SEL_BOTH;
-      has_run_ = false;
-}
-
-vvp_fun_muxz::~vvp_fun_muxz()
-{
-}
-
-void vvp_fun_muxz::recv_vec4(vvp_net_ptr_t ptr, const vvp_vector4_t&bit,
-                             vvp_context_t)
-{
-      switch (ptr.port()) {
-	  case 0:
-	    if (a_ .eeq(bit) && has_run_) return;
-	    a_ = bit;
-	    if (select_ == SEL_PORT1) return; // The other port is selected.
-	    break;
-	  case 1:
-	    if (b_ .eeq(bit) && has_run_) return;
-	    b_ = bit;
-	    if (select_ == SEL_PORT0) return; // The other port is selected.
-	    break;
-	  case 2:
-	    assert(bit.size() == 1);
-	    switch (bit.value(0)) {
-		case BIT4_0:
-		  if (select_ == SEL_PORT0) return;
-		  select_ = SEL_PORT0;
-		  break;
-		case BIT4_1:
-		  if (select_ == SEL_PORT1) return;
-		  select_ = SEL_PORT1;
-		  break;
-		default:
-		  if (select_ == SEL_BOTH && has_run_) return;
-		  select_ = SEL_BOTH;
-	    }
-	    break;
-	  default:
-	    return;
-      }
-
-      if (net_ == 0) {
-	    net_ = ptr.ptr();
-	    schedule_functor(this);
-      }
-}
-
-void vvp_fun_muxz::recv_vec4_pv(vvp_net_ptr_t ptr, const vvp_vector4_t&bit,
-				unsigned base, unsigned wid, unsigned vwid,
-                                vvp_context_t)
-{
-      assert(bit.size() == wid);
-      assert(base + wid <= vwid);
-      bool flag;
-
-      switch (ptr.port()) {
-	  case 0:
-	    flag = a_.set_vec(base, bit);
-	    if (flag == false && has_run_) return;
-	    if (select_ == SEL_PORT1) return; // The other port is selected.
-	    break;
-	  case 1:
-	    flag = b_.set_vec(base, bit);
-	    if (flag == false && has_run_) return;
-	    if (select_ == SEL_PORT0) return; // The other port is selected.
-	    break;
-	  case 2:
-	    assert((base == 0) && (wid == 1));
-	    recv_vec4(ptr, bit, 0);
-	  default:
-	    return;
-      }
-      if (net_ == 0) {
-	    net_ = ptr.ptr();
-	    schedule_functor(this);
-      }
-}
-
-void vvp_fun_muxz::run_run()
-{
-      has_run_ = true;
-      vvp_net_t*ptr = net_;
-      net_ = 0;
-
-      switch (select_) {
-	  case SEL_PORT0:
-	    ptr->send_vec4(a_, 0);
-	    break;
-	  case SEL_PORT1:
-	    ptr->send_vec4(b_, 0);
-	    break;
-	  default:
-	      {
-		    unsigned min_size = a_.size();
-		    unsigned max_size = a_.size();
-		    if (b_.size() < min_size)
-			  min_size = b_.size();
-		    if (b_.size() > max_size)
-			  max_size = b_.size();
-
-		    vvp_vector4_t res (max_size);
-
-		    for (unsigned idx = 0 ;  idx < min_size ;  idx += 1) {
-			  if (a_.value(idx) == b_.value(idx))
-				res.set_bit(idx, a_.value(idx));
-			  else
-				res.set_bit(idx, BIT4_X);
-		    }
-
-		    for (unsigned idx = min_size ;  idx < max_size ;  idx += 1)
-			  res.set_bit(idx, BIT4_X);
-
-		    ptr->send_vec4(res, 0);
-	      }
-	    break;
-      }
-}
-
-vvp_fun_not::vvp_fun_not(unsigned wid)
-: input_(wid, BIT4_Z)
-{
-      net_ = 0;
-      count_functors_logic += 1;
-}
-
-vvp_fun_not::~vvp_fun_not()
-{
-}
+vvp_fun_not::~vvp_fun_not() {}
 
 /*
  * The not functor is very simple--change the z bits to x bits in the
  * vector it passes, and propagate the inverted result.
  */
-void vvp_fun_not::recv_vec4(vvp_net_ptr_t ptr, const vvp_vector4_t&bit,
-                            vvp_context_t)
-{
-      if (ptr.port() != 0)
-	    return;
+void vvp_fun_not::recv_vec4(vvp_net_ptr_t ptr, const vvp_vector4_t& bit,
+                            vvp_context_t) {
+  if (ptr.port() != 0) return;
 
-      if (input_ .eeq( bit ))
-	    return;
+  if (input_.eeq(bit)) return;
 
-      input_ = bit;
-      if (net_ == 0) {
-	    net_ = ptr.ptr();
-	    schedule_functor(this);
-      }
+  input_ = bit;
+  if (net_ == 0) {
+    net_ = ptr.ptr();
+    schedule_functor(this);
+  }
 }
 
-void vvp_fun_not::recv_vec4_pv(vvp_net_ptr_t ptr, const vvp_vector4_t&bit,
+void vvp_fun_not::recv_vec4_pv(vvp_net_ptr_t ptr, const vvp_vector4_t& bit,
                                unsigned base, unsigned wid, unsigned vwid,
-                               vvp_context_t)
-{
-      if (ptr.port() != 0)
-	    return;
+                               vvp_context_t) {
+  if (ptr.port() != 0) return;
 
-      assert(bit.size() == wid);
-      assert(base + wid <= vwid);
+  assert(bit.size() == wid);
+  assert(base + wid <= vwid);
 
-	// Set the part value. If nothing changes, then break.
-      bool flag = input_.set_vec(base, bit);
-      if (flag == false)
-	    return;
+  // Set the part value. If nothing changes, then break.
+  bool flag = input_.set_vec(base, bit);
+  if (flag == false) return;
 
-      if (net_ == 0) {
-	    net_ = ptr.ptr();
-	    schedule_functor(this);
-      }
+  if (net_ == 0) {
+    net_ = ptr.ptr();
+    schedule_functor(this);
+  }
 }
 
-void vvp_fun_not::run_run()
-{
-      vvp_net_t*ptr = net_;
-      net_ = 0;
+void vvp_fun_not::run_run() {
+  vvp_net_t* ptr = net_;
+  net_ = 0;
 
-      vvp_vector4_t result (input_, true /* invert */);
-      ptr->send_vec4(result, 0);
+  vvp_vector4_t result(input_, true /* invert */);
+  ptr->send_vec4(result, 0);
 }
 
 vvp_fun_or::vvp_fun_or(unsigned wid, bool invert)
-: vvp_fun_boolean_(wid), invert_(invert)
-{
-      count_functors_logic += 1;
+    : vvp_fun_boolean_(wid), invert_(invert) {
+  count_functors_logic += 1;
 }
 
-vvp_fun_or::~vvp_fun_or()
-{
-}
+vvp_fun_or::~vvp_fun_or() {}
 
-void vvp_fun_or::run_run()
-{
-      vvp_net_t*ptr = net_;
-      net_ = 0;
+void vvp_fun_or::run_run() {
+  vvp_net_t* ptr = net_;
+  net_ = 0;
 
-      vvp_vector4_t result (input_[0]);
+  vvp_vector4_t result(input_[0]);
 
-      if (result.size() == input_[1].size()) {
-        result |= input_[1];
-        if (invert_)
-            result = ~result;
-      } else
-      for (unsigned idx = 0 ;  idx < result.size() ;  idx += 1) {
-	    vvp_bit4_t bitbit = result.value(idx);
-	    for (unsigned pdx = 1 ;  pdx < 4 ;  pdx += 1) {
-		  if (input_[pdx].size() < idx) {
-			bitbit = BIT4_X;
-			break;
-		  }
+  if (result.size() == input_[1].size()) {
+    result |= input_[1];
+    if (invert_) result = ~result;
+  } else
+    for (unsigned idx = 0; idx < result.size(); idx += 1) {
+      vvp_bit4_t bitbit = result.value(idx);
+      for (unsigned pdx = 1; pdx < 4; pdx += 1) {
+        if (input_[pdx].size() < idx) {
+          bitbit = BIT4_X;
+          break;
+        }
 
-		  bitbit = bitbit | input_[pdx].value(idx);
-	    }
-
-	    if (invert_)
-		  bitbit = ~bitbit;
-	    result.set_bit(idx, bitbit);
+        bitbit = bitbit | input_[pdx].value(idx);
       }
 
-      ptr->send_vec4(result, 0);
+      if (invert_) bitbit = ~bitbit;
+      result.set_bit(idx, bitbit);
+    }
+
+  ptr->send_vec4(result, 0);
 }
 
 vvp_fun_xor::vvp_fun_xor(unsigned wid, bool invert)
-: vvp_fun_boolean_(wid), invert_(invert)
-{
-      count_functors_logic += 1;
+    : vvp_fun_boolean_(wid), invert_(invert) {
+  count_functors_logic += 1;
 }
 
-vvp_fun_xor::~vvp_fun_xor()
-{
-}
+vvp_fun_xor::~vvp_fun_xor() {}
 
-void vvp_fun_xor::run_run()
-{
-      vvp_net_t*ptr = net_;
-      net_ = 0;
+void vvp_fun_xor::run_run() {
+  vvp_net_t* ptr = net_;
+  net_ = 0;
 
-      vvp_vector4_t result (input_[0]);
+  vvp_vector4_t result(input_[0]);
 
-      for (unsigned idx = 0 ;  idx < result.size() ;  idx += 1) {
-	    vvp_bit4_t bitbit = result.value(idx);
-	    for (unsigned pdx = 1 ;  pdx < 4 ;  pdx += 1) {
-		  if (input_[pdx].size() < idx) {
-			bitbit = BIT4_X;
-			break;
-		  }
-
-		  bitbit = bitbit ^ input_[pdx].value(idx);
-	    }
-
-	    if (invert_)
-		  bitbit = ~bitbit;
-	    result.set_bit(idx, bitbit);
+  for (unsigned idx = 0; idx < result.size(); idx += 1) {
+    vvp_bit4_t bitbit = result.value(idx);
+    for (unsigned pdx = 1; pdx < 4; pdx += 1) {
+      if (input_[pdx].size() < idx) {
+        bitbit = BIT4_X;
+        break;
       }
 
-      ptr->send_vec4(result, 0);
+      bitbit = bitbit ^ input_[pdx].value(idx);
+    }
+
+    if (invert_) bitbit = ~bitbit;
+    result.set_bit(idx, bitbit);
+  }
+
+  ptr->send_vec4(result, 0);
 }
 
 /*
@@ -587,136 +511,138 @@ void vvp_fun_xor::run_run()
  * functor. Also resolve the inputs to the functor.
  */
 
-void compile_functor(char*label, char*type, unsigned width,
-		     unsigned ostr0, unsigned ostr1,
-		     unsigned argc, struct symb_s*argv)
-{
-      vvp_net_fun_t* obj = 0;
-      bool strength_aware = false;
+void compile_functor(char* label, char* type, unsigned width, unsigned ostr0,
+                     unsigned ostr1, unsigned argc, struct symb_s* argv) {
+  vvp_net_fun_t* obj = 0;
+  bool strength_aware = false;
 
-      if (strcmp(type, "OR") == 0) {
-	    obj = new vvp_fun_or(width, false);
+  if (strcmp(type, "OR") == 0) {
+    obj = new vvp_fun_or(width, false);
 
-      } else if (strcmp(type, "AND") == 0) {
-	    obj = new vvp_fun_and(width, false);
+  } else if (strcmp(type, "AND") == 0) {
+    obj = new vvp_fun_and(width, false);
 
-      } else if (strcmp(type, "BUF") == 0) {
-	    obj = new vvp_fun_buf(width);
+  } else if (strcmp(type, "BUF") == 0) {
+    obj = new vvp_fun_buf(width);
 
-      } else if (strcmp(type, "BUFIF0") == 0) {
-	    obj = new vvp_fun_bufif(true,false, ostr0, ostr1);
-	    strength_aware = true;
+  } else if (strcmp(type, "BUFIF0") == 0) {
+    obj = new vvp_fun_bufif(true, false, ostr0, ostr1);
+    strength_aware = true;
 
-      } else if (strcmp(type, "BUFIF1") == 0) {
-	    obj = new vvp_fun_bufif(false,false, ostr0, ostr1);
-	    strength_aware = true;
+  } else if (strcmp(type, "BUFIF1") == 0) {
+    obj = new vvp_fun_bufif(false, false, ostr0, ostr1);
+    strength_aware = true;
 
-      } else if (strcmp(type, "NAND") == 0) {
-	    obj = new vvp_fun_and(width, true);
+  } else if (strcmp(type, "NAND") == 0) {
+    obj = new vvp_fun_and(width, true);
 
-      } else if (strcmp(type, "NOR") == 0) {
-	    obj = new vvp_fun_or(width, true);
+  } else if (strcmp(type, "NOR") == 0) {
+    obj = new vvp_fun_or(width, true);
 
-      } else if (strcmp(type, "NOTIF0") == 0) {
-	    obj = new vvp_fun_bufif(true,true, ostr0, ostr1);
-	    strength_aware = true;
+  } else if (strcmp(type, "NOTIF0") == 0) {
+    obj = new vvp_fun_bufif(true, true, ostr0, ostr1);
+    strength_aware = true;
 
-      } else if (strcmp(type, "NOTIF1") == 0) {
-	    obj = new vvp_fun_bufif(false,true, ostr0, ostr1);
-	    strength_aware = true;
+  } else if (strcmp(type, "NOTIF1") == 0) {
+    obj = new vvp_fun_bufif(false, true, ostr0, ostr1);
+    strength_aware = true;
 
-      } else if (strcmp(type, "BUFT") == 0) {
-	    obj = new vvp_fun_buft();
+  } else if (strcmp(type, "BUFT") == 0) {
+    obj = new vvp_fun_buft();
 
-      } else if (strcmp(type, "BUFZ") == 0) {
-	    obj = new vvp_fun_bufz();
+  } else if (strcmp(type, "BUFZ") == 0) {
+    obj = new vvp_fun_bufz();
 
-      } else if (strcmp(type, "MUXR") == 0) {
-	    obj = new vvp_fun_muxr;
+  } else if (strcmp(type, "MUXR") == 0) {
+    obj = new vvp_fun_muxr;
 
-      } else if (strcmp(type, "MUXZ") == 0) {
-	    obj = new vvp_fun_muxz(width);
+  } else if (strcmp(type, "MUXZ") == 0) {
+    obj = new vvp_fun_muxz(width);
 
-      } else if (strcmp(type, "CMOS") == 0) {
-	    obj = new vvp_fun_cmos();
+  } else if (strcmp(type, "CMOS") == 0) {
+    obj = new vvp_fun_cmos();
 
-      } else if (strcmp(type, "NMOS") == 0) {
-	    obj = new vvp_fun_pmos(true);
+  } else if (strcmp(type, "NMOS") == 0) {
+    obj = new vvp_fun_pmos(true);
 
-      } else if (strcmp(type, "PMOS") == 0) {
-	    obj = new vvp_fun_pmos(false);
+  } else if (strcmp(type, "PMOS") == 0) {
+    obj = new vvp_fun_pmos(false);
 
-      } else if (strcmp(type, "RCMOS") == 0) {
-	    obj = new vvp_fun_rcmos();
+  } else if (strcmp(type, "RCMOS") == 0) {
+    obj = new vvp_fun_rcmos();
 
-      } else if (strcmp(type, "RNMOS") == 0) {
-	    obj = new vvp_fun_rpmos(true);
+  } else if (strcmp(type, "RNMOS") == 0) {
+    obj = new vvp_fun_rpmos(true);
 
-      } else if (strcmp(type, "RPMOS") == 0) {
-	    obj = new vvp_fun_rpmos(false);
+  } else if (strcmp(type, "RPMOS") == 0) {
+    obj = new vvp_fun_rpmos(false);
 
-      } else if (strcmp(type, "NOT") == 0) {
-	    obj = new vvp_fun_not(width);
+  } else if (strcmp(type, "NOT") == 0) {
+    obj = new vvp_fun_not(width);
 
-      } else if (strcmp(type, "XNOR") == 0) {
-	    obj = new vvp_fun_xor(width, true);
+  } else if (strcmp(type, "XNOR") == 0) {
+    obj = new vvp_fun_xor(width, true);
 
-      } else if (strcmp(type, "XOR") == 0) {
-	    obj = new vvp_fun_xor(width, false);
+  } else if (strcmp(type, "XOR") == 0) {
+    obj = new vvp_fun_xor(width, false);
 
-      } else {
-	    yyerror("invalid functor type.");
-	    free(type);
-	    free(argv);
-	    free(label);
-	    return;
-      }
+  } else {
+    yyerror("invalid functor type.");
+    free(type);
+    free(argv);
+    free(label);
+    return;
+  }
 #ifdef HAVE_READABLE_INFO
-      char szType[32 + 1] = {0};
-      strncpy(szType, type, sizeof(szType));
-      char szInfo[DEBUG_INFO_LEN + 1] = {0};
-      if (1 == argc)
-        snprintf(szInfo, DEBUG_INFO_LEN, "%s .functor %s %d, %s;", label, type, width, argv[0]);
-      if (2 == argc)
-        snprintf(szInfo, DEBUG_INFO_LEN, "%s .functor %s %d, %s, %s;", label, type, width, argv[0], argv[1]);
-      if (3 == argc)
-        snprintf(szInfo, DEBUG_INFO_LEN, "%s .functor %s %d, %s, %s, %s;", label, type, width, argv[0], argv[1], argv[2]);
-      if (4 == argc)
-        snprintf(szInfo, DEBUG_INFO_LEN, "%s .functor %s %d, %s, %s, %s, %s;", label, type, width, argv[0], argv[1], argv[2], argv[3]);
+  char szType[32 + 1] = {0};
+  strncpy(szType, type, sizeof(szType));
+  char szInfo[DEBUG_INFO_LEN + 1] = {0};
+  if (1 == argc)
+    snprintf(szInfo, DEBUG_INFO_LEN, "%s .functor %s %d, %s;", label, type,
+             width, argv[0]);
+  if (2 == argc)
+    snprintf(szInfo, DEBUG_INFO_LEN, "%s .functor %s %d, %s, %s;", label, type,
+             width, argv[0], argv[1]);
+  if (3 == argc)
+    snprintf(szInfo, DEBUG_INFO_LEN, "%s .functor %s %d, %s, %s, %s;", label,
+             type, width, argv[0], argv[1], argv[2]);
+  if (4 == argc)
+    snprintf(szInfo, DEBUG_INFO_LEN, "%s .functor %s %d, %s, %s, %s, %s;",
+             label, type, width, argv[0], argv[1], argv[2], argv[3]);
 #endif
-      free(type);
+  free(type);
 
-      assert(argc <= 4);
-      vvp_net_t*net = new vvp_net_t;
+  assert(argc <= 4);
+  vvp_net_t* net = new vvp_net_t;
 #ifdef HAVE_READABLE_INFO
-      net->add_readable_info(label, szType);
-      net->add_readable_info(szInfo);
+  net->add_readable_info(label, szType);
+  net->add_readable_info(szInfo);
 #endif
-      net->fun = obj;
+  net->fun = obj;
 
-      inputs_connect(net, argc, argv);
-      free(argv);
+  inputs_connect(net, argc, argv);
+  free(argv);
 
-	/* If both the strengths are the default strong drive, then
-	   there is no need for a specialized driver. Attach the label
-	   to this node and we are finished. */
-      if (strength_aware || (ostr0 == 6 && ostr1 == 6)) {
-	    define_functor_symbol(label, net);
-	    free(label);
-	    return;
-      }
+  /* If both the strengths are the default strong drive, then
+     there is no need for a specialized driver. Attach the label
+     to this node and we are finished. */
+  if (strength_aware || (ostr0 == 6 && ostr1 == 6)) {
+    define_functor_symbol(label, net);
+    free(label);
+    return;
+  }
 
-      vvp_net_t*net_drv = new vvp_net_t;
+  vvp_net_t* net_drv = new vvp_net_t;
 #ifdef HAVE_READABLE_INFO
-    net->add_readable_info(label, szType);
-    net->add_readable_info(szInfo);
+  net->add_readable_info(label, szType);
+  net->add_readable_info(szInfo);
 #endif
-      vvp_net_fun_t*obj_drv = new vvp_fun_drive(ostr0, ostr1);
-      net_drv->fun = obj_drv;
+  vvp_net_fun_t* obj_drv = new vvp_fun_drive(ostr0, ostr1);
+  net_drv->fun = obj_drv;
 
-	/* Point the gate to the drive node. */
-      net->link(vvp_net_ptr_t(net_drv, 0));
+  /* Point the gate to the drive node. */
+  net->link(vvp_net_ptr_t(net_drv, 0));
 
-      define_functor_symbol(label, net_drv);
-      free(label);
+  define_functor_symbol(label, net_drv);
+  free(label);
 }

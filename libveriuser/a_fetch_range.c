@@ -15,18 +15,18 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-#include  <vpi_user.h>
-#include  <acc_user.h>
+#include <acc_user.h>
+#include <vpi_user.h>
 
 /*
  * acc_fetch_range implemented using VPI interface
  */
-PLI_INT32 acc_fetch_range(handle object, int *msb, int *lsb)
-{
-      *msb = vpi_get(vpiLeftRange, object);
-      *lsb = vpi_get(vpiRightRange, object);
-      return 0;
+PLI_INT32 acc_fetch_range(handle object, int *msb, int *lsb) {
+  *msb = vpi_get(vpiLeftRange, object);
+  *lsb = vpi_get(vpiRightRange, object);
+  return 0;
 }

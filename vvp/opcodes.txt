@@ -195,7 +195,7 @@ result pushed in their place. The truth table for each bit is:
 
 	1  1 --> 1
 	0  0 --> 0
-	z  z --> z
+	z  z --> x
 	x  x --> x
 	.... --> x
 

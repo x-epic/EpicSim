@@ -17,21 +17,22 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
 #if defined(__cplusplus)
-#  if !defined(__GNUC__)
-     using namespace std;
-#  elif (__GNUC__ == 3)
-     using namespace std;
-#  endif
+#if !defined(__GNUC__)
+using namespace std;
+#elif (__GNUC__ == 3)
+using namespace std;
+#endif
 #endif
 
-# define HAVE_STDINT_H 1
-# define HAVE_INTTYPES_H 1
+#define HAVE_STDINT_H 1
+#define HAVE_INTTYPES_H 1
 
-# define _LARGEFILE_SOURCE 1
+#define _LARGEFILE_SOURCE 1
 /* # undef _LARGEFILE64_SOURCE */
 
 #endif /* IVL_vvp_config_H */

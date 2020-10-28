@@ -17,45 +17,43 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "StringHeap.h"
-# include  "verinum.h"
+#include "StringHeap.h"
+#include "verinum.h"
 
 /*
  * This class keeps a map of key/value pairs. The map can be set from
  * an STL map, or by setting individual mappings.
  */
 class Attrib {
+ public:
+  Attrib();
+  virtual ~Attrib();
 
-    public:
-      Attrib();
-      virtual ~Attrib();
+  const verinum& attribute(perm_string key) const;
+  void attribute(perm_string key, const verinum& value);
+  bool has_compat_attributes(const Attrib& that) const;
 
-      const verinum&attribute(perm_string key) const;
-      void attribute(perm_string key, const verinum&value);
-      bool has_compat_attributes(const Attrib&that) const;
+  /* Provide a means of iterating over the entries in the map. */
+  unsigned attr_cnt() const;
+  perm_string attr_key(unsigned idx) const;
+  const verinum& attr_value(unsigned idx) const;
 
+ private:
+  struct cell_ {
+    perm_string key;
+    verinum val;
+  };
 
-	/* Provide a means of iterating over the entries in the map. */
-      unsigned       attr_cnt() const;
-      perm_string    attr_key(unsigned idx) const;
-      const verinum& attr_value(unsigned idx) const;
+  unsigned nlist_;
+  struct cell_* list_;
 
-
-    private:
-      struct cell_ {
-	    perm_string  key;
-	    verinum val;
-      };
-
-      unsigned nlist_;
-      struct cell_*list_;
-
-    private: // not implemented
-      Attrib(const Attrib&);
-      Attrib& operator= (const Attrib&);
+ private:  // not implemented
+  Attrib(const Attrib&);
+  Attrib& operator=(const Attrib&);
 };
 
 #endif /* IVL_Attrib_H */

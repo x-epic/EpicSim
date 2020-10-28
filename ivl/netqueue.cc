@@ -15,33 +15,25 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "netqueue.h"
-# include  <iostream>
+#include "netqueue.h"
+
+#include <iostream>
 
 using namespace std;
 
-netqueue_t::netqueue_t(ivl_type_t vec)
-: netdarray_t(vec)
-{
-}
+netqueue_t::netqueue_t(ivl_type_t vec) : netdarray_t(vec) {}
 
-netqueue_t::~netqueue_t()
-{
-}
+netqueue_t::~netqueue_t() {}
 
-ivl_variable_type_t netqueue_t::base_type() const
-{
-      return IVL_VT_QUEUE;
-}
+ivl_variable_type_t netqueue_t::base_type() const { return IVL_VT_QUEUE; }
 
-bool netqueue_t::test_compatibility(ivl_type_t that) const
-{
-      const netqueue_t*that_q = dynamic_cast<const netqueue_t*>(that);
-      if (that_q == 0)
-	    return false;
+bool netqueue_t::test_compatibility(ivl_type_t that) const {
+  const netqueue_t* that_q = dynamic_cast<const netqueue_t*>(that);
+  if (that_q == 0) return false;
 
-      return element_type()->type_compatible(that_q->element_type());
+  return element_type()->type_compatible(that_q->element_type());
 }

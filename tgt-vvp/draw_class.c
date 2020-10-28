@@ -15,85 +15,82 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
+#include <assert.h>
+#include <inttypes.h>
+#include <stdlib.h>
+#include <string.h>
 
-# include  "vvp_priv.h"
-# include  <stdlib.h>
-# include  <string.h>
-# include  <assert.h>
-# include  <inttypes.h>
+#include "vvp_priv.h"
 
-static void show_prop_type_vector(ivl_type_t ptype)
-{
-      ivl_variable_type_t data_type = ivl_type_base(ptype);
-      unsigned packed_dimensions = ivl_type_packed_dimensions(ptype);
-      assert(packed_dimensions < 2);
+static void show_prop_type_vector(ivl_type_t ptype) {
+  ivl_variable_type_t data_type = ivl_type_base(ptype);
+  unsigned packed_dimensions = ivl_type_packed_dimensions(ptype);
+  assert(packed_dimensions < 2);
 
-      const char*signed_flag = ivl_type_signed(ptype)? "s" : "";
-      char code = data_type==IVL_VT_BOOL? 'b' : 'L';
+  const char* signed_flag = ivl_type_signed(ptype) ? "s" : "";
+  char code = data_type == IVL_VT_BOOL ? 'b' : 'L';
 
-      if (packed_dimensions == 0) {
-	    fprintf(vvp_out, "\"%s%c1\"", signed_flag, code);
+  if (packed_dimensions == 0) {
+    fprintf(vvp_out, "\"%s%c1\"", signed_flag, code);
 
-      } else {
-	    assert(packed_dimensions == 1);
-	    assert(ivl_type_packed_lsb(ptype,0) == 0);
-	    assert(ivl_type_packed_msb(ptype,0) >= 0);
+  } else {
+    assert(packed_dimensions == 1);
+    assert(ivl_type_packed_lsb(ptype, 0) == 0);
+    assert(ivl_type_packed_msb(ptype, 0) >= 0);
 
-	    fprintf(vvp_out, "\"%s%c%d\"", signed_flag, code,
-		    ivl_type_packed_msb(ptype,0)+1);
-      }
+    fprintf(vvp_out, "\"%s%c%d\"", signed_flag, code,
+            ivl_type_packed_msb(ptype, 0) + 1);
+  }
 }
 
-static void show_prop_type(ivl_type_t ptype)
-{
-      ivl_variable_type_t data_type = ivl_type_base(ptype);
-      unsigned packed_dimensions = ivl_type_packed_dimensions(ptype);
+static void show_prop_type(ivl_type_t ptype) {
+  ivl_variable_type_t data_type = ivl_type_base(ptype);
+  unsigned packed_dimensions = ivl_type_packed_dimensions(ptype);
 
-      switch (data_type) {
-	  case IVL_VT_REAL:
-	    fprintf(vvp_out, "\"r\"");
-	    break;
-	  case IVL_VT_STRING:
-	    fprintf(vvp_out, "\"S\"");
-	    break;
-	  case IVL_VT_BOOL:
-	  case IVL_VT_LOGIC:
-	    show_prop_type_vector(ptype);
-	    break;
-	  case IVL_VT_DARRAY:
-	  case IVL_VT_CLASS:
-	    fprintf(vvp_out, "\"o\"");
-	    if (packed_dimensions > 0) {
-		  unsigned idx;
-		  fprintf(vvp_out, " ");
-		  for (idx = 0 ; idx < packed_dimensions ; idx += 1) {
-			fprintf(vvp_out, "[%d:%d]",
-				ivl_type_packed_msb(ptype,idx),
-				ivl_type_packed_lsb(ptype,idx));
-		  }
-	    }
-	    break;
-	  default:
-	    fprintf(vvp_out, "\"<ERROR-no-type>\"");
-	    assert(0);
-	    break;
+  switch (data_type) {
+    case IVL_VT_REAL:
+      fprintf(vvp_out, "\"r\"");
+      break;
+    case IVL_VT_STRING:
+      fprintf(vvp_out, "\"S\"");
+      break;
+    case IVL_VT_BOOL:
+    case IVL_VT_LOGIC:
+      show_prop_type_vector(ptype);
+      break;
+    case IVL_VT_DARRAY:
+    case IVL_VT_CLASS:
+      fprintf(vvp_out, "\"o\"");
+      if (packed_dimensions > 0) {
+        unsigned idx;
+        fprintf(vvp_out, " ");
+        for (idx = 0; idx < packed_dimensions; idx += 1) {
+          fprintf(vvp_out, "[%d:%d]", ivl_type_packed_msb(ptype, idx),
+                  ivl_type_packed_lsb(ptype, idx));
+        }
       }
+      break;
+    default:
+      fprintf(vvp_out, "\"<ERROR-no-type>\"");
+      assert(0);
+      break;
+  }
 }
 
-void draw_class_in_scope(ivl_type_t classtype)
-{
-      int idx;
-      fprintf(vvp_out, "C%p  .class \"%s\" [%d]\n",
-	      classtype, ivl_type_name(classtype), ivl_type_properties(classtype));
+void draw_class_in_scope(ivl_type_t classtype) {
+  int idx;
+  fprintf(vvp_out, "C%p  .class \"%s\" [%d]\n", classtype,
+          ivl_type_name(classtype), ivl_type_properties(classtype));
 
-      for (idx = 0 ; idx < ivl_type_properties(classtype) ; idx += 1) {
-	    fprintf(vvp_out, " %3d: \"%s\", ", idx, ivl_type_prop_name(classtype,idx));
-	    show_prop_type(ivl_type_prop_type(classtype,idx));
-	    fprintf(vvp_out, "\n");
-      }
+  for (idx = 0; idx < ivl_type_properties(classtype); idx += 1) {
+    fprintf(vvp_out, " %3d: \"%s\", ", idx, ivl_type_prop_name(classtype, idx));
+    show_prop_type(ivl_type_prop_type(classtype, idx));
+    fprintf(vvp_out, "\n");
+  }
 
-      fprintf(vvp_out, " ;\n");
+  fprintf(vvp_out, " ;\n");
 }

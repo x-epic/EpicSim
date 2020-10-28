@@ -1,5 +1,17 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 set -e
+
 SCRIPT_PATH=$(cd "$(dirname "$0")" && pwd)
+if [ ! -f "${SCRIPT_PATH}/../lib/epicsim/vvp.conf" ]; then
+  echo "conf not exist!"
+  exit 1
+fi
+
+CONF_NUM=$(cat ${SCRIPT_PATH}/../lib/epicsim/vvp.conf | grep VVP_EXECUTABLE | wc -l)
+if [ $CONF_NUM -eq 0 ]; then
+  echo "flag:VVP_EXECUTABLE=${SCRIPT_PATH}/epicsim-vvp" >> ${SCRIPT_PATH}/../lib/epicsim/vvp.conf
+  echo "flag:VVP_EXECUTABLE=${SCRIPT_PATH}/epicsim-vvp" >> ${SCRIPT_PATH}/../lib/epicsim/vvp-s.conf
+fi
+
 ${SCRIPT_PATH}/epicsim-driver $* -o epicsim-run
 ./epicsim-run

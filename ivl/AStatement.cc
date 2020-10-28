@@ -15,24 +15,19 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include "config.h"
+#include "AStatement.h"
 
-# include  "AStatement.h"
+#include "config.h"
 
-AContrib::AContrib(PExpr*lv, PExpr*rv)
-: lval_(lv), rval_(rv)
-{
+AContrib::AContrib(PExpr* lv, PExpr* rv) : lval_(lv), rval_(rv) {}
+
+AContrib::~AContrib() {
+  delete lval_;
+  delete rval_;
 }
 
-AContrib::~AContrib()
-{
-      delete lval_;
-      delete rval_;
-}
-
-AProcess::~AProcess()
-{
-}
+AProcess::~AProcess() {}

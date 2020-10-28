@@ -15,34 +15,34 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-#include  <assert.h>
-#include  <vpi_user.h>
-#include  <acc_user.h>
-#include  "priv.h"
+#include <acc_user.h>
+#include <assert.h>
+#include <vpi_user.h>
 
-double acc_fetch_paramval(handle object)
-{
-      s_vpi_value val;
+#include "priv.h"
 
-      val.format = vpiObjTypeVal;
-      vpi_get_value(object, &val);
+double acc_fetch_paramval(handle object) {
+  s_vpi_value val;
 
-      switch (val.format) {
+  val.format = vpiObjTypeVal;
+  vpi_get_value(object, &val);
 
-	  case vpiStringVal:
-	    if (pli_trace) {
-		  fprintf(pli_trace, "acc_fetch_paramval(%s) --> \"%s\"\n",
-			  vpi_get_str(vpiName, object), val.value.str);
-	    }
-	    return (double) (intptr_t)val.value.str;
-
-	  default:
-	    vpi_printf("XXXX: parameter %s has type %d\n",
-		       vpi_get_str(vpiName, object), (int)val.format);
-	    assert(0);
-	    return 0.0;
+  switch (val.format) {
+    case vpiStringVal:
+      if (pli_trace) {
+        fprintf(pli_trace, "acc_fetch_paramval(%s) --> \"%s\"\n",
+                vpi_get_str(vpiName, object), val.value.str);
       }
+      return (double)(intptr_t)val.value.str;
+
+    default:
+      vpi_printf("XXXX: parameter %s has type %d\n",
+                 vpi_get_str(vpiName, object), (int)val.format);
+      assert(0);
+      return 0.0;
+  }
 }

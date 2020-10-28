@@ -15,40 +15,39 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include <string.h>
-# include <stdlib.h>
-# include <assert.h>
-# include "config.h"
-# include "vpi_user.h"
-# include "veriuser.h"
+#include <assert.h>
+#include <stdlib.h>
+#include <string.h>
 
-void tf_multiply_long(PLI_INT32*aof_low1, PLI_INT32*aof_high1,
-		      PLI_INT32 aof_low2, PLI_INT32 aof_high2)
-{
-      ivl_u64_t a, b;
-      a = *aof_high1;
-      a = (a << 32) | *aof_low1;
-      b = aof_high2;
-      b = (b << 32) | aof_low2;
-      a *= b;
-      *aof_high1 = (a >> 32) & 0xffffffff;
-      *aof_low1 = a & 0xffffffff;
+#include "config.h"
+#include "veriuser.h"
+#include "vpi_user.h"
+
+void tf_multiply_long(PLI_INT32 *aof_low1, PLI_INT32 *aof_high1,
+                      PLI_INT32 aof_low2, PLI_INT32 aof_high2) {
+  ivl_u64_t a, b;
+  a = *aof_high1;
+  a = (a << 32) | *aof_low1;
+  b = aof_high2;
+  b = (b << 32) | aof_low2;
+  a *= b;
+  *aof_high1 = (a >> 32) & 0xffffffff;
+  *aof_low1 = a & 0xffffffff;
 }
 
-void tf_real_to_long(double real, PLI_INT32*low, PLI_INT32*high)
-{
-      ivl_u64_t rtn = (ivl_u64_t)real;
-      *high = (rtn >> 32) & 0xffffffff;
-      *low = rtn & 0xffffffff;
+void tf_real_to_long(double real, PLI_INT32 *low, PLI_INT32 *high) {
+  ivl_u64_t rtn = (ivl_u64_t)real;
+  *high = (rtn >> 32) & 0xffffffff;
+  *low = rtn & 0xffffffff;
 }
 
-void tf_long_to_real(PLI_INT32 low, PLI_INT32 high, double *real)
-{
-      ivl_u64_t a;
-      a = high;
-      a = (a << 32) | low;
-      *real = (double)a;
+void tf_long_to_real(PLI_INT32 low, PLI_INT32 high, double *real) {
+  ivl_u64_t a;
+  a = high;
+  a = (a << 32) | low;
+  *real = (double)a;
 }

@@ -17,19 +17,21 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "svector.h"
-# include  "StringHeap.h"
-# include  "named.h"
-# include  "PNamedItem.h"
-# include  "PDelays.h"
-# include  "netlist.h"
-# include  <map>
-# include  <list>
-# include  <vector>
-# include  <string>
+#include <list>
+#include <map>
+#include <string>
+#include <vector>
+
+#include "PDelays.h"
+#include "PNamedItem.h"
+#include "StringHeap.h"
+#include "named.h"
+#include "netlist.h"
+#include "svector.h"
 class PExpr;
 class PUdp;
 class Module;
@@ -49,87 +51,81 @@ class Module;
  * strength of the 1 drive.
  */
 class PGate : public PNamedItem {
+ public:
+  explicit PGate(perm_string name, list<PExpr*>* pins, const list<PExpr*>* del);
 
-    public:
-      explicit PGate(perm_string name, list<PExpr*>*pins,
-		     const list<PExpr*>*del);
+  explicit PGate(perm_string name, list<PExpr*>* pins, PExpr* del);
 
-      explicit PGate(perm_string name, list<PExpr*>*pins,
-		     PExpr*del);
+  explicit PGate(perm_string name, list<PExpr*>* pins);
 
-      explicit PGate(perm_string name, list<PExpr*>*pins);
+  virtual ~PGate();
 
-      virtual ~PGate();
+  perm_string get_name() const { return name_; }
 
-      perm_string get_name() const { return name_; }
+  // This evaluates the delays as far as possible, but returns
+  // an expression, and do not signal errors.
+  void eval_delays(Design* des, NetScope* scope, NetExpr*& rise_time,
+                   NetExpr*& fall_time, NetExpr*& decay_time,
+                   bool as_net_flag = false) const;
 
-	// This evaluates the delays as far as possible, but returns
-	// an expression, and do not signal errors.
-      void eval_delays(Design*des, NetScope*scope,
-		       NetExpr*&rise_time,
-		       NetExpr*&fall_time,
-		       NetExpr*&decay_time,
-		       bool as_net_flag =false) const;
+  unsigned delay_count() const;
 
-      unsigned delay_count() const;
+  unsigned pin_count() const { return pins_.size(); }
+  PExpr* pin(unsigned idx) const { return pins_[idx]; }
 
-      unsigned pin_count() const { return pins_.size(); }
-      PExpr*pin(unsigned idx) const { return pins_[idx]; }
+  ivl_drive_t strength0() const;
+  ivl_drive_t strength1() const;
 
-      ivl_drive_t strength0() const;
-      ivl_drive_t strength1() const;
+  void strength0(ivl_drive_t);
+  void strength1(ivl_drive_t);
 
-      void strength0(ivl_drive_t);
-      void strength1(ivl_drive_t);
+  map<perm_string, PExpr*> attributes;
 
-      map<perm_string,PExpr*> attributes;
+  virtual void dump(ostream& out, unsigned ind = 4) const;
+  virtual void elaborate(Design* des, NetScope* scope) const;
+  virtual void elaborate_scope(Design* des, NetScope* sc) const;
+  virtual bool elaborate_sig(Design* des, NetScope* scope) const;
 
-      virtual void dump(ostream&out, unsigned ind =4) const;
-      virtual void elaborate(Design*des, NetScope*scope) const;
-      virtual void elaborate_scope(Design*des, NetScope*sc) const;
-      virtual bool elaborate_sig(Design*des, NetScope*scope) const;
+  SymbolType symbol_type() const;
 
-      SymbolType symbol_type() const;
+ protected:
+  const vector<PExpr*>& get_pins() const { return pins_; }
 
-    protected:
-      const vector<PExpr*>& get_pins() const { return pins_; }
+  void dump_pins(ostream& out) const;
+  void dump_delays(ostream& out) const;
 
-      void dump_pins(ostream&out) const;
-      void dump_delays(ostream&out) const;
+ private:
+  perm_string name_;
+  PDelays delay_;
+  vector<PExpr*> pins_;
 
-    private:
-      perm_string name_;
-      PDelays delay_;
-      vector<PExpr*>pins_;
+  ivl_drive_t str0_, str1_;
 
-      ivl_drive_t str0_, str1_;
+  void set_pins_(list<PExpr*>* pins);
 
-      void set_pins_(list<PExpr*>*pins);
-
-    private: // not implemented
-      PGate(const PGate&);
-      PGate& operator= (const PGate&);
+ private:  // not implemented
+  PGate(const PGate&);
+  PGate& operator=(const PGate&);
 };
 
 /* A continuous assignment has a single output and a single input. The
    input is passed directly to the output. This is different from a
    BUF because elaboration may need to turn this into a vector of
    gates. */
-class PGAssign  : public PGate {
+class PGAssign : public PGate {
+ public:
+  explicit PGAssign(list<PExpr*>* pins);
+  explicit PGAssign(list<PExpr*>* pins, list<PExpr*>* dels);
+  ~PGAssign();
 
-    public:
-      explicit PGAssign(list<PExpr*>*pins);
-      explicit PGAssign(list<PExpr*>*pins, list<PExpr*>*dels);
-      ~PGAssign();
+  void dump(ostream& out, unsigned ind = 4) const;
+  virtual void elaborate(Design* des, NetScope* scope) const;
+  virtual bool elaborate_sig(Design* des, NetScope* scope) const;
 
-      void dump(ostream&out, unsigned ind =4) const;
-      virtual void elaborate(Design*des, NetScope*scope) const;
-      virtual bool elaborate_sig(Design*des, NetScope*scope) const;
-
-    private:
-      void elaborate_unpacked_array_(Design*des, NetScope*scope, NetNet*lval) const;
+ private:
+  void elaborate_unpacked_array_(Design* des, NetScope* scope,
+                                 NetNet* lval) const;
 };
-
 
 /*
  * The Builtin class is specifically a gate with one of the builtin
@@ -141,47 +137,66 @@ class PGAssign  : public PGate {
  * range. Elaboration causes a gate to be created for each element of
  * the array, and a name will be generated for each gate.
  */
-class PGBuiltin  : public PGate {
+class PGBuiltin : public PGate {
+ public:
+  enum Type {
+    AND,
+    NAND,
+    OR,
+    NOR,
+    XOR,
+    XNOR,
+    BUF,
+    BUFIF0,
+    BUFIF1,
+    NOT,
+    NOTIF0,
+    NOTIF1,
+    PULLDOWN,
+    PULLUP,
+    NMOS,
+    RNMOS,
+    PMOS,
+    RPMOS,
+    CMOS,
+    RCMOS,
+    TRAN,
+    RTRAN,
+    TRANIF0,
+    TRANIF1,
+    RTRANIF0,
+    RTRANIF1
+  };
 
-    public:
-      enum Type { AND, NAND, OR, NOR, XOR, XNOR, BUF, BUFIF0, BUFIF1,
-		  NOT, NOTIF0, NOTIF1, PULLDOWN, PULLUP, NMOS, RNMOS,
-		  PMOS, RPMOS, CMOS, RCMOS, TRAN, RTRAN, TRANIF0,
-		  TRANIF1, RTRANIF0, RTRANIF1 };
+ public:
+  explicit PGBuiltin(Type t, perm_string name, list<PExpr*>* pins,
+                     list<PExpr*>* del);
+  explicit PGBuiltin(Type t, perm_string name, list<PExpr*>* pins, PExpr* del);
+  ~PGBuiltin();
 
-    public:
-      explicit PGBuiltin(Type t, perm_string name,
-			 list<PExpr*>*pins,
-			 list<PExpr*>*del);
-      explicit PGBuiltin(Type t, perm_string name,
-			 list<PExpr*>*pins,
-			 PExpr*del);
-      ~PGBuiltin();
+  Type type() const { return type_; }
+  const char* gate_name() const;
+  void set_range(PExpr* msb, PExpr* lsb);
 
-      Type type() const { return type_; }
-      const char * gate_name() const;
-      void set_range(PExpr*msb, PExpr*lsb);
+  virtual void dump(ostream& out, unsigned ind = 4) const;
+  virtual void elaborate(Design*, NetScope* scope) const;
+  virtual bool elaborate_sig(Design* des, NetScope* scope) const;
 
-      virtual void dump(ostream&out, unsigned ind =4) const;
-      virtual void elaborate(Design*, NetScope*scope) const;
-      virtual bool elaborate_sig(Design*des, NetScope*scope) const;
+ private:
+  unsigned calculate_array_count_(Design*, NetScope*, long& high,
+                                  long& low) const;
 
-    private:
-      unsigned calculate_array_count_(Design*, NetScope*,
-				      long&high, long&low) const;
+  void calculate_gate_and_lval_count_(unsigned& gate_count,
+                                      unsigned& lval_count) const;
 
-      void calculate_gate_and_lval_count_(unsigned&gate_count,
-                                          unsigned&lval_count) const;
+  NetNode* create_gate_for_output_(Design*, NetScope*, perm_string gate_name,
+                                   unsigned instance_width) const;
 
-      NetNode* create_gate_for_output_(Design*, NetScope*,
-				       perm_string gate_name,
-				       unsigned instance_width) const;
+  bool check_delay_count(Design* des) const;
 
-      bool check_delay_count(Design*des) const;
-
-      Type type_;
-      PExpr*msb_;
-      PExpr*lsb_;
+  Type type_;
+  PExpr* msb_;
+  PExpr* lsb_;
 };
 
 /*
@@ -190,79 +205,77 @@ class PGBuiltin  : public PGate {
  * type also handles UDP devices, because it is generally not known at
  * parse time whether a name belongs to a module or a UDP.
  */
-class PGModule  : public PGate {
+class PGModule : public PGate {
+ public:
+  // The name is the *instance* name of the gate.
 
-    public:
-	// The name is the *instance* name of the gate.
+  // If the binding of ports is by position, this constructor
+  // builds everything all at once.
+  explicit PGModule(perm_string type, perm_string name, list<PExpr*>* pins);
 
-	// If the binding of ports is by position, this constructor
-	// builds everything all at once.
-      explicit PGModule(perm_string type, perm_string name,
-			list<PExpr*>*pins);
+  // If the binding of ports is by name, this constructor takes
+  // the bindings and stores them for later elaboration.
+  explicit PGModule(perm_string type, perm_string name, named<PExpr*>* pins,
+                    unsigned npins);
 
-	// If the binding of ports is by name, this constructor takes
-	// the bindings and stores them for later elaboration.
-      explicit PGModule(perm_string type, perm_string name,
-			named<PExpr*>*pins, unsigned npins);
+  // If the module type is known by design, then use this
+  // constructor.
+  explicit PGModule(Module* type, perm_string name);
 
-	// If the module type is known by design, then use this
-	// constructor.
-      explicit PGModule(Module*type, perm_string name);
+  ~PGModule();
 
-      ~PGModule();
+  // Parameter overrides can come as an ordered list, or a set
+  // of named expressions.
+  void set_parameters(list<PExpr*>* o);
+  void set_parameters(named<PExpr*>* pa, unsigned npa);
 
-	// Parameter overrides can come as an ordered list, or a set
-	// of named expressions.
-      void set_parameters(list<PExpr*>*o);
-      void set_parameters(named<PExpr*>*pa, unsigned npa);
+  // Modules can be instantiated in ranges. The parser uses this
+  // method to pass the range to the pform.
+  void set_range(PExpr* msb, PExpr* lsb);
 
-	// Modules can be instantiated in ranges. The parser uses this
-	// method to pass the range to the pform.
-      void set_range(PExpr*msb, PExpr*lsb);
+  map<perm_string, PExpr*> attributes;
 
-      map<perm_string,PExpr*> attributes;
+  virtual void dump(ostream& out, unsigned ind = 4) const;
+  virtual void elaborate(Design*, NetScope* scope) const;
+  virtual void elaborate_scope(Design* des, NetScope* sc) const;
+  virtual bool elaborate_sig(Design* des, NetScope* scope) const;
 
-      virtual void dump(ostream&out, unsigned ind =4) const;
-      virtual void elaborate(Design*, NetScope*scope) const;
-      virtual void elaborate_scope(Design*des, NetScope*sc) const;
-      virtual bool elaborate_sig(Design*des, NetScope*scope) const;
+  // This returns the module name of this module. It is a
+  // permallocated string.
+  perm_string get_type() const;
 
-	// This returns the module name of this module. It is a
-	// permallocated string.
-      perm_string get_type() const;
+ private:
+  Module* bound_type_;
+  perm_string type_;
+  list<PExpr*>* overrides_;
+  named<PExpr*>* pins_;
+  unsigned npins_;
 
-    private:
-      Module*bound_type_;
-      perm_string type_;
-      list<PExpr*>*overrides_;
-      named<PExpr*>*pins_;
-      unsigned npins_;
+  // These members support parameter override by name
+  named<PExpr*>* parms_;
+  unsigned nparms_;
 
-	// These members support parameter override by name
-      named<PExpr*>*parms_;
-      unsigned nparms_;
+  // Arrays of modules are give if these are set.
+  PExpr* msb_;
+  PExpr* lsb_;
 
-	// Arrays of modules are give if these are set.
-      PExpr*msb_;
-      PExpr*lsb_;
-
-      friend class delayed_elaborate_scope_mod_instances;
-      void elaborate_mod_(Design*, Module*mod, NetScope*scope) const;
-      void elaborate_udp_(Design*, PUdp  *udp, NetScope*scope) const;
-      unsigned calculate_instance_count_(Design*, NetScope*,
-                                         long&high, long&low,
-                                         perm_string name) const;
-      void elaborate_scope_mod_(Design*des, Module*mod, NetScope*sc) const;
-      void elaborate_scope_mod_instances_(Design*des, Module*mod, NetScope*sc) const;
-      bool elaborate_sig_mod_(Design*des, NetScope*scope, Module*mod) const;
-	// Not currently used.
+  friend class delayed_elaborate_scope_mod_instances;
+  void elaborate_mod_(Design*, Module* mod, NetScope* scope) const;
+  void elaborate_udp_(Design*, PUdp* udp, NetScope* scope) const;
+  unsigned calculate_instance_count_(Design*, NetScope*, long& high, long& low,
+                                     perm_string name) const;
+  void elaborate_scope_mod_(Design* des, Module* mod, NetScope* sc) const;
+  void elaborate_scope_mod_instances_(Design* des, Module* mod,
+                                      NetScope* sc) const;
+  bool elaborate_sig_mod_(Design* des, NetScope* scope, Module* mod) const;
+  // Not currently used.
 #if 0
       bool elaborate_sig_udp_(Design*des, NetScope*scope, PUdp*udp) const;
 #endif
 
-      NetNet*resize_net_to_port_(Design*des, NetScope*scope,
-				 NetNet*sig, unsigned port_wid,
-				 NetNet::PortType dir, bool as_signed) const;
+  NetNet* resize_net_to_port_(Design* des, NetScope* scope, NetNet* sig,
+                              unsigned port_wid, NetNet::PortType dir,
+                              bool as_signed) const;
 };
 
 #endif /* IVL_PGate_H */

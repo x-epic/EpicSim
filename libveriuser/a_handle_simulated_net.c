@@ -15,21 +15,22 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  <assert.h>
-# include  <ctype.h>
-# include  <acc_user.h>
-# include  <vpi_user.h>
-# include  "priv.h"
+#include <acc_user.h>
+#include <assert.h>
+#include <ctype.h>
+#include <vpi_user.h>
 
-handle acc_handle_simulated_net(handle obj)
-{
-      if (pli_trace) {
-	    fprintf(pli_trace, "acc_handle_simulated_set: returns argument\n");
-	    fflush(pli_trace);
-      }
+#include "priv.h"
 
-      return obj;
+handle acc_handle_simulated_net(handle obj) {
+  if (pli_trace) {
+    fprintf(pli_trace, "acc_handle_simulated_set: returns argument\n");
+    fflush(pli_trace);
+  }
+
+  return obj;
 }

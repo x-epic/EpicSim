@@ -17,10 +17,11 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "vvp_net.h"
+#include "vvp_net.h"
 
 /*
  * The vvp_latch implements an arbitrary width D-type transparent latch.
@@ -30,21 +31,18 @@
  *   port-1:  EN input
  */
 class vvp_latch : public vvp_net_fun_t {
+ public:
+  explicit vvp_latch(unsigned width);
+  ~vvp_latch();
 
-    public:
-      explicit vvp_latch(unsigned width);
-      ~vvp_latch();
+  void recv_vec4(vvp_net_ptr_t port, const vvp_vector4_t& bit, vvp_context_t);
 
-      void recv_vec4(vvp_net_ptr_t port, const vvp_vector4_t&bit,
-                     vvp_context_t);
+  void recv_vec4_pv(vvp_net_ptr_t ptr, const vvp_vector4_t& bit, unsigned base,
+                    unsigned wid, unsigned vwid, vvp_context_t ctx);
 
-      void recv_vec4_pv(vvp_net_ptr_t ptr, const vvp_vector4_t&bit,
-			unsigned base, unsigned wid, unsigned vwid,
-                        vvp_context_t ctx);
-
-    private:
-      vvp_bit4_t en_;
-      vvp_vector4_t d_;
+ private:
+  vvp_bit4_t en_;
+  vvp_vector4_t d_;
 };
 
 #endif /* IVL_latch_H */

@@ -17,34 +17,33 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "nettypes.h"
+#include "nettypes.h"
 
 class netreal_t : public ivl_type_s {
+ public:
+  inline explicit netreal_t() {}
+  ~netreal_t();
 
-    public:
-      inline explicit netreal_t() { }
-      ~netreal_t();
+  ivl_variable_type_t base_type() const;
 
-      ivl_variable_type_t base_type() const;
-
-    public:
-      static netreal_t type_real;
-      static netreal_t type_shortreal;
+ public:
+  static netreal_t type_real;
+  static netreal_t type_shortreal;
 };
 
 class netstring_t : public ivl_type_s {
+ public:
+  inline explicit netstring_t() {}
+  ~netstring_t();
 
-    public:
-      inline explicit netstring_t() { }
-      ~netstring_t();
+  ivl_variable_type_t base_type() const;
 
-      ivl_variable_type_t base_type() const;
-
-    public:
-      static netstring_t type_string;
+ public:
+  static netstring_t type_string;
 };
 
 #endif /* IVL_netscalar_H */

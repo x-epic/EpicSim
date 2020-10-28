@@ -17,14 +17,15 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  <string>
+#include <string>
 
-# include  "config.h"
+#include "config.h"
 #ifdef HAVE_IOSFWD
-# include  <iosfwd>
+#include <iosfwd>
 #else
 class ostream;
 #endif
@@ -38,93 +39,102 @@ using namespace std;
  * get(0) is 0 and get(1) is 1.
  */
 class verinum {
+ public:
+  enum V { V0 = 0, V1, Vx, Vz };
 
-    public:
-      enum V { V0 = 0, V1, Vx, Vz };
+  verinum();
+  explicit verinum(const string& str);
+  verinum(const V* v, unsigned nbits, bool has_len = true);
+  explicit verinum(V, unsigned nbits = 1, bool has_len = true);
+  verinum(uint64_t val, unsigned bits);
+  verinum(double val, bool);
+  verinum(const verinum&);
 
-      verinum();
-      explicit verinum(const string&str);
-      verinum(const V*v, unsigned nbits, bool has_len =true);
-      explicit verinum(V, unsigned nbits =1, bool has_len =true);
-      verinum(uint64_t val, unsigned bits);
-      verinum(double val, bool);
-      verinum(const verinum&);
+  // Create a signed number, with an unspecified number of bits.
+  explicit verinum(int64_t val);
 
-	// Create a signed number, with an unspecified number of bits.
-      explicit verinum(int64_t val);
+  // Copy only the specified number of bits from the
+  // source. Also mark this number as has_len.
+  verinum(const verinum&, unsigned bits);
 
-	// Copy only the specified number of bits from the
-	// source. Also mark this number as has_len.
-      verinum(const verinum&, unsigned bits);
+  ~verinum();
+  verinum& operator=(const verinum&);
 
-      ~verinum();
-      verinum& operator= (const verinum&);
+  // Number of stored bits in this number.
+  unsigned len() const { return nbits_; }
 
-	// Number of stored bits in this number.
-      unsigned len() const { return nbits_; }
+  // A number "has a length" if the length was specified fixed
+  // in some way.
+  bool has_len(bool flag) {
+    has_len_ = flag;
+    return has_len_;
+  }
+  bool has_len() const { return has_len_; }
 
-	// A number "has a length" if the length was specified fixed
-	// in some way.
-      bool has_len(bool flag) { has_len_ = flag; return has_len_; }
-      bool has_len() const { return has_len_; }
+  bool has_sign(bool flag) {
+    has_sign_ = flag;
+    return has_sign_;
+  }
+  bool has_sign() const { return has_sign_; }
 
-      bool has_sign(bool flag) { has_sign_ = flag; return has_sign_; }
-      bool has_sign() const { return has_sign_; }
+  // A number "is single" if it comes from a SystemVerilog 'N bit vector
+  bool is_single(bool flag) {
+    is_single_ = flag;
+    return is_single_;
+  }
+  bool is_single() const { return is_single_; }
 
-        // A number "is single" if it comes from a SystemVerilog 'N bit vector
-      bool is_single(bool flag) { is_single_ = flag; return is_single_; }
-      bool is_single() const { return is_single_; }
+  // A number is "defined" if there are no x or z bits in its value.
+  bool is_defined() const;
+  bool is_zero() const;
+  bool is_negative() const;
 
-	// A number is "defined" if there are no x or z bits in its value.
-      bool is_defined() const;
-      bool is_zero() const;
-      bool is_negative() const;
+  // A number is "a string" if its value came directly from
+  // an ASCII description instead of a number value.
+  bool is_string() const { return string_flag_; }
 
-	// A number is "a string" if its value came directly from
-	// an ASCII description instead of a number value.
-      bool is_string() const { return string_flag_; }
+  // Comparison for use in sorting algorithms.
+  bool is_before(const verinum& that) const;
 
-	// Comparison for use in sorting algorithms.
-      bool is_before(const verinum&that) const;
+  // Number of significant bits in this number.
+  unsigned significant_bits() const;
 
-	// Number of significant bits in this number.
-      unsigned significant_bits() const;
+  // Convert 4-state to 2-state
+  void cast_to_int2();
 
-	// Convert 4-state to 2-state
-      void cast_to_int2();
+  // Individual bits can be accessed with the get and set
+  // methods.
+  V get(unsigned idx) const;
+  V set(unsigned idx, V val);
+  void set(unsigned idx, const verinum& val);
 
-	// Individual bits can be accessed with the get and set
-	// methods.
-      V get(unsigned idx) const;
-      V set(unsigned idx, V val);
-      void set(unsigned idx, const verinum&val);
+  V operator[](unsigned idx) const { return get(idx); }
 
-      V operator[] (unsigned idx) const { return get(idx); }
+  // Return the value as a native unsigned integer. If the value is
+  // larger than can be represented by the returned type, return
+  // the maximum value of that type. If the value has any x or z
+  // bits or has zero width, return the value 0.
+  uint64_t as_ulong64() const;
+  unsigned as_unsigned() const;
+  unsigned long as_ulong() const;
 
-	// Return the value as a native unsigned integer. If the value is
-	// larger than can be represented by the returned type, return
-	// the maximum value of that type. If the value has any x or z
-	// bits or has zero width, return the value 0.
-      uint64_t as_ulong64() const;
-      unsigned as_unsigned() const;
-      unsigned long as_ulong() const;
+  signed long as_long() const;
+  double as_double() const;
+  string as_string() const;
 
-      signed long   as_long() const;
-      double as_double() const;
-      string as_string() const;
-    private:
-      void signed_trim();
+ private:
+  void signed_trim();
 
-    private:
-      V* bits_;
-      unsigned nbits_;
-      bool has_len_;
-      bool has_sign_;
-      bool is_single_;
+ private:
+  V* bits_;
+  unsigned nbits_;
+  bool has_len_;
+  bool has_sign_;
+  bool is_single_;
 
-	// These are some convenience flags that help us do a better
-	// job of pretty-printing values.
-      bool string_flag_;
+  // These are some convenience flags that help us do a better
+  // job of pretty-printing values.
+  bool string_flag_;
 };
 
 /*
@@ -132,12 +142,11 @@ class verinum {
  * unsigned, then return an implicit sign bit of 0. Otherwise, return
  * the high bit.
  */
-inline verinum::V sign_bit(const verinum&val)
-{
-      if (val.has_sign())
-	    return val.get(val.len()-1);
-      else
-	    return verinum::V0;
+inline verinum::V sign_bit(const verinum& val) {
+  if (val.has_sign())
+    return val.get(val.len() - 1);
+  else
+    return verinum::V0;
 }
 
 /* Return a verinum that has the same value as the input, but is at
@@ -155,30 +164,33 @@ extern verinum cast_to_width(const verinum&, unsigned width);
    needed to accurately represent the contained value, signed or not. */
 extern verinum trim_vnum(const verinum&);
 
-extern ostream& operator<< (ostream&, const verinum&);
-extern ostream& operator<< (ostream&, verinum::V);
+extern ostream& operator<<(ostream&, const verinum&);
+extern ostream& operator<<(ostream&, verinum::V);
 
-inline verinum::V bit4_z2x(verinum::V bit)
-{ return bit<2? bit : verinum::Vx; /* Relies on V0 and V1 being <2 */}
+inline verinum::V bit4_z2x(verinum::V bit) {
+  return bit < 2 ? bit : verinum::Vx; /* Relies on V0 and V1 being <2 */
+}
 
-extern verinum::V operator ~ (verinum::V l);
-extern verinum::V operator | (verinum::V l, verinum::V r);
-extern verinum::V operator & (verinum::V l, verinum::V r);
-extern verinum::V operator ^ (verinum::V l, verinum::V r);
+extern verinum::V operator~(verinum::V l);
+extern verinum::V operator|(verinum::V l, verinum::V r);
+extern verinum::V operator&(verinum::V l, verinum::V r);
+extern verinum::V operator^(verinum::V l, verinum::V r);
 
-extern verinum::V operator == (const verinum&left, const verinum&right);
-extern verinum::V operator <= (const verinum&left, const verinum&right);
-extern verinum::V operator <  (const verinum&left, const verinum&right);
+extern verinum::V operator==(const verinum& left, const verinum& right);
+extern verinum::V operator<=(const verinum& left, const verinum& right);
+extern verinum::V operator<(const verinum& left, const verinum& right);
 
-inline verinum::V operator > (const verinum&left, const verinum&right)
-{ return right < left; }
+inline verinum::V operator>(const verinum& left, const verinum& right) {
+  return right < left;
+}
 
-inline verinum::V operator >= (const verinum&left, const verinum&right)
-{ return right <= left; }
+inline verinum::V operator>=(const verinum& left, const verinum& right) {
+  return right <= left;
+}
 
-inline verinum::V operator != (const verinum&left, const verinum&right)
-{ return (left == right)? verinum::V0 : verinum::V1; }
-
+inline verinum::V operator!=(const verinum& left, const verinum& right) {
+  return (left == right) ? verinum::V0 : verinum::V1;
+}
 
 /* These are arithmetic operators. If any operand is unsized, they
    generally work to produce results that do not overflow. That means
@@ -186,21 +198,21 @@ inline verinum::V operator != (const verinum&left, const verinum&right)
    the operation results accurately. It is up to the caller to truncate
    or pad if a specific width is expected. If all operands are sized,
    the normal Verilog rules for result size are used. */
-extern verinum operator - (const verinum&right);
-extern verinum operator + (const verinum&left, const verinum&right);
-extern verinum operator - (const verinum&left, const verinum&right);
-extern verinum operator * (const verinum&left, const verinum&right);
-extern verinum operator / (const verinum&left, const verinum&right);
-extern verinum operator % (const verinum&left, const verinum&right);
+extern verinum operator-(const verinum& right);
+extern verinum operator+(const verinum& left, const verinum& right);
+extern verinum operator-(const verinum& left, const verinum& right);
+extern verinum operator*(const verinum& left, const verinum& right);
+extern verinum operator/(const verinum& left, const verinum& right);
+extern verinum operator%(const verinum& left, const verinum& right);
 
-extern verinum pow(const verinum&left, const verinum&right);
+extern verinum pow(const verinum& left, const verinum& right);
 
-extern verinum operator<< (const verinum&left, unsigned shift);
-extern verinum operator>> (const verinum&left, unsigned shift);
+extern verinum operator<<(const verinum& left, unsigned shift);
+extern verinum operator>>(const verinum& left, unsigned shift);
 
-extern verinum concat(const verinum&left, const verinum&right);
+extern verinum concat(const verinum& left, const verinum& right);
 
 /* Bitwise not returns the ones complement. */
-extern verinum operator ~ (const verinum&left);
+extern verinum operator~(const verinum& left);
 
 #endif /* IVL_verinum_H */

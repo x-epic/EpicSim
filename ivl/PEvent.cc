@@ -15,28 +15,18 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include "config.h"
+#include "PEvent.h"
 
-# include  "PEvent.h"
+#include "config.h"
 
-PEvent::PEvent(perm_string n)
-: name_(n)
-{
-}
+PEvent::PEvent(perm_string n) : name_(n) {}
 
-PEvent::~PEvent()
-{
-}
+PEvent::~PEvent() {}
 
-perm_string  PEvent::name() const
-{
-      return name_;
-}
+perm_string PEvent::name() const { return name_; }
 
-PNamedItem::SymbolType PEvent::symbol_type() const
-{
-      return EVENT;
-}
+PNamedItem::SymbolType PEvent::symbol_type() const { return EVENT; }

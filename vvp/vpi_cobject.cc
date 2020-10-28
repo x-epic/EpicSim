@@ -16,48 +16,40 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "compile.h"
-# include  "vpi_priv.h"
-# include  "config.h"
+#include "compile.h"
+#include "config.h"
+#include "vpi_priv.h"
 #ifdef CHECK_WITH_VALGRIND
-# include  "vvp_cleanup.h"
+#include "vvp_cleanup.h"
 #endif
 
-__vpiCobjectVar::__vpiCobjectVar(__vpiScope*sc, const char*na, vvp_net_t*ne)
-: __vpiBaseVar(sc, na, ne)
-{
+__vpiCobjectVar::__vpiCobjectVar(__vpiScope* sc, const char* na, vvp_net_t* ne)
+    : __vpiBaseVar(sc, na, ne) {}
+
+int __vpiCobjectVar::get_type_code(void) const { return vpiClassVar; }
+
+int __vpiCobjectVar::vpi_get(int) { return 0; }
+
+void __vpiCobjectVar::vpi_get_value(p_vpi_value val) {
+  val->format = vpiSuppressVal;
 }
 
-int __vpiCobjectVar::get_type_code(void) const
-{ return vpiClassVar; }
+vpiHandle vpip_make_cobject_var(const char* name, vvp_net_t* net) {
+  __vpiScope* scope = vpip_peek_current_scope();
+  const char* use_name = name ? vpip_name_string(name) : 0;
 
-int __vpiCobjectVar::vpi_get(int)
-{
-      return 0;
-}
+  __vpiCobjectVar* obj = new __vpiCobjectVar(scope, use_name, net);
 
-void __vpiCobjectVar::vpi_get_value(p_vpi_value val)
-{
-      val->format = vpiSuppressVal;
-}
-
-vpiHandle vpip_make_cobject_var(const char*name, vvp_net_t*net)
-{
-      __vpiScope*scope = vpip_peek_current_scope();
-      const char*use_name = name ? vpip_name_string(name) : 0;
-
-      __vpiCobjectVar*obj = new __vpiCobjectVar(scope, use_name, net);
-
-      return obj;
+  return obj;
 }
 
 #ifdef CHECK_WITH_VALGRIND
-void class_delete(vpiHandle item)
-{
-      __vpiCobjectVar*obj = dynamic_cast<__vpiCobjectVar*>(item);
-      delete obj;
+void class_delete(vpiHandle item) {
+  __vpiCobjectVar* obj = dynamic_cast<__vpiCobjectVar*>(item);
+  delete obj;
 }
 #endif

@@ -17,17 +17,18 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  <stdio.h>
+#include <stdio.h>
 
 /*
  * This function implements the acc_ string buffer, by adding the
  * input string to the buffer, and returning a pointer to the first
  * character of the new string.
  */
-extern char* __acc_newstring(const char*txt);
+extern char* __acc_newstring(const char* txt);
 
 /*
  * Trace file for logging ACC and TF calls.

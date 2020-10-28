@@ -15,65 +15,64 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-#include  <veriuser.h>
-#include  <vpi_user.h>
-#include  "priv.h"
-#include  <assert.h>
+#include <assert.h>
+#include <veriuser.h>
+#include <vpi_user.h>
 
-static PLI_INT32 delay_callback(struct t_cb_data*cb)
-{
-      (void)cb; /* Parameter is not used. */
-      vpi_printf("XXXX delay_callback called.\n");
-      return 0;
+#include "priv.h"
+
+static PLI_INT32 delay_callback(struct t_cb_data* cb) {
+  (void)cb; /* Parameter is not used. */
+  vpi_printf("XXXX delay_callback called.\n");
+  return 0;
 }
 
-int tf_isetdelay(PLI_INT32 delay, void*ss)
-{
-      vpiHandle sys = (vpiHandle)ss;
-      int unit = vpi_get(vpiTimeUnit, sys);
-      int prec = vpi_get(vpiTimePrecision, 0);
+int tf_isetdelay(PLI_INT32 delay, void* ss) {
+  vpiHandle sys = (vpiHandle)ss;
+  int unit = vpi_get(vpiTimeUnit, sys);
+  int prec = vpi_get(vpiTimePrecision, 0);
 
-      struct t_cb_data cb;
-      struct t_vpi_time ct;
+  struct t_cb_data cb;
+  struct t_vpi_time ct;
 
-      if (pli_trace) {
-	    fprintf(pli_trace, "%s: tf_isetdelay(%d, ...)"
-		    " <unit=%d, prec=%d>;\n",
-		    vpi_get_str(vpiName, sys), (int)delay, unit, prec);
-      }
+  if (pli_trace) {
+    fprintf(pli_trace,
+            "%s: tf_isetdelay(%d, ...)"
+            " <unit=%d, prec=%d>;\n",
+            vpi_get_str(vpiName, sys), (int)delay, unit, prec);
+  }
 
+  /* Convert the delay from the UNITS of the specified
+     task/function to the precision of the simulation. */
+  assert(unit >= prec);
 
-	/* Convert the delay from the UNITS of the specified
-	   task/function to the precision of the simulation. */
-      assert(unit >= prec);
+  while (unit > prec) {
+    PLI_INT32 tmp = delay * 10;
+    assert(tmp > delay);
+    delay = tmp;
+    unit -= 1;
+  }
 
-      while (unit > prec) {
-	    PLI_INT32 tmp = delay * 10;
-	    assert(tmp > delay);
-	    delay = tmp;
-	    unit -= 1;
-      }
+  /* Create a VPI callback to schedule the delay. */
+  ct.type = vpiSimTime;
+  ct.high = 0;
+  ct.low = delay;
 
-	/* Create a VPI callback to schedule the delay. */
-      ct.type = vpiSimTime;
-      ct.high = 0;
-      ct.low  = delay;
+  cb.reason = cbAfterDelay;
+  cb.cb_rtn = delay_callback;
+  cb.obj = 0;
+  cb.time = &ct;
+  cb.value = 0;
+  cb.user_data = 0;
+  vpi_register_cb(&cb);
 
-      cb.reason = cbAfterDelay;
-      cb.cb_rtn = delay_callback;
-      cb.obj = 0;
-      cb.time = &ct;
-      cb.value = 0;
-      cb.user_data = 0;
-      vpi_register_cb(&cb);
-
-      return 0;
+  return 0;
 }
 
-int tf_setdelay(PLI_INT32 delay)
-{
-      return tf_isetdelay(delay, tf_getinstance());
+int tf_setdelay(PLI_INT32 delay) {
+  return tf_isetdelay(delay, tf_getinstance());
 }

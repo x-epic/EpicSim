@@ -17,68 +17,69 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "vpi_user.h"
+#include "vpi_user.h"
 
-#if defined(__MINGW32__) || defined (__CYGWIN32__)
-#  define DLLEXPORT __declspec(dllexport)
+#if defined(__MINGW32__) || defined(__CYGWIN32__)
+#define DLLEXPORT __declspec(dllexport)
 #else
-#  define DLLEXPORT
+#define DLLEXPORT
 #endif
 
 #ifdef __cplusplus
-# define EXTERN_C_START extern "C" {
-# define EXTERN_C_END }
+#define EXTERN_C_START extern "C" {
+#define EXTERN_C_END }
 #else
-# define EXTERN_C_START
-# define EXTERN_C_END
+#define EXTERN_C_START
+#define EXTERN_C_END
 #endif
 
 #ifndef __GNUC__
-# undef  __attribute__
-# define __attribute__(x)
+#undef __attribute__
+#define __attribute__(x)
 #endif
 
 EXTERN_C_START
 
 /********* OBJECT TYPES ***********/
-#define vpiPackage          600
-#define vpiArrayType        606
-#define   vpiStaticArray      1
-#define   vpiDynamicArray     2
-#define   vpiAssocArray       3
-#define   vpiQueueArray       4
-#define vpiLongIntVar       610
-#define vpiShortIntVar      611
-#define vpiIntVar           612
-#define vpiByteVar          614
-#define vpiLogicVar         vpiReg
-#define vpiClassVar         615
-#define vpiStringVar        616
-#define vpiBitVar           620
-#define vpiArrayVar         vpiRegArray
+#define vpiPackage 600
+#define vpiArrayType 606
+#define vpiStaticArray 1
+#define vpiDynamicArray 2
+#define vpiAssocArray 3
+#define vpiQueueArray 4
+#define vpiLongIntVar 610
+#define vpiShortIntVar 611
+#define vpiIntVar 612
+#define vpiByteVar 614
+#define vpiLogicVar vpiReg
+#define vpiClassVar 615
+#define vpiStringVar 616
+#define vpiBitVar 620
+#define vpiArrayVar vpiRegArray
 
 /********* TYPESPECS *************/
-#define vpiClassTypespec    630
-#define vpiEnumTypespec     633
-#define vpiEnumConst        634
+#define vpiClassTypespec 630
+#define vpiEnumTypespec 633
+#define vpiEnumConst 634
 
-#define vpiClassDefn        652
+#define vpiClassDefn 652
 
 /********* One-to-One ***********/
-#define vpiBaseTypespec     703
+#define vpiBaseTypespec 703
 
 /********* Many-to-One ***********/
-#define vpiMember           742
+#define vpiMember 742
 
 /********* task/function properties **********/
-#define vpiOtherFunc          6
+#define vpiOtherFunc 6
 
 /* Icarus-specific function type to use string as the return type */
-#define vpiStringFunc       10
-#define vpiSysFuncString    vpiSysFuncString
+#define vpiStringFunc 10
+#define vpiSysFuncString vpiSysFuncString
 
 EXTERN_C_END
 

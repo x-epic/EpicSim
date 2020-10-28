@@ -15,59 +15,55 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include "config.h"
+#include <typeinfo>
 
-# include  "AStatement.h"
-# include  "netlist.h"
-# include  "netmisc.h"
-# include  "util.h"
+#include "AStatement.h"
+#include "config.h"
+#include "netlist.h"
+#include "netmisc.h"
+#include "util.h"
 
-# include  <typeinfo>
+NetProc* AContrib::elaborate(Design* des, NetScope* scope) const {
+  NetExpr* lval = elab_and_eval(des, scope, lval_, -1);
+  NetExpr* rval = elab_and_eval(des, scope, rval_, -1);
 
-NetProc* AContrib::elaborate(Design*des, NetScope*scope) const
-{
-      NetExpr*lval = elab_and_eval(des, scope, lval_, -1);
-      NetExpr*rval = elab_and_eval(des, scope, rval_, -1);
+  NetEAccess* lacc = dynamic_cast<NetEAccess*>(lval);
+  if (lacc == 0) {
+    cerr << get_fileline() << ": error: The l-value of a contribution"
+         << " statement must be a branch probe access function." << endl;
+    des->errors += 1;
+    return 0;
+  }
 
-      NetEAccess*lacc = dynamic_cast<NetEAccess*> (lval);
-      if (lacc == 0) {
-	    cerr << get_fileline() << ": error: The l-value of a contribution"
-		 << " statement must be a branch probe access function." << endl;
-	    des->errors += 1;
-	    return 0;
-      }
-
-      NetContribution*st = new NetContribution(lacc, rval);
-      st->set_line(*this);
-      return st;
+  NetContribution* st = new NetContribution(lacc, rval);
+  st->set_line(*this);
+  return st;
 }
 
-bool AProcess::elaborate(Design*des, NetScope*scope) const
-{
-      NetProc*estatement = statement_->elaborate(des, scope);
-      if (estatement == 0)
-	    return false;
+bool AProcess::elaborate(Design* des, NetScope* scope) const {
+  NetProc* estatement = statement_->elaborate(des, scope);
+  if (estatement == 0) return false;
 
-      NetAnalogTop*top = new NetAnalogTop(scope, type_, estatement);
+  NetAnalogTop* top = new NetAnalogTop(scope, type_, estatement);
 
-	// Evaluate the attributes for this process, if there
-	// are any. These attributes are to be attached to the
-	// NetProcTop object.
-      struct attrib_list_t*attrib_list;
-      unsigned attrib_list_n = 0;
-      attrib_list = evaluate_attributes(attributes, attrib_list_n, des, scope);
+  // Evaluate the attributes for this process, if there
+  // are any. These attributes are to be attached to the
+  // NetProcTop object.
+  struct attrib_list_t* attrib_list;
+  unsigned attrib_list_n = 0;
+  attrib_list = evaluate_attributes(attributes, attrib_list_n, des, scope);
 
-      for (unsigned adx = 0 ;  adx < attrib_list_n ;  adx += 1)
-	    top->attribute(attrib_list[adx].key,
-			   attrib_list[adx].val);
+  for (unsigned adx = 0; adx < attrib_list_n; adx += 1)
+    top->attribute(attrib_list[adx].key, attrib_list[adx].val);
 
-      delete[]attrib_list;
+  delete[] attrib_list;
 
-      top->set_line(*this);
-      des->add_process(top);
+  top->set_line(*this);
+  des->add_process(top);
 
-      return true;
+  return true;
 }

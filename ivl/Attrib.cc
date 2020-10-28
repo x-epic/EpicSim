@@ -15,88 +15,72 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include "config.h"
+#include "Attrib.h"
 
-# include  "Attrib.h"
-# include  <cassert>
+#include <cassert>
 
-Attrib::Attrib()
-{
-      nlist_ = 0;
-      list_ = 0;
+#include "config.h"
+
+Attrib::Attrib() {
+  nlist_ = 0;
+  list_ = 0;
 }
 
-Attrib::~Attrib()
-{
-      delete[] list_;
+Attrib::~Attrib() { delete[] list_; }
+
+const verinum& Attrib::attribute(perm_string key) const {
+  for (unsigned idx = 0; idx < nlist_; idx += 1) {
+    if (key == list_[idx].key) return list_[idx].val;
+  }
+
+  static const verinum null;
+  return null;
 }
 
+void Attrib::attribute(perm_string key, const verinum& value) {
+  unsigned idx;
 
-const verinum& Attrib::attribute(perm_string key) const
-{
-      for (unsigned idx = 0 ;  idx < nlist_ ;  idx += 1) {
+  for (idx = 0; idx < nlist_; idx += 1) {
+    if (key == list_[idx].key) {
+      list_[idx].val = value;
+      return;
+    }
+  }
 
-	    if (key == list_[idx].key)
-		  return list_[idx].val;
-      }
+  struct cell_* tmp = new struct cell_[nlist_ + 1];
+  for (idx = 0; idx < nlist_; idx += 1) tmp[idx] = list_[idx];
 
-      static const verinum null;
-      return null;
+  tmp[nlist_].key = key;
+  tmp[nlist_].val = value;
+
+  nlist_ += 1;
+  delete[] list_;
+  list_ = tmp;
 }
 
-void Attrib::attribute(perm_string key, const verinum&value)
-{
-      unsigned idx;
+bool Attrib::has_compat_attributes(const Attrib& that) const {
+  unsigned idx;
 
-      for (idx = 0 ; idx < nlist_ ;  idx += 1) {
-	    if (key == list_[idx].key) {
-		  list_[idx].val = value;
-		  return;
-	    }
-      }
+  for (idx = 0; idx < that.nlist_; idx += 1) {
+    verinum tmp = attribute(that.list_[idx].key);
+    if (tmp != that.list_[idx].val) return false;
+  }
 
-      struct cell_*tmp = new struct cell_[nlist_+1];
-      for (idx = 0 ;  idx < nlist_ ;  idx += 1)
-	    tmp[idx] = list_[idx];
-
-      tmp[nlist_].key = key;
-      tmp[nlist_].val = value;
-
-      nlist_ += 1;
-      delete[]list_;
-      list_ = tmp;
+  return true;
 }
 
-bool Attrib::has_compat_attributes(const Attrib&that) const
-{
-      unsigned idx;
+unsigned Attrib::attr_cnt() const { return nlist_; }
 
-      for (idx = 0 ;  idx < that.nlist_ ;  idx += 1) {
-
-	    verinum tmp = attribute(that.list_[idx].key);
-	    if (tmp != that.list_[idx].val)
-		  return false;
-      }
-
-      return true;
+perm_string Attrib::attr_key(unsigned idx) const {
+  assert(idx < nlist_);
+  return list_[idx].key;
 }
 
-unsigned Attrib::attr_cnt() const
-{
-      return nlist_;
-}
-
-perm_string Attrib::attr_key(unsigned idx) const
-{
-      assert(idx < nlist_);
-      return list_[idx].key;
-}
-
-const verinum& Attrib::attr_value(unsigned idx) const
-{
-      assert(idx < nlist_);
-      return list_[idx].val;
+const verinum& Attrib::attr_value(unsigned idx) const {
+  assert(idx < nlist_);
+  return list_[idx].val;
 }

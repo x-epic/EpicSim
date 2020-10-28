@@ -15,38 +15,38 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-#include  <vpi_user.h>
-#include  <acc_user.h>
-#include  "priv.h"
+#include <acc_user.h>
+#include <vpi_user.h>
+
+#include "priv.h"
 
 static vpiHandle search_scope = 0;
 
-handle acc_handle_object(const char*name)
-{
-      vpiHandle sys = vpi_handle(vpiSysTfCall, 0);
-      vpiHandle scope = search_scope? search_scope : vpi_handle(vpiScope, sys);
-      vpiHandle res = vpi_handle_by_name(name, scope);
+handle acc_handle_object(const char* name) {
+  vpiHandle sys = vpi_handle(vpiSysTfCall, 0);
+  vpiHandle scope = search_scope ? search_scope : vpi_handle(vpiScope, sys);
+  vpiHandle res = vpi_handle_by_name(name, scope);
 
-      if (pli_trace) {
-	    fprintf(pli_trace, "acc_handle_object(%s <scope=%s>) --> .\n",
-		    name, acc_fetch_fullname(scope));
-      }
+  if (pli_trace) {
+    fprintf(pli_trace, "acc_handle_object(%s <scope=%s>) --> .\n", name,
+            acc_fetch_fullname(scope));
+  }
 
-      return res;
+  return res;
 }
 
-char* acc_set_scope(handle ref, ...)
-{
-      char*name;
-      search_scope = ref;
+char* acc_set_scope(handle ref, ...) {
+  char* name;
+  search_scope = ref;
 
-      name = acc_fetch_fullname(search_scope);
-      if (pli_trace) {
-	    fprintf(pli_trace, "acc_set_scope(<scope=%s>)\n", name);
-      }
+  name = acc_fetch_fullname(search_scope);
+  if (pli_trace) {
+    fprintf(pli_trace, "acc_set_scope(<scope=%s>)\n", name);
+  }
 
-      return acc_fetch_fullname(ref);
+  return acc_fetch_fullname(ref);
 }

@@ -17,15 +17,17 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  <map>
-# include  "ivl_target.h"
-# include  "StringHeap.h"
-# include  "LineInfo.h"
-# include  "Statement.h"
-# include  "PExpr.h"
+#include <map>
+
+#include "LineInfo.h"
+#include "PExpr.h"
+#include "Statement.h"
+#include "StringHeap.h"
+#include "ivl_target.h"
 
 class PExpr;
 class NetAnalog;
@@ -38,17 +40,16 @@ class Design;
  * expression.
  */
 class AContrib : public Statement {
+ public:
+  AContrib(PExpr* lval, PExpr* rval);
+  ~AContrib();
 
-    public:
-      AContrib(PExpr*lval, PExpr*rval);
-      ~AContrib();
+  virtual void dump(ostream& out, unsigned ind) const;
+  virtual NetProc* elaborate(Design* des, NetScope* scope) const;
 
-      virtual void dump(ostream&out, unsigned ind) const;
-      virtual NetProc* elaborate(Design*des, NetScope*scope) const;
-
-    private:
-      PExpr*lval_;
-      PExpr*rval_;
+ private:
+  PExpr* lval_;
+  PExpr* rval_;
 };
 
 /*
@@ -57,30 +58,28 @@ class AContrib : public Statement {
  * such as initial vs. always, attributes....
  */
 class AProcess : public LineInfo {
+ public:
+  AProcess(ivl_process_type_t t, Statement* st) : type_(t), statement_(st) {}
 
-    public:
-      AProcess(ivl_process_type_t t, Statement*st)
-      : type_(t), statement_(st) { }
+  ~AProcess();
 
-      ~AProcess();
+  bool elaborate(Design* des, NetScope* scope) const;
 
-      bool elaborate(Design*des, NetScope*scope) const;
+  ivl_process_type_t type() const { return type_; }
+  Statement* statement() { return statement_; }
 
-      ivl_process_type_t type() const { return type_; }
-      Statement*statement() { return statement_; }
+  map<perm_string, PExpr*> attributes;
 
-      map<perm_string,PExpr*> attributes;
+  // Dump the analog process
+  void dump(ostream& out, unsigned ind) const;
 
-	// Dump the analog process
-      void dump(ostream&out, unsigned ind) const;
+ private:
+  ivl_process_type_t type_;
+  Statement* statement_;
 
-    private:
-      ivl_process_type_t type_;
-      Statement*statement_;
-
-    private: // not implemented
-      AProcess(const AProcess&);
-      AProcess& operator= (const AProcess&);
+ private:  // not implemented
+  AProcess(const AProcess&);
+  AProcess& operator=(const AProcess&);
 };
 
 #endif /* IVL_AStatement_H */

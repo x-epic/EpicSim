@@ -15,47 +15,43 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "vvp_net.h"
-# include  "compile.h"
-# include  <cstring>
-# include  <iostream>
-# include  <cassert>
+#include <cassert>
+#include <cstring>
+#include <iostream>
 
-vvp_fun_extend_signed::vvp_fun_extend_signed(unsigned wid)
-: width_(wid)
-{
+#include "compile.h"
+#include "vvp_net.h"
+
+vvp_fun_extend_signed::vvp_fun_extend_signed(unsigned wid) : width_(wid) {}
+
+vvp_fun_extend_signed::~vvp_fun_extend_signed() {}
+
+void vvp_fun_extend_signed::recv_vec4(vvp_net_ptr_t port,
+                                      const vvp_vector4_t& bit, vvp_context_t) {
+  if (bit.size() >= width_) {
+    port.ptr()->send_vec4(bit, 0);
+    return;
+  }
+
+  vvp_vector4_t res(width_);
+
+  for (unsigned idx = 0; idx < bit.size(); idx += 1)
+    res.set_bit(idx, bit.value(idx));
+
+  vvp_bit4_t pad = bit.size() > 0 ? bit.value(bit.size() - 1) : BIT4_0;
+  for (unsigned idx = bit.size(); idx < res.size(); idx += 1)
+    res.set_bit(idx, pad);
+
+  port.ptr()->send_vec4(res, 0);
 }
 
-vvp_fun_extend_signed::~vvp_fun_extend_signed()
-{
-}
-
-void vvp_fun_extend_signed::recv_vec4(vvp_net_ptr_t port, const vvp_vector4_t&bit,
-                                      vvp_context_t)
-{
-      if (bit.size() >= width_) {
-	    port.ptr()->send_vec4(bit, 0);
-	    return;
-      }
-
-      vvp_vector4_t res (width_);
-
-      for (unsigned idx = 0 ;  idx < bit.size() ;  idx += 1)
-	    res.set_bit(idx, bit.value(idx));
-
-      vvp_bit4_t pad = bit.size() > 0? bit.value(bit.size()-1) : BIT4_0;
-      for (unsigned idx = bit.size() ;  idx < res.size() ;  idx += 1)
-	    res.set_bit(idx, pad);
-
-      port.ptr()->send_vec4(res, 0);
-}
-
-void vvp_fun_extend_signed::recv_vec4_pv(vvp_net_ptr_t ptr, const vvp_vector4_t&bit,
-					 unsigned base, unsigned wid, unsigned vwid,
-					 vvp_context_t ctx)
-{
-      recv_vec4_pv_(ptr, bit, base, wid, vwid, ctx);
+void vvp_fun_extend_signed::recv_vec4_pv(vvp_net_ptr_t ptr,
+                                         const vvp_vector4_t& bit,
+                                         unsigned base, unsigned wid,
+                                         unsigned vwid, vvp_context_t ctx) {
+  recv_vec4_pv_(ptr, bit, base, wid, vwid, ctx);
 }

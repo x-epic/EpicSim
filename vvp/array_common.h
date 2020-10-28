@@ -17,7 +17,8 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
 #ifndef ARRAY_COMMON_H
@@ -26,26 +27,24 @@
 #include "vpi_priv.h"
 
 struct __vpiArrayIterator : public __vpiHandle {
-      int get_type_code(void) const
-      { return vpiIterator; }
+  int get_type_code(void) const { return vpiIterator; }
 
-      vpiHandle vpi_index(int idx);
-      free_object_fun_t free_object_fun(void);
+  vpiHandle vpi_index(int idx);
+  free_object_fun_t free_object_fun(void);
 
-      struct __vpiArrayBase*array;
-      unsigned next;
+  struct __vpiArrayBase *array;
+  unsigned next;
 };
 
 struct __vpiArrayIndex : public __vpiHandle {
-      int get_type_code(void) const
-      { return vpiIterator; }
+  int get_type_code(void) const { return vpiIterator; }
 
-      vpiHandle vpi_iterate(int code);
-      vpiHandle vpi_index(int idx);
-      free_object_fun_t free_object_fun(void);
+  vpiHandle vpi_iterate(int code);
+  vpiHandle vpi_index(int idx);
+  free_object_fun_t free_object_fun(void);
 
-      __vpiDecConst *index;
-      unsigned done;
+  __vpiDecConst *index;
+  unsigned done;
 };
 
 /*
@@ -70,30 +69,32 @@ struct __vpiArrayIndex : public __vpiHandle {
  * for the word also apply when treating this as an index.
  */
 struct __vpiArrayWord {
-      struct as_word_t : public __vpiHandle {
-	    int get_type_code(void) const { return vpiMemoryWord; }
-	    int vpi_get(int code);
-	    char*vpi_get_str(int code);
-	    void vpi_get_value(p_vpi_value vp);
-	    vpiHandle vpi_put_value(p_vpi_value vp, int flags);
-	    vpiHandle vpi_handle(int code);
-      } as_word;
+  struct as_word_t : public __vpiHandle {
+    int get_type_code(void) const { return vpiMemoryWord; }
+    int vpi_get(int code);
+    char *vpi_get_str(int code);
+    void vpi_get_value(p_vpi_value vp);
+    vpiHandle vpi_put_value(p_vpi_value vp, int flags);
+    vpiHandle vpi_handle(int code);
+  } as_word;
 
-      struct as_index_t : public __vpiHandle {
-	    int get_type_code(void) const { return vpiIndex; }
-	    void vpi_get_value(p_vpi_value val);
-      } as_index;
+  struct as_index_t : public __vpiHandle {
+    int get_type_code(void) const { return vpiIndex; }
+    void vpi_get_value(p_vpi_value val);
+  } as_index;
 
-      union {
-	    struct __vpiArrayBase*parent;
-	    struct __vpiArrayWord*word0;
-      };
+  union {
+    struct __vpiArrayBase *parent;
+    struct __vpiArrayWord *word0;
+  };
 
-      inline unsigned get_index() const { return this - word0; }
-      inline struct __vpiArrayBase*get_parent() const { return (word0 - 1)->parent; }
+  inline unsigned get_index() const { return this - word0; }
+  inline struct __vpiArrayBase *get_parent() const {
+    return (word0 - 1)->parent;
+  }
 };
 
-struct __vpiArrayWord*array_var_word_from_handle(vpiHandle ref);
-struct __vpiArrayWord*array_var_index_from_handle(vpiHandle ref);
+struct __vpiArrayWord *array_var_word_from_handle(vpiHandle ref);
+struct __vpiArrayWord *array_var_index_from_handle(vpiHandle ref);
 
 #endif /* ARRAY_COMMON_H */

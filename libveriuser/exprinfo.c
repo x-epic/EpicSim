@@ -15,29 +15,30 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  <assert.h>
-# include  <ctype.h>
-# include  <veriuser.h>
-# include  <vpi_user.h>
-# include  "priv.h"
+#include <assert.h>
+#include <ctype.h>
+#include <veriuser.h>
+#include <vpi_user.h>
 
-struct t_tfexprinfo* tf_exprinfo(PLI_INT32 a, struct t_tfexprinfo*ip)
-{
-      (void)a; /* Parameter is not used. */
-      (void)ip; /* Parameter is not used. */
-      if (pli_trace) {
-	    fprintf(pli_trace, "tf_exprinfo: enter.\n");
-	    fflush(pli_trace);
-      }
+#include "priv.h"
 
-      fprintf(stderr, "tf_exprinfo: XXXX not implemented. XXXX\n");
+struct t_tfexprinfo* tf_exprinfo(PLI_INT32 a, struct t_tfexprinfo* ip) {
+  (void)a;  /* Parameter is not used. */
+  (void)ip; /* Parameter is not used. */
+  if (pli_trace) {
+    fprintf(pli_trace, "tf_exprinfo: enter.\n");
+    fflush(pli_trace);
+  }
 
-      if (pli_trace) {
-	    fprintf(pli_trace, "tf_exprinfo: return.\n");
-	    fflush(pli_trace);
-      }
-      return 0;
+  fprintf(stderr, "tf_exprinfo: XXXX not implemented. XXXX\n");
+
+  if (pli_trace) {
+    fprintf(pli_trace, "tf_exprinfo: return.\n");
+    fflush(pli_trace);
+  }
+  return 0;
 }

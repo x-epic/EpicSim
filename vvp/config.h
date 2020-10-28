@@ -17,40 +17,41 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
 #if defined(__cplusplus)
-#  if !defined(__GNUC__)
-     using namespace std;
-#  elif (__GNUC__ == 3)
-     using namespace std;
-#  endif
+#if !defined(__GNUC__)
+using namespace std;
+#elif (__GNUC__ == 3)
+using namespace std;
+#endif
 #endif
 
-# define SIZEOF_UNSIGNED_LONG_LONG 8
+#define SIZEOF_UNSIGNED_LONG_LONG 8
 #ifndef SIZEOF_UNSIGNED_LONG
-# define SIZEOF_UNSIGNED_LONG 8
+#define SIZEOF_UNSIGNED_LONG 8
 #endif
-# define SIZEOF_UNSIGNED 4
+#define SIZEOF_UNSIGNED 4
 
 /* # undef NEED_LU */
 /* # undef NEED_TU */
 /* # undef WLU */
 /* # undef WTU */
-# define HAVE_IOSFWD 1
-# define HAVE_DLFCN_H 1
+#define HAVE_IOSFWD 1
+#define HAVE_DLFCN_H 1
 /* # undef HAVE_DL_H */
-# define HAVE_GETOPT_H 1
+#define HAVE_GETOPT_H 1
 /* # undef HAVE_LIBREADLINE */
 /* # undef HAVE_READLINE_READLINE_H */
 /* # undef HAVE_LIBHISTORY */
 /* # undef HAVE_READLINE_HISTORY_H */
-# define HAVE_INTTYPES_H 1
-# define HAVE_LROUND 1
-# define HAVE_LLROUND 1
-# define HAVE_NAN 1
-# define UINT64_T_AND_ULONG_SAME 1
+#define HAVE_INTTYPES_H 1
+#define HAVE_LROUND 1
+#define HAVE_LLROUND 1
+#define HAVE_NAN 1
+#define UINT64_T_AND_ULONG_SAME 1
 
 /*
  * Define this if you want to compile vvp with memory freeing and
@@ -63,7 +64,7 @@
 /* #undef USE_READLINE */
 #ifdef HAVE_LIBREADLINE
 #ifdef HAVE_READLINE_READLINE_H
-# define USE_READLINE
+#define USE_READLINE
 #endif
 #endif
 
@@ -71,70 +72,69 @@
 /* #undef USE_HISTORY */
 #ifdef HAVE_LIBHISTORY
 #ifdef HAVE_READLINE_HISTORY_H
-# define USE_HISTORY
+#define USE_HISTORY
 #endif
 #endif
 
 #ifndef MODULE_DIR
-# define MODULE_DIR "."
+#define MODULE_DIR "."
 #endif
 
 #ifdef HAVE_INTTYPES_H
 /* This is needed in C++ to get the PRI?64 formats. */
-# ifndef __STDC_FORMAT_MACROS
-#  define __STDC_FORMAT_MACROS
-# endif
-# include  <inttypes.h>
+#ifndef __STDC_FORMAT_MACROS
+#define __STDC_FORMAT_MACROS
+#endif
+#include <inttypes.h>
 
 typedef uint64_t vvp_time64_t;
 
-# define TIME_FMT_O PRIo64
-# define TIME_FMT_U PRIu64
-# define TIME_FMT_X PRIx64
+#define TIME_FMT_O PRIo64
+#define TIME_FMT_U PRIu64
+#define TIME_FMT_X PRIx64
 
-# ifdef UINT64_T_AND_ULONG_SAME
-#  define UL_AND_TIME64_SAME
-# endif
+#ifdef UINT64_T_AND_ULONG_SAME
+#define UL_AND_TIME64_SAME
+#endif
 
 #else /* HAVE_INTTYPES_H */
 
-
 #if SIZEOF_UNSIGNED >= 8
 typedef unsigned vvp_time64_t;
-# define TIME_FMT_O "o"
-# define TIME_FMT_U "u"
-# define TIME_FMT_X "x"
+#define TIME_FMT_O "o"
+#define TIME_FMT_U "u"
+#define TIME_FMT_X "x"
 #else
-# if SIZEOF_UNSIGNED_LONG >= 8
+#if SIZEOF_UNSIGNED_LONG >= 8
 typedef unsigned long vvp_time64_t;
-#  define UL_AND_TIME64_SAME
-#  define TIME_FMT_O "lo"
-#  define TIME_FMT_U "lu"
-#  define TIME_FMT_X "lx"
-# else
-#  if SIZEOF_UNSIGNED_LONG_LONG > SIZEOF_UNSIGNED_LONG
+#define UL_AND_TIME64_SAME
+#define TIME_FMT_O "lo"
+#define TIME_FMT_U "lu"
+#define TIME_FMT_X "lx"
+#else
+#if SIZEOF_UNSIGNED_LONG_LONG > SIZEOF_UNSIGNED_LONG
 typedef unsigned long long vvp_time64_t;
-#   define TIME_FMT_O "llo"
-#   define TIME_FMT_U "llu"
-#   define TIME_FMT_X "llx"
-#  else
+#define TIME_FMT_O "llo"
+#define TIME_FMT_U "llu"
+#define TIME_FMT_X "llx"
+#else
 typedef unsigned long vvp_time64_t;
-#   define UL_AND_TIME64_SAME
-#   define TIME_FMT_O "lo"
-#   define TIME_FMT_U "lu"
-#   define TIME_FMT_X "lx"
-#  endif
-# endif
+#define UL_AND_TIME64_SAME
+#define TIME_FMT_O "lo"
+#define TIME_FMT_U "lu"
+#define TIME_FMT_X "lx"
+#endif
+#endif
 #endif
 
 #endif /* HAVE_INTTYPES_H */
 
-# include  <cmath>
+#include <cmath>
 
 /* getrusage, /proc/self/statm */
 
-# define HAVE_SYS_RESOURCE_H 1
-# define LINUX 1
+#define HAVE_SYS_RESOURCE_H 1
+#define LINUX 1
 
 #if !defined(HAVE_LROUND)
 /*
@@ -142,12 +142,11 @@ typedef unsigned long vvp_time64_t;
  * it ourselves here. It is simply the nearest integer, rounded away
  * from zero.
  */
-inline long int lround(double x)
-{
-      if (x >= 0.0)
-	    return (long)floor(x+0.5);
-      else
-	    return (long)ceil(x-0.5);
+inline long int lround(double x) {
+  if (x >= 0.0)
+    return (long)floor(x + 0.5);
+  else
+    return (long)ceil(x - 0.5);
 }
 #endif /* HAVE_LROUND */
 
@@ -157,26 +156,25 @@ inline long int lround(double x)
  * We also need an equivalent function with a 64-bit return value if
  * it is not available.
  */
-inline int64_t i64round(double x)
-{
-      if (x >= 0.0)
-	    return (int64_t)floor(x+0.5);
-      else
-	    return (int64_t)ceil(x-0.5);
+inline int64_t i64round(double x) {
+  if (x >= 0.0)
+    return (int64_t)floor(x + 0.5);
+  else
+    return (int64_t)ceil(x - 0.5);
 }
 #else /* HAVE_LLROUND */
-# define i64round llround
+#define i64round llround
 #endif /* HAVE_LLROUND */
 #else
-# define i64round lround
+#define i64round lround
 #endif
 
 #if !defined(HAVE_NAN)
-# define nan(x) (NAN)
+#define nan(x) (NAN)
 #endif
 
 #if !defined(INFINITY)
-# define INFINITY HUGE_VAL
+#define INFINITY HUGE_VAL
 #endif
 
 /*

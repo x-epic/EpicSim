@@ -15,53 +15,44 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "PScope.h"
+#include "PScope.h"
 
-bool LexicalScope::var_init_needs_explicit_lifetime() const
-{
-      return false;
+bool LexicalScope::var_init_needs_explicit_lifetime() const { return false; }
+
+PWire* LexicalScope::wires_find(perm_string name) {
+  map<perm_string, PWire*>::const_iterator cur = wires.find(name);
+  if (cur == wires.end())
+    return 0;
+  else
+    return (*cur).second;
 }
 
-PWire* LexicalScope::wires_find(perm_string name)
-{
-      map<perm_string,PWire*>::const_iterator cur = wires.find(name);
-      if (cur == wires.end())
-	    return 0;
-      else
-	    return (*cur).second;
+PNamedItem::SymbolType LexicalScope::param_expr_t::symbol_type() const {
+  return PARAM;
 }
 
-PNamedItem::SymbolType LexicalScope::param_expr_t::symbol_type() const
-{
-      return PARAM;
+PScope::PScope(perm_string n, LexicalScope* parent)
+    : LexicalScope(parent), name_(n) {
+  time_unit = 0;
+  time_precision = 0;
+  time_unit_is_default = true;
+  time_prec_is_default = true;
 }
 
-PScope::PScope(perm_string n, LexicalScope*parent)
-: LexicalScope(parent), name_(n)
-{
-      time_unit = 0;
-      time_precision = 0;
-      time_unit_is_default = true;
-      time_prec_is_default = true;
+PScope::~PScope() {
+  for (map<perm_string, data_type_t*>::iterator it = typedefs.begin();
+       it != typedefs.end(); ++it)
+    delete it->second;
 }
 
-PScope::~PScope()
-{
-    for(map<perm_string, data_type_t*>::iterator it = typedefs.begin();
-        it != typedefs.end(); ++it)
-        delete it->second;
+PScopeExtra::PScopeExtra(perm_string n, LexicalScope* parent)
+    : PScope(n, parent) {
+  time_unit_is_local = false;
+  time_prec_is_local = false;
 }
 
-PScopeExtra::PScopeExtra(perm_string n, LexicalScope*parent)
-: PScope(n, parent)
-{
-      time_unit_is_local = false;
-      time_prec_is_local = false;
-}
-
-PScopeExtra::~PScopeExtra()
-{
-}
+PScopeExtra::~PScopeExtra() {}

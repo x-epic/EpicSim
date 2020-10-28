@@ -17,11 +17,13 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "StringHeap.h"
-# include  <string>
+#include <string>
+
+#include "StringHeap.h"
 
 using namespace std;
 
@@ -35,25 +37,26 @@ using namespace std;
  */
 
 class LineInfo {
-    public:
-      LineInfo();
-      LineInfo(const LineInfo&that);
-      virtual ~LineInfo();
+ public:
+  LineInfo();
+  LineInfo(const LineInfo& that);
+  virtual ~LineInfo();
 
-	// Get a fully formatted file/lineno
-      string get_fileline() const;
-	// Set the file/line from another LineInfo object.
-      void set_line(const LineInfo&that);
+  // Get a fully formatted file/lineno
+  string get_fileline() const;
+  // Set the file/line from another LineInfo object.
+  void set_line(const LineInfo& that);
 
-	// Access parts of LineInfo data
-      void set_file(perm_string f);
-      void set_lineno(unsigned n);
+  // Access parts of LineInfo data
+  void set_file(perm_string f);
+  void set_lineno(unsigned n);
 
-      perm_string get_file() const { return file_; }
-      unsigned  get_lineno() const { return lineno_; }
-    private:
-      perm_string file_;
-      unsigned lineno_;
+  perm_string get_file() const { return file_; }
+  unsigned get_lineno() const { return lineno_; }
+
+ private:
+  perm_string file_;
+  unsigned lineno_;
 };
 
 #endif /* IVL_LineInfo_H */

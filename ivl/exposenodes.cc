@@ -15,18 +15,18 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include "config.h"
+#include <cstdlib>
+#include <sstream>
 
-# include  <cstdlib>
-# include  <sstream>
-# include  "netlist.h"
-# include  "functor.h"
-# include  "compiler.h"
-# include  "ivl_assert.h"
-
+#include "compiler.h"
+#include "config.h"
+#include "functor.h"
+#include "ivl_assert.h"
+#include "netlist.h"
 
 /*
  * The exposenodes functor is primarily provided for use by the vlog95
@@ -43,87 +43,72 @@
  * name it generates is unique).
  */
 
-struct exposenodes_functor  : public functor_t {
+struct exposenodes_functor : public functor_t {
+  unsigned count;
 
-      unsigned count;
-
-      virtual void lpm_mux(Design*des, NetMux*obj);
-      virtual void lpm_part_select(Design*des, NetPartSelect*obj);
-      virtual void lpm_substitute(Design*des, NetSubstitute*obj);
+  virtual void lpm_mux(Design* des, NetMux* obj);
+  virtual void lpm_part_select(Design* des, NetPartSelect* obj);
+  virtual void lpm_substitute(Design* des, NetSubstitute* obj);
 };
 
-static bool expose_nexus(Nexus*nex)
-{
-      NetNet*sig = 0;
-      for (Link*cur = nex->first_nlink() ; cur ; cur = cur->next_nlink()) {
+static bool expose_nexus(Nexus* nex) {
+  NetNet* sig = 0;
+  for (Link* cur = nex->first_nlink(); cur; cur = cur->next_nlink()) {
+    // Don't expose nodes that are attached to constants
+    if (dynamic_cast<NetConst*>(cur->get_obj())) return false;
+    if (dynamic_cast<NetLiteral*>(cur->get_obj())) return false;
 
-	      // Don't expose nodes that are attached to constants
-	    if (dynamic_cast<NetConst*> (cur->get_obj()))
-		  return false;
-	    if (dynamic_cast<NetLiteral*> (cur->get_obj()))
-		  return false;
+    NetNet* cur_sig = dynamic_cast<NetNet*>(cur->get_obj());
+    if (cur_sig == 0) continue;
 
-	    NetNet*cur_sig = dynamic_cast<NetNet*> (cur->get_obj());
-	    if (cur_sig == 0)
-		  continue;
+    if (!cur_sig->local_flag()) return false;
 
-	    if (!cur_sig->local_flag())
-		  return false;
-
-	    sig = cur_sig;
-      }
-      assert(sig);
-      ostringstream res;
-      res << "_" << sig->name();
-      sig->rename(lex_strings.make(res.str()));
-      sig->local_flag(false);
-      return true;
+    sig = cur_sig;
+  }
+  assert(sig);
+  ostringstream res;
+  res << "_" << sig->name();
+  sig->rename(lex_strings.make(res.str()));
+  sig->local_flag(false);
+  return true;
 }
 
 /*
  * The vlog95 target implements a wide mux as a hierarchy of 2:1 muxes,
  * picking off one bit of the select input at each level of the hierarchy.
  */
-void exposenodes_functor::lpm_mux(Design*, NetMux*obj)
-{
-      if (obj->sel_width() == 1)
-	    return;
+void exposenodes_functor::lpm_mux(Design*, NetMux* obj) {
+  if (obj->sel_width() == 1) return;
 
-      if (expose_nexus(obj->pin_Sel().nexus()))
-	    count += 1;
+  if (expose_nexus(obj->pin_Sel().nexus())) count += 1;
 }
 
 /*
  * A VP part select is going to select a part from its input.
  */
-void exposenodes_functor::lpm_part_select(Design*, NetPartSelect*obj)
-{
-      if (obj->dir() != NetPartSelect::VP)
-	    return;
+void exposenodes_functor::lpm_part_select(Design*, NetPartSelect* obj) {
+  if (obj->dir() != NetPartSelect::VP) return;
 
-      if (expose_nexus(obj->pin(1).nexus()))
-	    count += 1;
+  if (expose_nexus(obj->pin(1).nexus())) count += 1;
 }
 
 /*
  * A substitute is going to select one or two parts from the wider input signal.
  */
-void exposenodes_functor::lpm_substitute(Design*, NetSubstitute*obj)
-{
-      if (expose_nexus(obj->pin(1).nexus()))
-	    count += 1;
+void exposenodes_functor::lpm_substitute(Design*, NetSubstitute* obj) {
+  if (expose_nexus(obj->pin(1).nexus())) count += 1;
 }
 
-void exposenodes(Design*des)
-{
-      exposenodes_functor exposenodes;
-      exposenodes.count = 0;
-      if (verbose_flag) {
-	    cout << " ... Look for intermediate nodes" << endl << flush;
-      }
-      des->functor(&exposenodes);
-      if (verbose_flag) {
-	    cout << " ... Exposed " << exposenodes.count
-		 << " intermediate signals." << endl << flush;
-      }
+void exposenodes(Design* des) {
+  exposenodes_functor exposenodes;
+  exposenodes.count = 0;
+  if (verbose_flag) {
+    cout << " ... Look for intermediate nodes" << endl << flush;
+  }
+  des->functor(&exposenodes);
+  if (verbose_flag) {
+    cout << " ... Exposed " << exposenodes.count << " intermediate signals."
+         << endl
+         << flush;
+  }
 }

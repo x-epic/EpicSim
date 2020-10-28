@@ -36,16 +36,15 @@
 #define flzuint16 uint16_t
 #define flzuint32 uint32_t
 
-
 #define FASTLZ_VERSION 0x000100
 
-#define FASTLZ_VERSION_MAJOR     0
-#define FASTLZ_VERSION_MINOR     0
-#define FASTLZ_VERSION_REVISION  0
+#define FASTLZ_VERSION_MAJOR 0
+#define FASTLZ_VERSION_MINOR 0
+#define FASTLZ_VERSION_REVISION 0
 
 #define FASTLZ_VERSION_STRING "0.1.0"
 
-#if defined (__cplusplus)
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
@@ -101,9 +100,10 @@ int fastlz_decompress(const void* input, int length, void* output, int maxout);
   decompressed using the function fastlz_decompress above.
 */
 
-int fastlz_compress_level(int level, const void* input, int length, void* output);
+int fastlz_compress_level(int level, const void* input, int length,
+                          void* output);
 
-#if defined (__cplusplus)
+#if defined(__cplusplus)
 }
 #endif
 

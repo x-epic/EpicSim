@@ -17,29 +17,30 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  <stdio.h>
+#include <stdio.h>
 
-extern void reset_lexor(FILE*out, char*paths[]);
+extern void reset_lexor(FILE *out, char *paths[]);
 extern void destroy_lexor(void);
-extern void load_precompiled_defines(FILE*src);
-extern void define_macro(const char*name, const char*value, int keyword,
+extern void load_precompiled_defines(FILE *src);
+extern void define_macro(const char *name, const char *value, int keyword,
                          int argc);
 extern void free_macros(void);
-extern void dump_precompiled_defines(FILE*out);
+extern void dump_precompiled_defines(FILE *out);
 
 /* These variables contain the include directories to be searched when
    an include directive in encountered. */
-extern char**include_dir;
+extern char **include_dir;
 extern unsigned include_cnt;
 /* Program to use for VHDL processing. */
-extern char*vhdlpp_path;
+extern char *vhdlpp_path;
 /* vhdlpp work directory */
-extern char*vhdlpp_work;
+extern char *vhdlpp_work;
 
-extern char**vhdlpp_libdir;
+extern char **vhdlpp_libdir;
 extern unsigned vhdlpp_libdir_cnt;
 
 extern int relative_include;

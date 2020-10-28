@@ -17,38 +17,40 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-#include "vpi_config.h"
 #include "sv_vpi_user.h"
+#include "vpi_config.h"
 
 /*
  * Context structure for PRNG in mt19937int.c
  */
 struct context_s {
-      int		mti;		/* the array for the state vector */
-      unsigned long	mt[1023];	/* mti==N+1 means mt[N] is not init */
+  int mti;                /* the array for the state vector */
+  unsigned long mt[1023]; /* mti==N+1 means mt[N] is not init */
 };
 
 extern void sgenrand(struct context_s *context, unsigned long seed);
 extern unsigned long genrand(struct context_s *context);
 
-extern PLI_UINT64 timerec_to_time64(const struct t_vpi_time*timerec);
+extern PLI_UINT64 timerec_to_time64(const struct t_vpi_time *timerec);
 
 extern char *as_escaped(char *arg);
 extern char *get_filename(vpiHandle callh, const char *name, vpiHandle file);
-extern char *get_filename_with_suffix(vpiHandle callh, const char*name,
-				      vpiHandle file, const char*suff);
+extern char *get_filename_with_suffix(vpiHandle callh, const char *name,
+                                      vpiHandle file, const char *suff);
 
-extern void check_for_extra_args(vpiHandle argv, vpiHandle callh, const char *name,
-                                 const char *arg_str, unsigned opt);
+extern void check_for_extra_args(vpiHandle argv, vpiHandle callh,
+                                 const char *name, const char *arg_str,
+                                 unsigned opt);
 
 struct timeformat_info_s {
-      int units;
-      unsigned prec;
-      char*suff;
-      unsigned width;
+  int units;
+  unsigned prec;
+  char *suff;
+  unsigned width;
 };
 
 extern struct timeformat_info_s timeformat_info;
@@ -63,9 +65,12 @@ extern vpiHandle sys_func_module(vpiHandle obj);
  * The standard compiletf routines.
  */
 extern PLI_INT32 sys_no_arg_compiletf(ICARUS_VPI_CONST PLI_BYTE8 *name);
-extern PLI_INT32 sys_one_numeric_arg_compiletf(ICARUS_VPI_CONST PLI_BYTE8 *name);
-extern PLI_INT32 sys_one_opt_numeric_arg_compiletf(ICARUS_VPI_CONST PLI_BYTE8 *name);
-extern PLI_INT32 sys_two_numeric_args_compiletf(ICARUS_VPI_CONST PLI_BYTE8 *name);
+extern PLI_INT32 sys_one_numeric_arg_compiletf(
+    ICARUS_VPI_CONST PLI_BYTE8 *name);
+extern PLI_INT32 sys_one_opt_numeric_arg_compiletf(
+    ICARUS_VPI_CONST PLI_BYTE8 *name);
+extern PLI_INT32 sys_two_numeric_args_compiletf(
+    ICARUS_VPI_CONST PLI_BYTE8 *name);
 extern PLI_INT32 sys_one_string_arg_compiletf(ICARUS_VPI_CONST PLI_BYTE8 *name);
 
 /*

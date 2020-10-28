@@ -17,19 +17,19 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  <cstdlib>
+#include <cstdlib>
 
-#define ivl_assert(tok, expression)  \
-      do { \
-	    if (! (expression)) { \
-		  cerr << (tok).get_fileline() << ": assert: " \
-		       << __FILE__ << ":" << __LINE__ \
-		       << ": failed assertion " << #expression << endl; \
-		  abort(); \
-	    } \
-      } while (0)
+#define ivl_assert(tok, expression)                                     \
+  do {                                                                  \
+    if (!(expression)) {                                                \
+      cerr << (tok).get_fileline() << ": assert: " << __FILE__ << ":"   \
+           << __LINE__ << ": failed assertion " << #expression << endl; \
+      abort();                                                          \
+    }                                                                   \
+  } while (0)
 
 #endif /* IVL_ivl_assert_H */

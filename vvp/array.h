@@ -17,11 +17,12 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-#include "vvp_net.h"
 #include "vpi_user.h"
+#include "vvp_net.h"
 
 typedef struct __vpiArray* vvp_array_t;
 class value_callback;
@@ -30,14 +31,13 @@ class value_callback;
  * This function tries to find the array (by label) in the global
  * table of all the arrays in the design.
  */
-extern vvp_array_t array_find(const char*label);
+extern vvp_array_t array_find(const char* label);
 
 /* VPI hooks */
 extern value_callback* vpip_array_word_change(p_cb_data data);
 extern value_callback* vpip_array_change(p_cb_data data);
 
 /* Compile hooks */
-extern void compile_varw_real(char*label, vvp_array_t array,
-			      unsigned long array_addr,
-			      int msb, int lsb);
+extern void compile_varw_real(char* label, vvp_array_t array,
+                              unsigned long array_addr, int msb, int lsb);
 #endif /* IVL_array_H */

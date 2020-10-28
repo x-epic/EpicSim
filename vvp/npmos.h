@@ -17,10 +17,11 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "vvp_net.h"
+#include "vvp_net.h"
 
 /*
  * The vvp_fun_pmos functor is similar to the vvp_fun_bufif. The
@@ -45,33 +46,29 @@
  */
 
 class vvp_fun_pmos_ : public vvp_net_fun_t {
+ public:
+  explicit vvp_fun_pmos_(bool enable_invert, bool resistive);
 
-    public:
-      explicit vvp_fun_pmos_(bool enable_invert, bool resistive);
+  void recv_vec4(vvp_net_ptr_t port, const vvp_vector4_t &bit, vvp_context_t);
 
-      void recv_vec4(vvp_net_ptr_t port, const vvp_vector4_t&bit,
-                     vvp_context_t);
+  void recv_vec4_pv(vvp_net_ptr_t ptr, const vvp_vector4_t &bit, unsigned base,
+                    unsigned wid, unsigned vwid, vvp_context_t ctx);
+  void recv_vec8_pv(vvp_net_ptr_t ptr, const vvp_vector8_t &bit, unsigned base,
+                    unsigned wid, unsigned vwid);
 
-      void recv_vec4_pv(vvp_net_ptr_t ptr, const vvp_vector4_t&bit,
-			unsigned base, unsigned wid, unsigned vwid,
-                        vvp_context_t ctx);
-      void recv_vec8_pv(vvp_net_ptr_t ptr, const vvp_vector8_t&bit,
-			unsigned base, unsigned wid, unsigned vwid);
+ protected:
+  void generate_output_(vvp_net_ptr_t port);
 
-    protected:
-      void generate_output_(vvp_net_ptr_t port);
-
-      vvp_vector8_t bit_;
-      vvp_vector4_t en_;
-      bool inv_en_, resistive_;
+  vvp_vector8_t bit_;
+  vvp_vector4_t en_;
+  bool inv_en_, resistive_;
 };
 
-class vvp_fun_pmos  : public vvp_fun_pmos_ {
+class vvp_fun_pmos : public vvp_fun_pmos_ {
+ public:
+  explicit vvp_fun_pmos(bool enable_invert);
 
-    public:
-      explicit vvp_fun_pmos(bool enable_invert);
-
-      void recv_vec8(vvp_net_ptr_t port, const vvp_vector8_t&bit);
+  void recv_vec8(vvp_net_ptr_t port, const vvp_vector8_t &bit);
 };
 
 /*
@@ -79,12 +76,11 @@ class vvp_fun_pmos  : public vvp_fun_pmos_ {
  * only difference is that the input strength is reduced as it passes
  * through the device.
  */
-class vvp_fun_rpmos  : public vvp_fun_pmos_ {
+class vvp_fun_rpmos : public vvp_fun_pmos_ {
+ public:
+  explicit vvp_fun_rpmos(bool enable_invert);
 
-    public:
-      explicit vvp_fun_rpmos(bool enable_invert);
-
-      void recv_vec8(vvp_net_ptr_t port, const vvp_vector8_t&bit);
+  void recv_vec8(vvp_net_ptr_t port, const vvp_vector8_t &bit);
 };
 
 /*
@@ -109,39 +105,37 @@ class vvp_fun_rpmos  : public vvp_fun_pmos_ {
  */
 
 class vvp_fun_cmos_ : public vvp_net_fun_t {
-    public:
-      explicit vvp_fun_cmos_(bool resistive);
+ public:
+  explicit vvp_fun_cmos_(bool resistive);
 
-      void recv_vec4(vvp_net_ptr_t port, const vvp_vector4_t &bit,
-                     vvp_context_t);
+  void recv_vec4(vvp_net_ptr_t port, const vvp_vector4_t &bit, vvp_context_t);
 
-      void recv_vec4_pv(vvp_net_ptr_t ptr, const vvp_vector4_t&bit,
-			unsigned base, unsigned wid, unsigned vwid,
-                        vvp_context_t ctx);
-      void recv_vec8_pv(vvp_net_ptr_t ptr, const vvp_vector8_t&bit,
-			unsigned base, unsigned wid, unsigned vwid);
+  void recv_vec4_pv(vvp_net_ptr_t ptr, const vvp_vector4_t &bit, unsigned base,
+                    unsigned wid, unsigned vwid, vvp_context_t ctx);
+  void recv_vec8_pv(vvp_net_ptr_t ptr, const vvp_vector8_t &bit, unsigned base,
+                    unsigned wid, unsigned vwid);
 
-    protected:
-      void generate_output_(vvp_net_ptr_t port);
+ protected:
+  void generate_output_(vvp_net_ptr_t port);
 
-      vvp_vector8_t bit_;
-      vvp_vector4_t n_en_;
-      vvp_vector4_t p_en_;
-      bool resistive_;
+  vvp_vector8_t bit_;
+  vvp_vector4_t n_en_;
+  vvp_vector4_t p_en_;
+  bool resistive_;
 };
 
 class vvp_fun_cmos : public vvp_fun_cmos_ {
-    public:
-      explicit vvp_fun_cmos();
+ public:
+  explicit vvp_fun_cmos();
 
-      void recv_vec8(vvp_net_ptr_t port, const vvp_vector8_t&bit);
+  void recv_vec8(vvp_net_ptr_t port, const vvp_vector8_t &bit);
 };
 
 class vvp_fun_rcmos : public vvp_fun_cmos_ {
-    public:
-      explicit vvp_fun_rcmos();
+ public:
+  explicit vvp_fun_rcmos();
 
-      void recv_vec8(vvp_net_ptr_t port, const vvp_vector8_t&bit);
+  void recv_vec8(vvp_net_ptr_t port, const vvp_vector8_t &bit);
 };
 
 #endif /* IVL_npmos_H */

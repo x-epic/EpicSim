@@ -15,12 +15,13 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-#include  <assert.h>
-#include  <vpi_user.h>
-#include  <acc_user.h>
+#include <acc_user.h>
+#include <assert.h>
+#include <vpi_user.h>
 
 #undef NULL
 #define NULL 0
@@ -28,19 +29,18 @@
 /*
  * acc_next_topmod implemented using VPI interface
  */
-handle acc_next_topmod(handle prev_topmod)
-{
-      static vpiHandle last = NULL;
-      static vpiHandle mod_i = NULL;
+handle acc_next_topmod(handle prev_topmod) {
+  static vpiHandle last = NULL;
+  static vpiHandle mod_i = NULL;
 
-      if (!prev_topmod) {
-	    /* start over */
-	    mod_i = vpi_iterate(vpiModule, NULL);
-      } else {
-	    /* subsequent time through */
-	    assert(prev_topmod == last);
-      }
+  if (!prev_topmod) {
+    /* start over */
+    mod_i = vpi_iterate(vpiModule, NULL);
+  } else {
+    /* subsequent time through */
+    assert(prev_topmod == last);
+  }
 
-      last = vpi_scan(mod_i);
-      return last;
+  last = vpi_scan(mod_i);
+  return last;
 }

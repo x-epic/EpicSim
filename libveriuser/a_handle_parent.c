@@ -15,24 +15,22 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-#include  <vpi_user.h>
-#include  <acc_user.h>
-#include  "priv.h"
+#include <acc_user.h>
+#include <vpi_user.h>
 
-handle acc_handle_parent(handle obj)
-{
-      vpiHandle scope = vpi_handle(vpiScope, obj);
+#include "priv.h"
 
-      while (scope && (vpi_get(vpiType, scope) != vpiModule))
-	    scope = vpi_handle(vpiScope, scope);
+handle acc_handle_parent(handle obj) {
+  vpiHandle scope = vpi_handle(vpiScope, obj);
 
-      return scope;
+  while (scope && (vpi_get(vpiType, scope) != vpiModule))
+    scope = vpi_handle(vpiScope, scope);
+
+  return scope;
 }
 
-handle acc_handle_scope(handle obj)
-{
-      return vpi_handle(vpiScope, obj);
-}
+handle acc_handle_scope(handle obj) { return vpi_handle(vpiScope, obj); }

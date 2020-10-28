@@ -15,87 +15,79 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
  */
 
-# include  "compile.h"
-# include  "vpi_priv.h"
-# include  <cstdio>
-# include  <cstdlib>
-# include  <cstring>
-# include  <cassert>
-# include  "ivl_alloc.h"
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
-inline __vpiNamedEvent::__vpiNamedEvent(__vpiScope*sc, const char*nam)
-{
-      scope_ = sc;
-      name_ = vpip_name_string(nam);
-      callbacks_ = 0;
+#include "compile.h"
+#include "ivl_alloc.h"
+#include "vpi_priv.h"
+
+inline __vpiNamedEvent::__vpiNamedEvent(__vpiScope* sc, const char* nam) {
+  scope_ = sc;
+  name_ = vpip_name_string(nam);
+  callbacks_ = 0;
 }
 
-__vpiNamedEvent::~__vpiNamedEvent()
-{
-      while (callbacks_) {
-	    struct __vpiCallback *tmp = callbacks_->next;
-	    delete callbacks_;
-	    callbacks_ = tmp;
-      }
+__vpiNamedEvent::~__vpiNamedEvent() {
+  while (callbacks_) {
+    struct __vpiCallback* tmp = callbacks_->next;
+    delete callbacks_;
+    callbacks_ = tmp;
+  }
 }
 
-int __vpiNamedEvent::get_type_code(void) const
-{ return vpiNamedEvent; }
+int __vpiNamedEvent::get_type_code(void) const { return vpiNamedEvent; }
 
-int __vpiNamedEvent::vpi_get(int code)
-{
-      switch (code) {
+int __vpiNamedEvent::vpi_get(int code) {
+  switch (code) {
+    case vpiAutomatic:
+      return scope_->is_automatic() ? 1 : 0;
+  }
 
-	  case vpiAutomatic:
-	    return scope_->is_automatic()? 1 : 0;
-      }
-
-      return 0;
+  return 0;
 }
 
-char* __vpiNamedEvent::vpi_get_str(int code)
-{
-      if (code == vpiFile) {  // Not implemented for now!
-	    return simple_set_rbuf_str(file_names[0]);
-      }
-      return generic_get_str(code, scope_, name_, NULL);
+char* __vpiNamedEvent::vpi_get_str(int code) {
+  if (code == vpiFile) {  // Not implemented for now!
+    return simple_set_rbuf_str(file_names[0]);
+  }
+  return generic_get_str(code, scope_, name_, NULL);
 }
 
-vpiHandle __vpiNamedEvent::vpi_put_value(p_vpi_value, int)
-{
-	// p_vpi_value may be NULL, and an event doesn't care
-	// what the value is
-      vvp_vector4_t val;
-      vvp_net_ptr_t dest(funct, 0);
-      vvp_send_vec4(dest, val, vthread_get_wt_context());
+vpiHandle __vpiNamedEvent::vpi_put_value(p_vpi_value, int) {
+  // p_vpi_value may be NULL, and an event doesn't care
+  // what the value is
+  vvp_vector4_t val;
+  vvp_net_ptr_t dest(funct, 0);
+  vvp_send_vec4(dest, val, vthread_get_wt_context());
 
-      return this;
+  return this;
 }
 
-vpiHandle __vpiNamedEvent::vpi_handle(int code)
-{
-      switch (code) {
-	  case vpiScope:
-	    return scope_;
+vpiHandle __vpiNamedEvent::vpi_handle(int code) {
+  switch (code) {
+    case vpiScope:
+      return scope_;
 
-	  case vpiModule:
-	    return vpip_module(scope_);
-      }
+    case vpiModule:
+      return vpip_module(scope_);
+  }
 
-      return 0;
+  return 0;
 }
 
+vpiHandle vpip_make_named_event(const char* name, vvp_net_t* funct) {
+  __vpiNamedEvent* obj = new __vpiNamedEvent(vpip_peek_current_scope(), name);
 
-vpiHandle vpip_make_named_event(const char*name, vvp_net_t*funct)
-{
-      __vpiNamedEvent*obj = new __vpiNamedEvent(vpip_peek_current_scope(), name);
+  obj->funct = funct;
 
-      obj->funct = funct;
-
-      return obj;
+  return obj;
 }
 
 /*
@@ -111,28 +103,27 @@ vpiHandle vpip_make_named_event(const char*name, vvp_net_t*funct)
  * We can not use vpi_free_object() here since it does not really
  * delete the callback.
  */
-void __vpiNamedEvent::run_vpi_callbacks()
-{
-      struct __vpiCallback*next = callbacks_;
-      struct __vpiCallback*prev = 0;
-      while (next) {
-	    struct __vpiCallback*cur = next;
-	    next = cur->next;
+void __vpiNamedEvent::run_vpi_callbacks() {
+  struct __vpiCallback* next = callbacks_;
+  struct __vpiCallback* prev = 0;
+  while (next) {
+    struct __vpiCallback* cur = next;
+    next = cur->next;
 
-	    if (cur->cb_data.cb_rtn != 0) {
-		  callback_execute(cur);
-		  prev = cur;
+    if (cur->cb_data.cb_rtn != 0) {
+      callback_execute(cur);
+      prev = cur;
 
-	    } else if (prev == 0) {
-		  callbacks_ = next;
-		  cur->next = 0;
-		  delete cur;
+    } else if (prev == 0) {
+      callbacks_ = next;
+      cur->next = 0;
+      delete cur;
 
-	    } else {
-		  assert(prev->next == cur);
-		  prev->next = next;
-		  cur->next = 0;
-		  delete cur;
-	    }
-      }
+    } else {
+      assert(prev->next == cur);
+      prev->next = next;
+      cur->next = 0;
+      delete cur;
+    }
+  }
 }
