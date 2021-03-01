@@ -582,7 +582,30 @@ static bool schedule_runnable = true;
 static bool schedule_stopped_flag = false;
 static bool schedule_single_step_flag = false;
 
-void schedule_finish(int) { schedule_runnable = false; }
+void clear_events(event_s*& ev) {
+  struct event_s* cur;
+  while(ev) {
+    cur = ev->next;
+    if (cur->next == cur) {
+        ev = 0;
+    } else {
+        ev->next = cur->next;
+    }
+    delete cur;
+  }
+}
+
+void schedule_finish(int) {
+    struct event_time_s* ctim = sched_list;
+    if (ctim) {
+        clear_events(ctim->active);
+        clear_events(ctim->inactive);
+        clear_events(ctim->nbassign);
+        clear_events(ctim->rwsync);
+        clear_events(ctim->rosync);
+    }
+    schedule_runnable = false;
+}
 
 void schedule_stop(int) { schedule_stopped_flag = true; }
 
@@ -1215,7 +1238,7 @@ void schedule_simulate(void) {
                events and delete this time step. This also
                deletes threads as needed. */
             if (ctim->active == 0) {
-              if (schedule_runnable) run_rosync(ctim);
+              run_rosync(ctim);
               sched_list = ctim->next;
               delete ctim;
               continue;

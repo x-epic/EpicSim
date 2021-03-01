@@ -1,1 +1,13 @@
 BasedOnStyle: Google
+SortIncludes: false
+IndentWidth: 4
+ColumnLimit: 80
+AlignTrailingComments: true
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+ContinuationIndentWidth: 4
+SpacesBeforeTrailingComments: 2
+AccessModifierOffset: -3

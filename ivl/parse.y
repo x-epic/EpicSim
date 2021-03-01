@@ -4952,6 +4952,7 @@ module_parameter_port_list
 			  "port lists requires SystemVerilog.");
 	}
       }
+  |
   ;
 
 module_item
@@ -5355,6 +5356,8 @@ module_item
   /* These rules match various errors that the user can type into
      module items. These rules try to catch them at a point where a
      reasonable error message can be produced. */
+
+  | ';'
 
 	| error ';'
 		{ yyerror(@2, "error: invalid module item.");

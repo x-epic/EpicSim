@@ -445,7 +445,7 @@ static PScopeExtra* find_nearest_scopex(LexicalScope* scope) {
   return scopex;
 }
 
-static void add_local_symbol(LexicalScope* scope, perm_string name,
+static bool add_local_symbol(LexicalScope* scope, perm_string name,
                              PNamedItem* item) {
   assert(scope);
 
@@ -453,9 +453,15 @@ static void add_local_symbol(LexicalScope* scope, perm_string name,
   map<perm_string, PNamedItem*>::const_iterator cur_sym =
       scope->local_symbols.find(name);
   if (cur_sym != scope->local_symbols.end()) {
+    PNamedItem::SymbolType type = item->symbol_type();
+    bool ignore_second_decl = false;
+    if (type == PNamedItem::GENVAR &&
+        type == cur_sym->second->symbol_type()) {
+      ignore_second_decl = true;
+    }
+
     cerr << item->get_fileline()
-         << ": error: "
-            "'"
+         << (ignore_second_decl ? ": warning: '" : ": error: '")
          << name
          << "' has already been declared "
             "in this scope."
@@ -464,8 +470,8 @@ static void add_local_symbol(LexicalScope* scope, perm_string name,
          << ":      : "
             "It was declared here as "
          << cur_sym->second->symbol_type() << "." << endl;
-    error_count += 1;
-    return;
+    if (!ignore_second_decl) error_count += 1;
+    return false;
   }
 
   // Check for conflict with an explicit import.
@@ -480,10 +486,11 @@ static void add_local_symbol(LexicalScope* scope, perm_string name,
             "imported into this scope from package '"
          << cur_pkg->second->pscope_name() << "'." << endl;
     error_count += 1;
-    return;
+    return false;
   }
 
   scope->local_symbols[name] = item;
+  return true;
 }
 
 static PPackage* find_potential_import(const struct vlltype& loc,
@@ -1449,14 +1456,15 @@ void pform_genvars(const struct vlltype& li, list<perm_string>* names) {
   for (cur = names->begin(); cur != names->end(); *cur++) {
     PGenvar* genvar = new PGenvar();
     FILE_NAME(genvar, li);
-
+    bool res;
     if (pform_cur_generate) {
-      add_local_symbol(pform_cur_generate, *cur, genvar);
-      pform_cur_generate->genvars[*cur] = genvar;
+      res = add_local_symbol(pform_cur_generate, *cur, genvar);
+      if (res) pform_cur_generate->genvars[*cur] = genvar;
     } else {
-      add_local_symbol(pform_cur_module.front(), *cur, genvar);
-      pform_cur_module.front()->genvars[*cur] = genvar;
+      res = add_local_symbol(pform_cur_module.front(), *cur, genvar);
+      if (res) pform_cur_module.front()->genvars[*cur] = genvar;
     }
+    if (!res) delete genvar;
   }
 
   delete names;

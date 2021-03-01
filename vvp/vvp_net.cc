@@ -2525,7 +2525,7 @@ bool vvp_vector2_t::is_all_one() const {
   const unsigned words = (wid_ - 1) / BITS_PER_WORD;
   unsigned idx = 0;
   for (; idx < words; idx += 1) {
-    if (vec_[idx] != 1) return false;
+    if (vec_[idx] != (long)-1) return false;
   }
   idx *= BITS_PER_WORD;
   for (; idx < wid_; idx++) {

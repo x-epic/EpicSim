@@ -113,7 +113,7 @@ void resolv_tri::recv_vec8_(unsigned port, const vvp_vector8_t& bit) {
   assert(port < nports_);
 
   if (val_[port].eeq(bit)) return;
-
+  vvp_vector8_t base_val = val_[port];
   val_[port] = bit;
 
   // Starting at the leaf level, work down the tree, resolving
@@ -151,6 +151,7 @@ void resolv_tri::recv_vec8_(unsigned port, const vvp_vector8_t& bit) {
     for (unsigned idx = 0; idx < val_[base].size(); idx += 1) {
       val_[base].set_bit(idx, resolve(val_[base].value(idx), hiz_value_));
     }
+    if (base == port && val_[port].eeq(base_val)) return;
   }
 
   net_->send_vec8(val_[base]);
